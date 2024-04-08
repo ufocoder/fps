@@ -1,7 +1,7 @@
-import Canvas from "./canvas.js";
-import { Level } from "./level.ts";
-import { Texture } from "./textures.ts";
-import { degreeToRadians } from "./utils.ts";
+import Canvas from "../canvas.js";
+import { Level } from "../level.ts";
+import { Texture } from "../textures.ts";
+import { degreeToRadians } from "../utils.ts";
 
 type Player = any;
 
@@ -33,7 +33,6 @@ export default class Screen {
         const halfHeight = this.height / 2;
         const incrementAngle =  player.fov / width;
         const precision = 100;
-
 
         let rayAngle = player.angle - player.fov / 2;
     

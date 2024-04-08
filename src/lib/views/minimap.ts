@@ -1,5 +1,5 @@
-import Canvas from "./canvas.js";
-import { Level } from "./level.js";
+import Canvas from "../canvas.js";
+import { Level } from "../level.js";
 
 type Player = any;
 

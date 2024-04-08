@@ -2,8 +2,8 @@ import level from "./lib/level.ts";
 import { textures } from "./lib/textures.ts";
 
 import * as player from "./lib/player.js";
-import Screen from "./lib/screen.ts";
-import Minimap from "./lib/minimap.ts";
+import Screen from "./lib/views/screen.ts";
+import Minimap from "./lib/views/minimap.ts";
 
 let screen: Screen;
 let minimap: Minimap;
