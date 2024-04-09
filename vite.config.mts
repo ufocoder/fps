@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: "/fpt/",
+  base: "/fps/",
   server: {
     port: 3000,
   },
