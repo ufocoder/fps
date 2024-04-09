@@ -1,12 +1,18 @@
 import level from "./lib/level.ts";
-import { textures } from "./lib/textures.ts";
+import * as presets from "./lib/presets.ts";
 
 import * as player from "./lib/player.js";
-import Screen from "./lib/views/screen.ts";
-import Minimap from "./lib/views/minimap.ts";
+import ScreenView from "./lib/views/screen.ts";
+import MinimapView from "./lib/views/minimap.ts";
+import SoundManager from "./lib/managers/SoundManager.ts";
+import TextureManager from "./lib/managers/TextureManager.ts";
 
-let screen: Screen;
-let minimap: Minimap;
+
+const soundManager = new SoundManager();
+const textureManager = new TextureManager();
+
+const minimap = new MinimapView(level, player.player);
+const screen = new ScreenView(level, player.player, textureManager);
 
 // loop
 
@@ -44,12 +50,18 @@ function pause() {
 // handlers
 
 window.onload = async () => {
-  minimap = new Minimap(level, player.player);
-  screen = new Screen(level, player.player, textures);
+  try {
+    await Promise.all([
+      await soundManager.load(presets.sounds),
+      await textureManager.load(presets.textures),
+    ]);
+    document.body.appendChild(minimap.canvas.element);
+    document.body.appendChild(screen.canvas.element);
 
-  document.body.appendChild(minimap.canvas.element);
-  document.body.appendChild(screen.canvas.element);
-  play();
+    play();
+  } catch (err) {
+    console.warn(err);
+  }
 };
 
 window.onclick = function () {

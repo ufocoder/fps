@@ -1,6 +1,6 @@
 import Canvas from "../canvas.js";
 import { Level } from "../level.ts";
-import { Texture } from "../textures.ts";
+import TextureManager from "../managers/TextureManager.ts";
 import { degreeToRadians } from "../utils.ts";
 
 type Player = any;
@@ -11,12 +11,12 @@ export default class Screen {
     readonly canvas: Canvas;
     readonly width: number = 640;
     readonly height: number = 480;
-    readonly textures: Texture[] = [];
+    readonly textureManager: TextureManager;
 
-    constructor(level: Level, player: Player, textures: Texture[]) {
+    constructor(level: Level, player: Player, textureManager: TextureManager) {
         this.level = level;
         this.player = player;
-        this.textures = textures;
+        this.textureManager = textureManager;
 
         this.canvas = new Canvas({
             height: this.height, 
@@ -38,9 +38,10 @@ export default class Screen {
     
         for (let rayCount = 0; rayCount < width; rayCount++) {
     
-            // Ray data
-            let rayX = player.x;
-            let rayY = player.y;
+            const ray = {
+                x: player.x,
+                y: player.y,
+            };
     
             // Ray path incrementers
             const cosineIncrement = Math.cos(degreeToRadians(rayAngle)) / precision;
@@ -49,15 +50,15 @@ export default class Screen {
             // Wall finder
             let wall = 0;
             while (wall == 0) {
-                rayX += cosineIncrement;
-                rayY += sinusIncrement;
-                wall = this.level.map[Math.floor(rayY)][Math.floor(rayX)];
+                ray.x += cosineIncrement;
+                ray.y += sinusIncrement;
+                wall = this.level.map[Math.floor(ray.y)][Math.floor(ray.x)];
             }
     
             // Pythagoras theorem
             let distance = Math.sqrt(
-                Math.pow(player.x - rayX, 2) + 
-                Math.pow(player.y - rayY, 2)
+                Math.pow(player.x - ray.x, 2) + 
+                Math.pow(player.y - ray.y, 2)
             );
     
             // Fish eye fix
@@ -65,7 +66,6 @@ export default class Screen {
     
             // Wall height
             const wallHeight = Math.floor(halfHeight / distance);
-            const texture = this.textures[wall - 1];
     
             // Draw
             this.canvas.drawLine({
@@ -76,11 +76,13 @@ export default class Screen {
                 color: this.level.world.top,
             });
 
-            if (texture) {
+            if (wall) {
+                const texture = this.textureManager.get('wall');
+
                 this._drawTexture({
                     x: rayCount,
                     texture,
-                    texturePositionX: Math.floor((texture.width * (rayX + rayY)) % texture.width),
+                    ray,
                     wallHeight
                 });
             }
@@ -99,15 +101,17 @@ export default class Screen {
 
     _drawTexture({
         x,
+        ray,
         texture, 
-        texturePositionX,
         wallHeight
     }: {
         x: number;
         texture: Texture;
-        texturePositionX: number
+
+        ray: { x: number; y: number; }
         wallHeight: number;
     }) {
+        const texturePositionX = Math.floor((texture.width * (ray.x + ray.y)) % texture.width);
         let yIncrementer = (wallHeight * 2) / texture.height;
         let y = this.height / 2 - wallHeight;
 
@@ -117,7 +121,7 @@ export default class Screen {
                 y1: y, 
                 x2: x, 
                 y2: y + (yIncrementer + 0.5),
-                color: texture.colors[texture.bitmap[i][texturePositionX]],
+                color: texture.colors[texturePositionX + i * texture.width],
             })
             y += yIncrementer;
         }
