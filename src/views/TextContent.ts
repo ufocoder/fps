@@ -22,7 +22,7 @@ export default class TextContent {
         this.text.forEach((line, index) => {
             this.canvas.drawText({
                 x: this.width / 2,
-                y: this.height / 2 - lineHeight * (this.text.length / 2 - index),
+                y: this.height / 2 - lineHeight * (this.text.length / 2 - index - 0.5),
                 align: 'center',
                 text: line, 
                 color: 'white', 
