@@ -33,10 +33,12 @@ window.onload = async () => {
     introScene.render(container);
     introScene.onComplete(() => {
       introScene.destroy()
+      soundManager.play('background');
       gameScene.render(container);
     });
 
     gameScene.onComplete(() => {
+      soundManager.pause('background');
       gameScene.destroy();
       winScene.render(container);
     })
