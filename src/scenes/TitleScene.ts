@@ -36,13 +36,13 @@ export default class TitleScene implements BaseScene {
 
     handleDocumentKeydown = () => {
         if (this.onCompleteCallback) {
-            this.onCompleteCallback();
+            window.requestAnimationFrame(this.onCompleteCallback);
         }
     }
     
     handleDocumentClick = () => {
         if (this.onCompleteCallback) {
-            this.onCompleteCallback();
+            window.requestAnimationFrame(this.onCompleteCallback);
         }
     }
 }

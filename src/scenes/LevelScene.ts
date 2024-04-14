@@ -39,7 +39,7 @@ export default class LevelScene {
             Math.floor(this.player.y) === this.level.exit.y && 
             this.onCompleteCallback
         ) {    
-            this.onCompleteCallback();
+            window.requestAnimationFrame(this.onCompleteCallback);
         }
 
         this.camera.render();
