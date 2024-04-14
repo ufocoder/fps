@@ -108,7 +108,7 @@ export default class Firstperson {
         wallHeight: number;
     }) {
         const texturePositionX = Math.floor((texture.width * (ray.x + ray.y)) % texture.width);
-        let yIncrementer = (wallHeight * 2) / texture.height;
+        const yIncrementer = (wallHeight * 2) / texture.height;
         let y = this.height / 2 - wallHeight;
 
         for(let i = 0; i < texture.height; i++) {

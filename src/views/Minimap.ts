@@ -1,6 +1,5 @@
+import Player from "src/entities/Player";
 import Canvas from "src/lib/Canvas";
-
-type Player = any;
 
 export default class Minimap {
     readonly scale: number = 10;
