@@ -21,7 +21,7 @@ export default class TextureManager {
         const { id, url } = preset;
         const image = await loadPresetImage(url);
         const data = await extractImageData(image);
-        const colors = await extractColors(data);
+        const colors = await extractColors(image.height, image.width, data);
 
         this.textures[id] = {
           id,
@@ -62,12 +62,15 @@ async function extractImageData(image: HTMLImageElement) {
   return context.getImageData(0, 0, image.width, image.height).data;
 }
 
-async function extractColors(imageData: Uint8ClampedArray) {
-  const colors = [];
-
-  for (let i = 0; i < imageData.length; i += 4) {
-    colors.push(`rgb(${imageData[i]},${imageData[i + 1]},${imageData[i + 2]})`);
+async function extractColors(height: number, width: number, imageData: Uint8ClampedArray) {
+  const colors: string[][] = [];
+  for (let y = 0; y < height; y++) {
+    const row: string[] = [];
+    for (let x = 0; x < width; x++) {
+      const i = x * 4 + y * width * 4;
+      row.push(`rgb(${imageData[i]},${imageData[i + 1]},${imageData[i + 2]})`);
+    }
+    colors.push(row);
   }
-
   return colors;
 }

@@ -1,17 +1,16 @@
-export type Map = number[][];
-
-export interface Level {
-    map: Map;
-    world: {
-        top: string;
-        bottom: string;
-    }
-}
-
 const level: Level = {
     world: {
         top: '#000',
         bottom: '#54625c',
+    },
+    player: {
+        x: 2,
+        y: 2,
+        angle: -30,
+    },
+    exit: {
+        x: 8,
+        y: 8,
     },
     map: [
         [1,1,1,1,1,1,1,1,1,1],

@@ -1,10 +1,9 @@
-import Canvas from "../canvas.js";
-import { Level } from "../level.js";
+import Canvas from "src/lib/Canvas";
 
 type Player = any;
 
 export default class Minimap {
-    readonly scale: number = 20;
+    readonly scale: number = 10;
     readonly level: Level;
     readonly player: Player;
     readonly canvas: Canvas;
@@ -28,17 +27,35 @@ export default class Minimap {
 
         for (let x = 0; x < cols; x++) {
             for (let y = 0; y < rows; y++) {
-                if (this.level.map[y][x]) {
-                    this.canvas.drawRect({
-                        x: x * this.scale, 
-                        y: y * this.scale, 
-                        width: this.scale, 
-                        height: this.scale, 
-                        color: 'rgb(200,200,200)'
-                    });
+                if (this.level.map[y][x] === 1) {
+                    this.drawWall(x, y);
+                }
+
+                if (this.level.exit.x === x && this.level.exit.y === y) {
+                    this.drawExit(x, y);
                 }
             }
         }
+    }
+
+    drawWall(x: number, y: number) {
+        this.canvas.drawRect({
+            x: x * this.scale, 
+            y: y * this.scale, 
+            width: this.scale, 
+            height: this.scale, 
+            color: '#ccc'
+        });
+    }
+
+    drawExit(x: number, y: number) {
+        this.canvas.drawRect({
+            x: x * this.scale, 
+            y: y * this.scale, 
+            width: this.scale, 
+            height: this.scale, 
+            color: 'yellow'
+        });
     }
 
     _renderPlayer() {

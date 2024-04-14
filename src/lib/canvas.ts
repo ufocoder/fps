@@ -13,6 +13,14 @@ interface DrawLineProps {
     color: string | CanvasGradient | CanvasPattern;
 }
 
+interface DrawVerticalLineProps {
+    x: number;
+    y1: number;
+    y2: number;
+    color: string | CanvasGradient | CanvasPattern;
+}
+
+
 interface DrawRectProps {
     x: number;
     y: number;
@@ -29,9 +37,12 @@ interface DrawCircleProps {
 }
 
 interface DrawTextProps {
+    x: number;
+    y: number;
+    align?: CanvasTextAlign;
     text: string;
     font: string;
-    color: string | CanvasGradient | CanvasPattern;
+    color?: string | CanvasGradient | CanvasPattern;
 }
 
 export default class Canvas {
@@ -65,6 +76,16 @@ export default class Canvas {
         this.context.fillRect(0, 0, this.width, this.height);
     }
 
+    drawVerticalLine({ x, y1, y2, color }: DrawVerticalLineProps) {
+        this.context.fillStyle = color;
+        this.context.fillRect(
+            x,
+            y1,
+            1,
+            y2 - y1,
+        );
+    }
+
     drawLine({ x1, y1, x2, y2, color }: DrawLineProps) {
         this.context.strokeStyle = color;
         this.context.beginPath();
@@ -84,19 +105,24 @@ export default class Canvas {
     }
 
     drawCircle({ x, y, radius, color }: DrawCircleProps) {
-        this.context.beginPath()
-        this.context.arc(x, y, radius, 0, 2 * Math.PI)
+        this.context.beginPath();
+        this.context.arc(x, y, radius, 0, 2 * Math.PI);
         this.context.fillStyle = color;
-        this.context.fill()
+        this.context.fill();
     }
 
-    drawText({ color, font, text }: DrawTextProps) {
-        this.context.fillStyle = color;
+    drawText({ x, y, color, font, text, align }: DrawTextProps) {
+        if (align) {
+            this.context.textAlign = align;
+        }
+        if (color) {
+            this.context.fillStyle = color;
+        }
         this.context.font = font;
-        this.context.fillText(text, 37, this.height / 2);
+        this.context.fillText(text, x, y);
     }
 
     clear() {
         this.context.clearRect(0, 0, this.width, this.height);
-    }    
+    }
 }

@@ -1,11 +1,9 @@
-import Canvas from "../canvas.js";
-import { Level } from "../level.ts";
-import TextureManager from "../managers/TextureManager.ts";
-import { degreeToRadians } from "../utils.ts";
+import Canvas from "src/lib/Canvas";
+import TextureManager from "src/managers/TextureManager";
+import { degreeToRadians } from "src/lib/utils";
+import Player from "src/entities/Player";
 
-type Player = any;
-
-export default class Screen {
+export default class Firstperson {
     readonly level: Level;
     readonly player: Player;
     readonly canvas: Canvas;
@@ -37,7 +35,6 @@ export default class Screen {
         let rayAngle = player.angle - player.fov / 2;
     
         for (let rayCount = 0; rayCount < width; rayCount++) {
-    
             const ray = {
                 x: player.x,
                 y: player.y,
@@ -49,6 +46,7 @@ export default class Screen {
     
             // Wall finder
             let wall = 0;
+
             while (wall == 0) {
                 ray.x += cosineIncrement;
                 ray.y += sinusIncrement;
@@ -68,17 +66,16 @@ export default class Screen {
             const wallHeight = Math.floor(halfHeight / distance);
     
             // Draw
-            this.canvas.drawLine({
-                x1: rayCount, 
+            this.canvas.drawVerticalLine({
+                x: rayCount, 
                 y1: 0, 
-                x2: rayCount,
                 y2: halfHeight - wallHeight, 
                 color: this.level.world.top,
             });
+            
 
             if (wall) {
                 const texture = this.textureManager.get('wall');
-
                 this._drawTexture({
                     x: rayCount,
                     texture,
@@ -87,10 +84,9 @@ export default class Screen {
                 });
             }
 
-            this.canvas.drawLine({
-                x1: rayCount, 
-                y1: halfHeight + wallHeight, 
-                x2: rayCount, 
+            this.canvas.drawVerticalLine({
+                x: rayCount, 
+                y1: halfHeight + wallHeight,
                 y2: height, 
                 color: this.level.world.bottom,
             });
@@ -116,12 +112,11 @@ export default class Screen {
         let y = this.height / 2 - wallHeight;
 
         for(let i = 0; i < texture.height; i++) {
-            this.canvas.drawLine({ 
-                x1: x, 
+            this.canvas.drawVerticalLine({ 
+                x: x, 
                 y1: y, 
-                x2: x, 
-                y2: y + (yIncrementer + 0.5),
-                color: texture.colors[texturePositionX + i * texture.width],
+                y2: y + (yIncrementer + 0.5) + 1,
+                color: texture.colors[i][texturePositionX],
             })
             y += yIncrementer;
         }
@@ -130,9 +125,12 @@ export default class Screen {
     renderFocusLost() {
         this.canvas.drawBackground('rgba(0,0,0,0.5)');
         this.canvas.drawText({
+            y: this.height / 2,
+            x: this.width / 2,
+            align: 'center',
             text: 'CLICK TO FOCUS', 
             color: 'white', 
-            font: '10px Lucida Console'
+            font: '20px Lucida Console'
         });
     }
 
