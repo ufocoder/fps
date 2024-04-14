@@ -90,7 +90,7 @@ export default class LevelScene {
     }
 
     handleDocumentPointerdown = () => {
-        if (!this.loop.checkRunning()) {
+        if (this.loop.checkRunning()) {
             this.loop.pause();
         } else {
             this.loop.play();
