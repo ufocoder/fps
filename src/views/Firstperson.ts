@@ -26,14 +26,15 @@ export default class Firstperson {
 
     _rayCasting() {
         const player = this.player;
-        const height = this.height;
         const width = this.width;
         const halfHeight = this.height / 2;
         const incrementAngle =  player.fov / width;
         const precision = 100;
+        const wallTexture = this.textureManager.get('wall');
+        const floorTexture = this.textureManager.get('floor');
 
         let rayAngle = player.angle - player.fov / 2;
-    
+
         for (let rayCount = 0; rayCount < width; rayCount++) {
             const ray = {
                 x: player.x,
@@ -75,20 +76,19 @@ export default class Firstperson {
             
 
             if (wall) {
-                const texture = this.textureManager.get('wall');
                 this._drawTexture({
                     x: rayCount,
-                    texture,
+                    texture: wallTexture,
                     ray,
                     wallHeight
                 });
             }
 
-            this.canvas.drawVerticalLine({
-                x: rayCount, 
-                y1: halfHeight + wallHeight,
-                y2: height, 
-                color: this.level.world.bottom,
+            this._drawFloor({
+                x: rayCount,
+                texture: floorTexture,
+                wallHeight,
+                rayAngle,
             });
 
             rayAngle += incrementAngle;
@@ -119,6 +119,43 @@ export default class Firstperson {
                 color: texture.colors[i][texturePositionX],
             })
             y += yIncrementer;
+        }
+    }
+
+    _drawFloor({
+        x,
+        texture,
+        wallHeight,
+        rayAngle 
+    }: {
+        x: number,
+        texture: Texture,
+        wallHeight: number,
+        rayAngle: number
+    }) {
+        const halfHeight = this.height / 2;
+
+        const start = halfHeight + wallHeight + 1;
+        const directionCos = Math.cos(degreeToRadians(rayAngle));
+        const directionSin = Math.sin(degreeToRadians(rayAngle));
+        for (let y = start; y < this.height; y++) {
+            // Create distance and calculate it
+            let distance = this.height / (2 * y - this.height);
+            distance = distance / Math.cos(degreeToRadians(this.player.angle) - degreeToRadians(rayAngle)); // Inverse fisheye fix
+
+            // Get the tile position
+            let tileX = distance * directionCos;
+            let tileY = distance * directionSin;
+            tileX += this.player.x;
+            tileY += this.player.y;
+
+            // Define texture coords
+            const textureX = Math.floor(tileX * texture.width) % texture.width;
+            const textureY = Math.floor(tileY * texture.height) % texture.height;
+
+            // Get pixel color
+            const color = texture.colors[textureX][textureY];
+            this.canvas.drawPixel({ x, y, color });
         }
     }
 

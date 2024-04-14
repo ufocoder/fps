@@ -29,6 +29,12 @@ interface DrawRectProps {
     color: string | CanvasGradient | CanvasPattern;
 }
 
+interface DrawPixelProps {
+    x: number;
+    y: number;
+    color: string | CanvasGradient | CanvasPattern;
+}
+
 interface DrawCircleProps {
     x: number;
     y: number;
@@ -74,6 +80,11 @@ export default class Canvas {
     drawBackground(color: string) {
         this.context.fillStyle = color;
         this.context.fillRect(0, 0, this.width, this.height);
+    }
+
+    drawPixel({ x, y, color }: DrawPixelProps) {
+        this.context.fillStyle = color;
+        this.context.fillRect(x, y, 1, 1);
     }
 
     drawVerticalLine({ x, y1, y2, color }: DrawVerticalLineProps) {
