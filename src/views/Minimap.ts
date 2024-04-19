@@ -1,5 +1,6 @@
 import Player from "src/entities/Player";
 import Canvas from "src/lib/BufferCanvas";
+import { degreeToRadians } from "src/lib/utils";
 
 export default class Minimap {
     readonly scale: number = 10;
@@ -59,9 +60,22 @@ export default class Minimap {
 
     _renderPlayer() {
         this.canvas.drawCircle({
-            x: this.player.x * this.scale, 
-            y: this.player.y * this.scale, 
-            radius: this.player.radius * this.scale, 
+            x: this.player.x * this.scale,
+            y: this.player.y * this.scale,
+            radius: this.player.radius * this.scale,
+            color: 'green'
+        });
+
+        const playerAngle = this.player.angle;
+        const playerX = this.player.x * this.scale;
+        const playerY = this.player.y * this.scale;
+        const LINE_SCALE = 15;
+
+        this.canvas.drawLine({
+            x1: playerX,
+            y1: playerY,
+            x2: playerX + Math.cos(degreeToRadians(playerAngle)) * LINE_SCALE,
+            y2: playerY + Math.sin(degreeToRadians(playerAngle)) * LINE_SCALE,
             color: 'green'
         });
     }
