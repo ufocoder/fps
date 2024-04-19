@@ -1,3 +1,5 @@
+import { Color } from "src/managers/TextureManager";
+
 interface CanvasProps {
     width: number;
     height: number;
@@ -17,7 +19,7 @@ interface DrawVerticalLineProps {
     x: number;
     y1: number;
     y2: number;
-    color: string | CanvasGradient | CanvasPattern;
+    color: Color;
 }
 
 
@@ -32,7 +34,7 @@ interface DrawRectProps {
 interface DrawPixelProps {
     x: number;
     y: number;
-    color: string | CanvasGradient | CanvasPattern;
+    color: Color;
 }
 
 interface DrawCircleProps {
@@ -51,12 +53,14 @@ interface DrawTextProps {
     color?: string | CanvasGradient | CanvasPattern;
 }
 
-export default class Canvas {
+export default class BufferCanvas {
     readonly width: number;
     readonly height: number;
 
     element: HTMLCanvasElement;
     context: CanvasRenderingContext2D;
+    imageData: ImageData;
+    buffer: Uint8ClampedArray;
     
     constructor({ width, height, style, scale }: CanvasProps) {
         this.width = width;
@@ -75,6 +79,10 @@ export default class Canvas {
         if (scale) {
             this.context.scale(scale, scale);
         }
+
+        // Buffer
+        this.imageData = this.context.createImageData(width, height);
+        this.buffer = this.imageData.data;
     }
 
     drawBackground(color: string) {
@@ -83,18 +91,17 @@ export default class Canvas {
     }
 
     drawPixel({ x, y, color }: DrawPixelProps) {
-        this.context.fillStyle = color;
-        this.context.fillRect(x, y, 1, 1);
+        const offset = 4 * (Math.floor(x) + Math.floor(y) * this.width);
+        this.buffer[offset] = color.r;
+        this.buffer[offset + 1] = color.g;
+        this.buffer[offset + 2] = color.b;
+        this.buffer[offset + 3] = color.a;
     }
 
     drawVerticalLine({ x, y1, y2, color }: DrawVerticalLineProps) {
-        this.context.fillStyle = color;
-        this.context.fillRect(
-            x,
-            y1,
-            1,
-            y2 - y1,
-        );
+        for (let y = y1; y < y2; y++) {
+            this.drawPixel({ x, y, color });
+        }
     }
 
     drawLine({ x1, y1, x2, y2, color }: DrawLineProps) {
@@ -135,5 +142,9 @@ export default class Canvas {
 
     clear() {
         this.context.clearRect(0, 0, this.width, this.height);
+    }
+
+    renderBuffer() {
+        this.context.putImageData(this.imageData, 0, 0);
     }
 }

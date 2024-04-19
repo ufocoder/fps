@@ -12,8 +12,8 @@ interface Level {
         y: number;
     };
     world: {
-        top: string;
-        bottom: string;
+        top: Color;
+        bottom: Color;
     }
 }
 
@@ -32,5 +32,5 @@ interface Texture {
     id: string;
     width: number;
     height: number;
-    colors: string[][];
+    colors: Color[][];
 }
