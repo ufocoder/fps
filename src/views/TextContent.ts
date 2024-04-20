@@ -1,4 +1,4 @@
-import Canvas from "src/lib/Canvas";
+import Canvas from "src/lib/BufferCanvas";
 
 export default class TextContent {
     readonly text: string[];
@@ -24,8 +24,8 @@ export default class TextContent {
                 x: this.width / 2,
                 y: this.height / 2 - lineHeight * (this.text.length / 2 - index - 0.5),
                 align: 'center',
-                text: line, 
-                color: 'white', 
+                text: line,
+                color: 'white',
                 font: `${lineHeight}px Lucida Console`
             });
         });

@@ -63,12 +63,12 @@ async function extractImageData(image: HTMLImageElement) {
 }
 
 async function extractColors(height: number, width: number, imageData: Uint8ClampedArray) {
-  const colors: string[][] = [];
+  const colors: Color[][] = [];
   for (let y = 0; y < height; y++) {
-    const row: string[] = [];
+    const row: Color[] = [];
     for (let x = 0; x < width; x++) {
       const i = x * 4 + y * width * 4;
-      row.push(`rgb(${imageData[i]},${imageData[i + 1]},${imageData[i + 2]})`);
+      row.push(new Color(imageData[i], imageData[i + 1], imageData[i + 2], imageData[i + 3]));
     }
     colors.push(row);
   }

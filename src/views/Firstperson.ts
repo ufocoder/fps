@@ -1,4 +1,4 @@
-import Canvas from "src/lib/Canvas";
+import Canvas from "src/lib/BufferCanvas";
 import TextureManager from "src/managers/TextureManager";
 import { degreeToRadians } from "src/lib/utils";
 import Player from "src/entities/Player";
@@ -173,7 +173,8 @@ export default class Firstperson {
 
     render() {
         this.canvas.clear();
-        this._rayCasting()
+        this._rayCasting();
+        this.canvas.renderBuffer();
     }
 
     clear() {

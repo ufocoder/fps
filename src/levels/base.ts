@@ -1,7 +1,9 @@
+import { Color } from "src/managers/TextureManager";
+
 const level: Level = {
     world: {
-        top: '#000',
-        bottom: '#54625c',
+        top: new Color(0, 0, 0, 255),
+        bottom: new Color(84, 98, 92, 255),
     },
     player: {
         x: 2,
