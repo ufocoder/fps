@@ -1,7 +1,15 @@
+interface Color {
+    r: number;
+    g: number;
+    b: number;
+    a: number;
+}
+
 type LevelMap = number[][];
 
 interface Level {
     map: LevelMap;
+    textures: Record<number, string>;
     player: {
         x: number;
         y: number;
@@ -12,8 +20,10 @@ interface Level {
         y: number;
     };
     world: {
-        top: string;
-        bottom: string;
+        colors: {
+            top: Color;
+            bottom: Color;
+        }
     }
 }
 
@@ -32,5 +42,5 @@ interface Texture {
     id: string;
     width: number;
     height: number;
-    colors: string[][];
+    colors: Color[][];
 }

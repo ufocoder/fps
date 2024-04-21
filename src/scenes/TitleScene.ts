@@ -5,18 +5,19 @@ export default class TitleScene implements BaseScene {
     protected readonly view: TextContent;
     protected onCompleteCallback?: () => void;
 
-    constructor(text: string[]) {
+    constructor(container: HTMLElement, text: string[]) {
         this.view = new TextContent(text);
         this.createListeners();
+
+        container.appendChild(this.view.canvas.element);
     }
 
     onComplete(cb: () => void): void {
         this.onCompleteCallback = cb;
     }
 
-    render(container: HTMLElement) {
+    render() {
         this.view.render();
-        container.appendChild(this.view.canvas.element);
     }
 
     destroy() {

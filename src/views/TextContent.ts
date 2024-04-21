@@ -1,4 +1,4 @@
-import Canvas from "src/lib/Canvas";
+import Canvas from "src/lib/Canvas/DefaultCanvas";
 
 export default class TextContent {
     readonly text: string[];
