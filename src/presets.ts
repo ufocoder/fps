@@ -11,6 +11,10 @@ export const textures: TexturePreset[] = [
     id: "wall-3b",
     url: "./assets/textures/BRICK_3B.PNG",
   },
+  {
+    id: "floor",
+    url: "./assets/floor.png",
+  }
 ];
 
 export const sounds: SoundPreset[] = [
