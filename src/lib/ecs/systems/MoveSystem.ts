@@ -6,10 +6,39 @@ import MoveComponent from "src/lib/ecs/components/MoveComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import RotateComponent from "src/lib/ecs/components/RotateComponent";
 import CollisionComponent from "src/lib/ecs/components/CollisionComponent";
+import QuerySystem from "../lib/QuerySystem";
+import PositionMap from "../lib/PositionMap";
+import CameraComponent from "../components/CameraComponent";
 
-export default class MoveSystem implements System {
-  components = [PositionComponent, MoveComponent, AngleComponent, RotateComponent];
+export default class MoveSystem extends System {
+  requiredComponents = [PositionComponent, AngleComponent, RotateComponent, MoveComponent];
+  
+  protected positionMap: PositionMap;
 
+
+  constructor(querySystem: QuerySystem, level: Level) {
+    super(querySystem);
+
+    const cols = level.map[0].length;
+    const rows = level.map.length;
+
+    this.positionMap = new PositionMap(cols, rows);
+    
+    this.querySystem.query([PositionComponent, CollisionComponent]).forEach(entity => {
+      if (entity.hasComponent(CameraComponent)) {
+        return;
+      }
+
+      const position = entity.getComponent(PositionComponent);
+
+      this.positionMap.set(
+        Math.floor(position.x),
+        Math.floor(position.y),
+        entity
+      );
+    })
+  }
+  
   destroy(): void {}
 
   update(dt: number, entities: Entity[]) {
@@ -67,8 +96,10 @@ export default class MoveSystem implements System {
       const newX = positionComponent.x + k * playerCos * moveComponent.moveSpeed * dt;
       const newY = positionComponent.y + k * playerSin * moveComponent.moveSpeed * dt;
 
-      positionComponent.y = newY;
-      positionComponent.x = newX;
+      if (!this.positionMap.has(Math.floor(newX), Math.floor(newY))) {
+        positionComponent.y = newY;
+        positionComponent.x = newX;
+      }
     }
   }
 }

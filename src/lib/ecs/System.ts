@@ -1,7 +1,15 @@
 import Entity from "./Entity";
+import QuerySystem from "./lib/QuerySystem";
 
-export default interface System {
-    components: Array<Function>;
-    update(dt: number, entities: Entity[]): void;
-    destroy(): void;
+export default abstract class BaseSystem {
+    querySystem: QuerySystem;
+    
+    requiredComponents: Array<Function> = [];
+
+    constructor(querySystem: QuerySystem) {
+        this.querySystem = querySystem;
+    }
+
+    abstract update(dt: number, entities: Entity[]): void;
+    abstract destroy(): void;
 }

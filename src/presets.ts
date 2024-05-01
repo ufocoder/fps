@@ -1,19 +1,15 @@
 export const textures: TexturePreset[] = [
   {
-    id: "wall-1a",
+    id: "wall",
     url: "./assets/textures/BRICK_1A.PNG",
   },
   {
-    id: "wall-2b",
-    url: "./assets/textures/BRICK_2B.PNG",
-  },
-  {
-    id: "wall-3b",
-    url: "./assets/textures/BRICK_3B.PNG",
+    id: "exit",
+    url: "./assets/textures/DOOR_1A.PNG",
   },
   {
     id: "floor",
-    url: "./assets/floor.png",
+    url: "./assets/textures/FLOOR_1A.PNG",
   }
 ];
 

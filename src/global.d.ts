@@ -5,16 +5,20 @@ interface Color {
     a: number;
 }
 
+interface Сharacter {
+    x: number;
+    y: number;
+    angle: number;
+    health: number;
+}
+
 type LevelMap = number[][];
 
 interface Level {
     map: LevelMap;
     textures: Record<number, string>;
-    player: {
-        x: number;
-        y: number;
-        angle: number;
-    };
+    player: Сharacter;
+    enemies: Сharacter[];
     exit: {
         x: number;
         y: number;

@@ -2,6 +2,7 @@ import Entity from "src/lib/ecs/Entity";
 import System from "src/lib/ecs/System";
 import MoveComponent from "src/lib/ecs/components/MoveComponent";
 import RotateComponent from "src/lib/ecs/components/RotateComponent";
+import QuerySystem from "../lib/QuerySystem";
 
 const keyCodes = {
   up: "KeyW",
@@ -10,8 +11,8 @@ const keyCodes = {
   right: "KeyD",
 };
 
-export default class ControlSystem implements System {
-  components = [MoveComponent, RotateComponent];
+export default class ControlSystem extends System {
+  requiredComponents = [MoveComponent, RotateComponent];
 
   direction = {
     up: false,
@@ -20,7 +21,9 @@ export default class ControlSystem implements System {
     right: false,
   };
 
-  constructor() {
+  constructor(querySystem: QuerySystem) {
+    super(querySystem);
+
     this.createListeners();
   }
 

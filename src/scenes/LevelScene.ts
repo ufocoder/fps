@@ -6,9 +6,11 @@ import System from "src/lib/ecs/System";
 import MinimapSystem from "src/lib/ecs/systems/MinimapSystem";
 import ControlSystem from "src/lib/ecs/systems/ControlSystem";
 import MoveSystem from "src/lib/ecs/systems/MoveSystem";
-import CollisionSystem from "src/lib/ecs/systems/CollisionSystem";
 import CameraSystem from "src/lib/ecs/systems/CameraSystem";
 import { createEntities } from "src/lib/world";
+import QuerySystem from "src/lib/ecs/lib/QuerySystem";
+import CameraComponent from "src/lib/ecs/components/CameraComponent";
+import PositionComponent from "src/lib/ecs/components/PositionComponent";
 
 interface LevelSceneProps {
   container: HTMLElement;
@@ -21,46 +23,45 @@ export default class LevelScene {
   protected readonly level: Level;
   protected readonly loop: Loop;
   protected onCompleteCallback?: () => void;
-  // protected readonly ecs: ECS;
+  
+  protected readonly querySystem: QuerySystem;
   protected readonly systems: System[];
   protected readonly entities: Entity[];
 
   constructor({ container, level, textureManager }: LevelSceneProps) {
     this.level = level;
-    this.entities = createEntities(level, textureManager);
+
+    const entities = createEntities(level, textureManager);
+    const querySystem = new QuerySystem(entities);
 
     this.systems = [
-        new ControlSystem(),
-        new CollisionSystem(),
-        new MoveSystem(),
-        new CameraSystem(container, level, textureManager),
-        new MinimapSystem(container, level),
+        new ControlSystem(querySystem),
+        new MoveSystem(querySystem, level),
+        new CameraSystem(querySystem, container, level),
+        new MinimapSystem(querySystem, container, level),
     ];
     
+    this.entities = entities;
+    this.querySystem = querySystem;
     this.loop = createLoop(this.onTick);
   }
 
   onTick = (dt: number) => {
     this.systems.forEach(system => {
-        const entities = this.entities.filter((entity) => (
-            system.components.every(component => entity.hasComponent(component))
-        ));
-
+        const entities = this.querySystem.query(system.requiredComponents);
         system.update(dt, entities);
     });
-    
-/*
+
+    const [camera] = this.querySystem.query([CameraComponent]);
+
     if (
-      Math.floor(this.player.x) === this.level.exit.x &&
-      Math.floor(this.player.y) === this.level.exit.y &&
+      camera &&
+      Math.floor(camera.getComponent(PositionComponent).x) === this.level.exit.x &&
+      Math.floor(camera.getComponent(PositionComponent).y) === this.level.exit.y &&
       this.onCompleteCallback
     ) {
       window.requestAnimationFrame(this.onCompleteCallback);
     }
-    */
-
-    // this.camera.render();
-    //this.minimap.render();
   };
 
   onComplete = (cb: () => void) => {

@@ -4,7 +4,7 @@ import * as presets from "./presets.ts";
 import SoundManager from "./managers/SoundManager.ts";
 import TextureManager from "./managers/TextureManager.ts";
 import LevelScene from "./scenes/LevelScene.ts";
-// import TitleScene from "./scenes/TitleScene.ts";
+import TitleScene from "./scenes/TitleScene.ts";
 
 const container = document.getElementById('app')!;
 const soundManager = new SoundManager();
@@ -16,12 +16,13 @@ window.onload = async () => {
       await soundManager.load(presets.sounds),
       await textureManager.load(presets.textures),
     ]);
-/*
+
     const introScene = new TitleScene(container, [
       'Level 1', 
       'press any key'
     ]);
-    */
+
+
     const gameScene = new LevelScene({ 
       container,
       level,
@@ -29,19 +30,16 @@ window.onload = async () => {
       textureManager
     });
 
-    gameScene.run();
-
-    /*
-    const winScene = new TitleScene([
+    const winScene = new TitleScene(container, [
       'You win'
     ]);
     
-
     introScene.render();
     introScene.onComplete(() => {
       introScene.destroy()
       soundManager.play('background');
-      gameScene.render();
+  
+      gameScene.run();
     });
 
     gameScene.onComplete(() => {
@@ -49,7 +47,6 @@ window.onload = async () => {
       gameScene.destroy();
       winScene.render();
     })
-    */
   
   } catch (err) {
     console.warn(err);

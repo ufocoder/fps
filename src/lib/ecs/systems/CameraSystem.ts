@@ -2,31 +2,56 @@ import Canvas from "src/lib/Canvas/BufferCanvas";
 import System from "src/lib/ecs/System";
 import Entity from "src/lib/ecs/Entity";
 import { degreeToRadians } from "src/lib/utils";
-import BoxComponent from "src/lib/ecs/components/BoxComponent";
-import MinimapComponent from "src/lib/ecs/components/ColorComponent";
+// import BoxComponent from "src/lib/ecs/components/BoxComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
-import FieldOfVisionComponent from "src/lib/ecs/components/FovComponent";
-import TextureManager from "src/managers/TextureManager";
+import TextureComponent from "../components/TextureComponent";
+import CameraComponent from "src/lib/ecs/components/CameraComponent";
+import PositionMap from "../lib/PositionMap";
+import QuerySystem from "../lib/QuerySystem";
+import CollisionComponent from "../components/CollisionComponent";
 
-export default class CameraSystem implements System {
-  components = [PositionComponent, BoxComponent, MinimapComponent];
+export default class CameraSystem extends System {
+  requiredComponents = [CameraComponent, PositionComponent];
 
-  readonly width: number = 640;
-  readonly height: number = 480;
-  readonly level: Level;
-  readonly canvas: Canvas;
-  readonly textureManager: TextureManager;
-
+  protected positionMap: PositionMap;
   
-  constructor(container: HTMLElement, level: Level, textureManager: TextureManager) {
+  protected readonly width: number = 640;
+  protected readonly height: number = 480;
+  protected readonly rayMaxDistanceRay = 10;
+  protected readonly rayPrecision = 128;
+
+  protected readonly level: Level;
+  protected readonly canvas: Canvas;
+
+  constructor(querySystem: QuerySystem, container: HTMLElement, level: Level) {
+    super(querySystem);
+  
+    const cols = level.map[0].length;
+    const rows = level.map.length;
+
     this.level = level;
-    this.textureManager = textureManager;
 
     this.canvas = new Canvas({
       height: this.height,
       width: this.width,
     });
+
+    this.positionMap = new PositionMap(cols, rows);
+
+    this.querySystem.query([PositionComponent, CollisionComponent, TextureComponent]).forEach(entity => {
+      if (entity.hasComponent(CameraComponent)) {
+        return;
+      }
+
+      const position = entity.getComponent(PositionComponent);
+
+      this.positionMap.set(
+        Math.floor(position.x),
+        Math.floor(position.y),
+        entity
+      );
+    })
 
     container.appendChild(this.canvas.element);
   }
@@ -34,10 +59,8 @@ export default class CameraSystem implements System {
   update(_: number, entities: Entity[]) {
     this.canvas.clear();
 
-    console.log('CameraSystem:update');
-
     const camera = entities.find((entity) =>
-      entity.hasComponent(FieldOfVisionComponent)
+      entity.hasComponent(CameraComponent)
     );
 
     if (camera) {
@@ -51,47 +74,41 @@ export default class CameraSystem implements System {
     this.canvas.element.remove();
   }
 
-  _isWall(x: number, y: number) {
-    return this.level.map[Math.floor(y)]
-      ? this.level.map[Math.floor(y)][Math.floor(x)] > 0
-      : false;
-  }
-
-  _rayCasting(camera: Entity, ) {
+  _rayCasting(camera: Entity) {
     const cameraPosition = camera.getComponent(PositionComponent);
-    const cameraFov = camera.getComponent(FieldOfVisionComponent);
+    const cameraFov = camera.getComponent(CameraComponent);
     const cameraAngle = camera.getComponent(AngleComponent);
 
-    const height = this.height;
     const width = this.width;
     const halfHeight = this.height / 2;
 
     const incrementAngle = cameraFov.fov / width;
-    const maxDistanceRay = 50;
-    const precisionRay = 100;
+    const initialRayX = cameraPosition.x;
+    const initialRayY = cameraPosition.y;
 
     let rayAngle = cameraAngle.angle - cameraFov.fov / 2;
 
     for (let rayCount = 0; rayCount < width; rayCount++) {
-      const initialRayX = cameraPosition.x;
-      const initialRayY = cameraPosition.y;
 
-      const cosineIncrement = Math.cos(degreeToRadians(rayAngle)) / precisionRay;
-      const sinusIncrement = Math.sin(degreeToRadians(rayAngle)) / precisionRay;
+      const cosineIncrement = Math.cos(degreeToRadians(rayAngle)) / this.rayPrecision;
+      const sinusIncrement = Math.sin(degreeToRadians(rayAngle)) / this.rayPrecision;
 
       let currentRayX = initialRayX;
       let currentRayY = initialRayY;
       let distanceRay = 0;
-
-      let isFacedWithWall = false;
+      let rayCollidedEntity: Entity | undefined;
       let isPropogating = true;
 
       while (isPropogating) {
         currentRayX += cosineIncrement;
         currentRayY += sinusIncrement;
 
-        if (this._isWall(currentRayX, currentRayY)) {
-          isFacedWithWall = true;
+        rayCollidedEntity = this.positionMap.get(
+          Math.floor(currentRayX), 
+          Math.floor(currentRayY)
+        );
+
+        if (rayCollidedEntity) {
           isPropogating = false;
         }
 
@@ -100,7 +117,7 @@ export default class CameraSystem implements System {
           + Math.pow(cameraPosition.y - currentRayY, 2)
         );
 
-        if (distanceRay >= maxDistanceRay) {
+        if (distanceRay >= this.rayMaxDistanceRay) {
           isPropogating = false;
         }
       }
@@ -110,11 +127,11 @@ export default class CameraSystem implements System {
         distanceRay * Math.cos(degreeToRadians(rayAngle - cameraAngle.angle));
 
       // Wall height
-      const wallHeight = isFacedWithWall
+      const wallHeight = rayCollidedEntity
         ? Math.floor(halfHeight / distanceRay)
         : 0;
 
-      // Draw
+      // Draw top
       this.canvas.drawVerticalLine({
         x: rayCount,
         y1: 0,
@@ -122,24 +139,33 @@ export default class CameraSystem implements System {
         color: this.level.world.colors.top,
       });
 
-
-        if (isFacedWithWall) {
-            const texture = this.textureManager.get('wall-1a');
-            this._drawTexture(
-                rayCount,
-                currentRayX,
-                currentRayY,
-                texture,
-                wallHeight
-            );
-        }
-
+      // Draw bottom
       this.canvas.drawVerticalLine({
         x: rayCount,
         y1: halfHeight + wallHeight,
-        y2: height,
+        y2: this.height,
         color: this.level.world.colors.bottom,
       });
+
+      if (rayCollidedEntity) {
+        this._drawTexture(
+          rayCount,
+          currentRayX,
+          currentRayY,
+          rayCollidedEntity.getComponent(TextureComponent).texture,
+          wallHeight
+        );
+      }
+/*
+        this._drawFloor({
+            x: rayCount,
+            position: cameraPosition,
+            texture: this.textureManager.get('floor'),
+            wallHeight,
+            angle: cameraAngle.angle,
+            rayAngle,
+        });
+  */
 
       rayAngle += incrementAngle;
     }
@@ -159,13 +185,64 @@ export default class CameraSystem implements System {
     let y = this.height / 2 - wallHeight;
 
     for (let i = 0; i < texture.height; i++) {
+      const y1 = y
+      const y2 = y + (yIncrementer + 0.5) + 1;
+
+      y += yIncrementer;
+
+      if (y1 < 0 && y2 < 0) {
+        continue;
+      }
+
       this.canvas.drawVerticalLine({
         x: x,
-        y1: y,
-        y2: y + (yIncrementer + 0.5) + 1,
+        y1,
+        y2,
         color: texture.colors[i][texturePositionX],
       });
-      y += yIncrementer;
     }
   }
+
+  _drawFloor({
+    x,
+    texture,
+    position,
+    wallHeight,
+    angle,
+    rayAngle 
+}: {
+    x: number,
+    texture: Texture,
+    position: PositionComponent,
+    wallHeight: number,
+    angle: number,
+    rayAngle: number
+}) {
+    const halfHeight = this.height / 2;
+
+    const start = halfHeight + wallHeight + 1;
+    const directionCos = Math.cos(degreeToRadians(rayAngle));
+    const directionSin = Math.sin(degreeToRadians(rayAngle));
+
+    for (let y = start; y < this.height; y++) {
+        // Create distance and calculate it
+        let distance = this.height / (2 * y - this.height);
+
+        distance = distance / Math.cos(degreeToRadians(angle) - degreeToRadians(rayAngle)); // Inverse fisheye fix
+
+        // Get the tile position
+        let tileX = distance * directionCos;
+        let tileY = distance * directionSin;
+        tileX += position.x;
+        tileY += position.y;
+
+        // Define texture coords
+        const textureX = Math.abs(Math.floor(tileX * texture.width)) % texture.width;
+        const textureY = Math.abs(Math.floor(tileY * texture.height)) % texture.height;
+
+        // Get pixel color
+        const color = texture.colors[textureX][textureY];
+        this.canvas.drawPixel({ x, y, color });
+    }
+}
 }

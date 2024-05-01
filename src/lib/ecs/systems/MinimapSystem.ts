@@ -4,16 +4,16 @@ import Entity from "src/lib/ecs/Entity";
 import BoxComponent from "src/lib/ecs/components/BoxComponent";
 import ColorComponent from "src/lib/ecs/components/ColorComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
+import QuerySystem from "../lib/QuerySystem";
 
-export default class MinimapSystem implements System {
-  components = [PositionComponent, ColorComponent];
+export default class MinimapSystem extends System {
+  requiredComponents = [BoxComponent, PositionComponent, ColorComponent];
 
   readonly scale: number = 20;
-  readonly level: Level;
   readonly canvas: Canvas;
 
-  constructor(container: HTMLElement, level: Level) {
-    this.level = level;
+  constructor(querySystem: QuerySystem, container: HTMLElement, level: Level) {
+    super(querySystem);
 
     const cols = level.map[0].length;
     const rows = level.map.length;
@@ -48,15 +48,6 @@ export default class MinimapSystem implements System {
       y: y * this.scale,
       width: size * this.scale,
       height: size * this.scale,
-      color,
-    });
-  }
-
-  drawCircle(x: number, y: number, radius: number, color: string) {
-    this.canvas.drawCircle({
-      x: x * this.scale,
-      y: y * this.scale,
-      radius: radius * this.scale,
       color,
     });
   }
