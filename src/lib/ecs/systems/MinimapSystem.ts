@@ -12,28 +12,34 @@ export default class MinimapSystem extends System {
   readonly scale: number = 20;
   readonly canvas: Canvas;
 
+  protected readonly container: HTMLElement;
+
   constructor(querySystem: QuerySystem, container: HTMLElement, level: Level) {
     super(querySystem);
 
     const cols = level.map[0].length;
     const rows = level.map.length;
 
+    this.container = container;
+
     this.canvas = new Canvas({
       height: rows * this.scale,
       width: cols * this.scale,
     });
+  }
 
-    container.appendChild(this.canvas.element);
+  start() {
+    this.container.appendChild(this.canvas.element);
   }
 
   update(_: number, entities: Entity[]) {
     this.canvas.clear();
 
-    entities.forEach(entity => {
+    entities.forEach((entity) => {
       const { x, y } = entity.getComponent(PositionComponent);
       const { color } = entity.getComponent(ColorComponent);
       const { size } = entity.getComponent(BoxComponent);
-      
+
       this.drawSquare(x, y, size, color);
     });
   }

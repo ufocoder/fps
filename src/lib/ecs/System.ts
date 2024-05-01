@@ -10,6 +10,7 @@ export default abstract class BaseSystem {
         this.querySystem = querySystem;
     }
 
+    abstract start(): void;
     abstract update(dt: number, entities: Entity[]): void;
     abstract destroy(): void;
 }

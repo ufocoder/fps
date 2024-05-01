@@ -22,7 +22,6 @@ window.onload = async () => {
       'press any key'
     ]);
 
-
     const gameScene = new LevelScene({ 
       container,
       level,
@@ -34,18 +33,19 @@ window.onload = async () => {
       'You win'
     ]);
     
-    introScene.render();
+    introScene.start();
+
     introScene.onComplete(() => {
       introScene.destroy()
       soundManager.play('background');
   
-      gameScene.run();
+      gameScene.start();
     });
 
     gameScene.onComplete(() => {
       soundManager.pause('background');
       gameScene.destroy();
-      winScene.render();
+      winScene.start();
     })
   
   } catch (err) {

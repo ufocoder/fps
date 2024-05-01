@@ -3,20 +3,21 @@ import BaseScene from "./BaseScene";
 
 export default class TitleScene implements BaseScene {
     protected readonly view: TextContent;
+    protected readonly container: HTMLElement;
     protected onCompleteCallback?: () => void;
 
     constructor(container: HTMLElement, text: string[]) {
+        this.container = container;
         this.view = new TextContent(text);
         this.createListeners();
-
-        container.appendChild(this.view.canvas.element);
     }
 
     onComplete(cb: () => void): void {
         this.onCompleteCallback = cb;
     }
 
-    render() {
+    start() {
+        this.container.appendChild(this.view.canvas.element);
         this.view.render();
     }
 

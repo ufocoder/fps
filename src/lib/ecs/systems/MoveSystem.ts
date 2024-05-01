@@ -15,7 +15,6 @@ export default class MoveSystem extends System {
   
   protected positionMap: PositionMap;
 
-
   constructor(querySystem: QuerySystem, level: Level) {
     super(querySystem);
 
@@ -39,6 +38,7 @@ export default class MoveSystem extends System {
     })
   }
   
+  start(): void {}
   destroy(): void {}
 
   update(dt: number, entities: Entity[]) {

@@ -11,6 +11,7 @@ import { createEntities } from "src/lib/world";
 import QuerySystem from "src/lib/ecs/lib/QuerySystem";
 import CameraComponent from "src/lib/ecs/components/CameraComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
+import BaseScene from "./BaseScene";
 
 interface LevelSceneProps {
   container: HTMLElement;
@@ -19,7 +20,7 @@ interface LevelSceneProps {
   textureManager: TextureManager;
 }
 
-export default class LevelScene {
+export default class LevelScene implements BaseScene {
   protected readonly level: Level;
   protected readonly loop: Loop;
   protected onCompleteCallback?: () => void;
@@ -68,7 +69,10 @@ export default class LevelScene {
     this.onCompleteCallback = cb;
   };
 
-  run() {
+  start() {
+    this.systems.forEach(system => {
+      system.start();
+    });
     this.loop.play();
   }
 
@@ -78,6 +82,7 @@ export default class LevelScene {
         system.destroy();
     }) 
   }
+
 /*
   createListeners() {
     document.addEventListener("pointerdown", this.handleDocumentPointerdown);

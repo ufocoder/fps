@@ -1,5 +1,5 @@
 export default interface BaseScene {
     onComplete(cb: () => void): void;
-    render(container: HTMLElement): void;
+    start(): void;
     destroy(): void;
 }
