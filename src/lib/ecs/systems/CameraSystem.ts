@@ -197,7 +197,7 @@ export default class CameraSystem extends System {
 
       y += yIncrementer;
 
-      if (y1 < 0 && y2 < 0) {
+      if (y1 < 0 && y2 < 0 || y1 > this.height && y2 > this.height) {
         continue;
       }
 
