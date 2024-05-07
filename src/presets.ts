@@ -1,7 +1,11 @@
 export const textures: TexturePreset[] = [
   {
     id: "wall",
-    url: "./assets/textures/BRICK_1A.PNG",
+    url: "./assets/textures/TECH_1C.PNG",
+  },
+  {
+    id: "wall",
+    url: "./assets/textures/TECH_1C.PNG",
   },
   {
     id: "exit",
@@ -13,10 +17,17 @@ export const textures: TexturePreset[] = [
   }
 ];
 
+export const sprites: SpritePreset[] = [
+  {
+    id: "soldier",
+    url: "./assets/characters/SoldierIdle.png",
+  },
+];
+
 export const sounds: SoundPreset[] = [
   {
     id: "background",
-    url: "./assets/background.mp3",
+    url: "./assets/music/background.mp3",
     volume: 1,
   },
 ];

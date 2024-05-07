@@ -2,12 +2,15 @@ import Canvas from "src/lib/Canvas/DefaultCanvas";
 import System from "src/lib/ecs/System";
 import Entity from "src/lib/ecs/Entity";
 import BoxComponent from "src/lib/ecs/components/BoxComponent";
-import ColorComponent from "src/lib/ecs/components/ColorComponent";
+import ColorComponent from "src/lib/ecs/components/MinimapComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import QuerySystem from "../lib/QuerySystem";
+import MinimapComponent from "../components/MinimapComponent";
+import CircleComponent from "../components/CircleComponent";
+import CameraComponent from "../components/CameraComponent";
 
 export default class MinimapSystem extends System {
-  requiredComponents = [BoxComponent, PositionComponent, ColorComponent];
+  requiredComponents = [PositionComponent, MinimapComponent];
 
   readonly scale: number = 20;
   readonly canvas: Canvas;
@@ -38,9 +41,24 @@ export default class MinimapSystem extends System {
     entities.forEach((entity) => {
       const { x, y } = entity.getComponent(PositionComponent);
       const { color } = entity.getComponent(ColorComponent);
-      const { size } = entity.getComponent(BoxComponent);
 
-      this.drawSquare(x, y, size, color);
+      if (entity.hasComponent(CameraComponent)) {
+        // @TODO: render rays
+      }
+
+      if (entity.hasComponent(BoxComponent)) {
+        const { size } = entity.getComponent(BoxComponent);
+
+        this.drawSquare(x, y, size, color);
+        return;
+      }
+
+      if (entity.hasComponent(CircleComponent)) {
+        const { radius } = entity.getComponent(CircleComponent);
+
+        this.drawCircle(x, y, radius, color);
+        return;
+      }
     });
   }
 
@@ -57,4 +75,14 @@ export default class MinimapSystem extends System {
       color,
     });
   }
+
+  drawCircle(x: number, y: number, radius: number, color: string) {
+    this.canvas.drawCircle({
+      x: x * this.scale,
+      y: y * this.scale,
+      radius: radius * this.scale,
+      color,
+    });
+  }
+
 }

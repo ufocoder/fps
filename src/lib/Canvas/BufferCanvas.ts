@@ -1,3 +1,5 @@
+import { minmax } from "../utils";
+
 interface CanvasProps {
     width: number;
     height: number;
@@ -84,8 +86,13 @@ export default class BufferCanvas {
     }
 
     drawRect({ x, y, width, height, color }: DrawRectProps) {
-        for (let i = x; i < x + width; i++) {
-            for (let j = y; y < height; j++) {
+        const startX = minmax(x, 0, this.width)
+        const startY = minmax(y, 0, this.width)
+        const limitX = Math.min(this.width, x + width);
+        const limitY = Math.min(this.height, y + height);
+
+        for (let i = startX; i < limitX; i++) {
+            for (let j = startY; j < limitY; j++) {
                 this.drawPixel({
                     x: i,
                     y: j,
@@ -93,5 +100,9 @@ export default class BufferCanvas {
                 })
             }
         }
+    }
+
+    drawImage() {
+        
     }
 }

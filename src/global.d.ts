@@ -12,13 +12,17 @@ interface Сharacter {
     health: number;
 }
 
+interface Enemy extends Сharacter { 
+    sprite: string;
+}
+
 type LevelMap = number[][];
 
 interface Level {
     map: LevelMap;
     textures: Record<number, string>;
     player: Сharacter;
-    enemies: Сharacter[];
+    enemies: Enemy[];
     exit: {
         x: number;
         y: number;
@@ -36,6 +40,11 @@ interface TexturePreset {
     url: string;
 }
 
+interface SpritePreset {
+    id: string;
+    url: string;
+}
+
 interface SoundPreset {
     id: string;
     url: string;
@@ -44,6 +53,7 @@ interface SoundPreset {
 
 interface Texture {
     id: string;
+    imageData: ImageData;
     width: number;
     height: number;
     colors: Color[][];

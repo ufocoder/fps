@@ -14,7 +14,7 @@ window.onload = async () => {
   try {
     await Promise.all([
       await soundManager.load(presets.sounds),
-      await textureManager.load(presets.textures),
+      await textureManager.load([...presets.textures, ...presets.sprites]),
     ]);
 
     const introScene = new TitleScene(container, [
@@ -30,7 +30,7 @@ window.onload = async () => {
     });
 
     const winScene = new TitleScene(container, [
-      'You win'
+      'To be continued'
     ]);
     
     introScene.start();

@@ -12,6 +12,7 @@ import QuerySystem from "src/lib/ecs/lib/QuerySystem";
 import CameraComponent from "src/lib/ecs/components/CameraComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import BaseScene from "./BaseScene";
+import AISystem from "src/lib/ecs/systems/AISystem";
 
 interface LevelSceneProps {
   container: HTMLElement;
@@ -37,6 +38,7 @@ export default class LevelScene implements BaseScene {
 
     this.systems = [
         new ControlSystem(querySystem),
+        new AISystem(querySystem),
         new MoveSystem(querySystem, level),
         new CameraSystem(querySystem, container, level),
         new MinimapSystem(querySystem, container, level),

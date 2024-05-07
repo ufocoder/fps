@@ -1,7 +1,7 @@
 import Canvas from "src/lib/Canvas/BufferCanvas";
 import System from "src/lib/ecs/System";
 import Entity from "src/lib/ecs/Entity";
-import { degreeToRadians } from "src/lib/utils";
+import { calculateAngle, degreeToRadians, radiansToDegrees } from "src/lib/utils";
 // import BoxComponent from "src/lib/ecs/components/BoxComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
@@ -9,16 +9,18 @@ import TextureComponent from "../components/TextureComponent";
 import CameraComponent from "src/lib/ecs/components/CameraComponent";
 import PositionMap from "../lib/PositionMap";
 import QuerySystem from "../lib/QuerySystem";
-import CollisionComponent from "../components/CollisionComponent";
+import SpriteComponent from "../components/SpriteComponent";
+import BoxComponent from "../components/BoxComponent";
 
 export default class CameraSystem extends System {
   requiredComponents = [CameraComponent, PositionComponent];
 
-  protected positionMap: PositionMap;
+  protected textureMap: PositionMap;
+  protected spriteMap: PositionMap;
 
   protected readonly width: number = 640;
   protected readonly height: number = 480;
-  protected readonly rayMaxDistanceRay = 10;
+  protected readonly rayMaxDistanceRay = 15;
   protected readonly rayPrecision = 128;
 
   protected readonly level: Level;
@@ -39,18 +41,27 @@ export default class CameraSystem extends System {
       width: this.width,
     });
 
-    this.positionMap = new PositionMap(cols, rows);
+    this.textureMap = new PositionMap(cols, rows);
+    this.spriteMap = new PositionMap(cols, rows);
 
     this.querySystem
-      .query([PositionComponent, CollisionComponent, TextureComponent])
+      .query([PositionComponent, TextureComponent])
       .forEach((entity) => {
-        if (entity.hasComponent(CameraComponent)) {
-          return;
-        }
-
         const position = entity.getComponent(PositionComponent);
 
-        this.positionMap.set(
+        this.textureMap.set(
+          Math.floor(position.x),
+          Math.floor(position.y),
+          entity
+        );
+      });
+
+    this.querySystem
+      .query([PositionComponent, SpriteComponent])
+      .forEach((entity) => {
+        const position = entity.getComponent(PositionComponent);
+
+        this.spriteMap.set(
           Math.floor(position.x),
           Math.floor(position.y),
           entity
@@ -72,6 +83,7 @@ export default class CameraSystem extends System {
     if (camera) {
       this.canvas.createBufferSnapshot();
       this._rayCasting(camera);
+      
       this.canvas.commitBufferSnapshot();
     }
   }
@@ -86,55 +98,70 @@ export default class CameraSystem extends System {
     const cameraAngle = camera.getComponent(AngleComponent);
 
     const width = this.width;
-    const halfHeight = this.height / 2;
+    const halfHeight = this.height / 2;  
 
-    const incrementAngle = cameraFov.fov / width;
     const initialRayX = cameraPosition.x;
     const initialRayY = cameraPosition.y;
+    const incrementAngle = cameraFov.fov / width;
 
     let rayAngle = cameraAngle.angle - cameraFov.fov / 2;
+    const spriteEntities: Entity[] = [];
 
     for (let rayCount = 0; rayCount < width; rayCount++) {
-      const cosineIncrement =
-        Math.cos(degreeToRadians(rayAngle)) / this.rayPrecision;
-      const sinusIncrement =
-        Math.sin(degreeToRadians(rayAngle)) / this.rayPrecision;
+
+      const rayCollidedSpriteEntities: Set<Entity> = new Set();
+      const incrementRayX = Math.cos(degreeToRadians(rayAngle)) / this.rayPrecision;
+      const incrementRayY = Math.sin(degreeToRadians(rayAngle)) / this.rayPrecision;
 
       let currentRayX = initialRayX;
       let currentRayY = initialRayY;
       let distanceRay = 0;
-      let rayCollidedEntity: Entity | undefined;
+      let rayCollidedTextureEntity: Entity | undefined;
+      let rayCollidedSpriteEntity: Entity | undefined;
       let isPropogating = true;
 
       while (isPropogating) {
-        currentRayX += cosineIncrement;
-        currentRayY += sinusIncrement;
+        currentRayX += incrementRayX;
+        currentRayY += incrementRayY;
 
-        rayCollidedEntity = this.positionMap.get(
-          Math.floor(currentRayX),
-          Math.floor(currentRayY)
-        );
+        const x = Math.floor(currentRayX);
+        const y = Math.floor(currentRayY);
 
-        if (rayCollidedEntity) {
+        rayCollidedTextureEntity = this.textureMap.get(x, y);
+        rayCollidedSpriteEntity = this.spriteMap.get(x, y);
+
+        if (rayCollidedTextureEntity) {
           isPropogating = false;
         }
 
         distanceRay = Math.sqrt(
           Math.pow(cameraPosition.x - currentRayX, 2) +
-            Math.pow(cameraPosition.y - currentRayY, 2)
+          Math.pow(cameraPosition.y - currentRayY, 2)
         );
 
         if (distanceRay >= this.rayMaxDistanceRay) {
           isPropogating = false;
         }
+
+        if (isPropogating && rayCollidedSpriteEntity && !rayCollidedSpriteEntities.has(rayCollidedSpriteEntity)) {
+          rayCollidedSpriteEntities.add(rayCollidedSpriteEntity);
+        }
       }
 
+      rayCollidedSpriteEntities.forEach(entity => {
+        const entityPosition = entity.getComponent(PositionComponent);
+        const entityAngle = calculateAngle(cameraPosition.x, cameraPosition.y, entityPosition.x, entityPosition.y);
+
+        if (entityAngle >= rayAngle && entityAngle <= rayAngle + incrementAngle) {
+          spriteEntities.unshift(entity);
+        }
+      })
+
       // Fish eye fix
-      distanceRay =
-        distanceRay * Math.cos(degreeToRadians(rayAngle - cameraAngle.angle));
+      distanceRay = distanceRay * Math.cos(degreeToRadians(rayAngle - cameraAngle.angle));
 
       // Wall height
-      const wallHeight = rayCollidedEntity
+      const wallHeight = rayCollidedTextureEntity
         ? Math.floor(halfHeight / distanceRay)
         : 0;
 
@@ -154,37 +181,36 @@ export default class CameraSystem extends System {
         color: this.level.world.colors.bottom,
       });
 
-      if (rayCollidedEntity) {
+      if (rayCollidedTextureEntity) {
         this._drawTexture(
           rayCount,
           currentRayX,
           currentRayY,
-          rayCollidedEntity.getComponent(TextureComponent).texture,
+          rayCollidedTextureEntity,
           wallHeight
         );
       }
-      /*
-        this._drawFloor({
-            x: rayCount,
-            position: cameraPosition,
-            texture: this.textureManager.get('floor'),
-            wallHeight,
-            angle: cameraAngle.angle,
-            rayAngle,
-        });
-  */
 
       rayAngle += incrementAngle;
     }
+
+    spriteEntities.forEach(sprite => {
+      this._drawSprite(camera, sprite);
+    })
+
   }
 
   _drawTexture(
     x: number,
     rayX: number,
     rayY: number,
-    texture: Texture,
+    entity: Entity,
     wallHeight: number
   ) {
+
+    const texture = entity.getComponent(TextureComponent).texture;
+    const box = entity.getComponent(BoxComponent);
+
     const texturePositionX = Math.floor(
       (texture.width * (rayX + rayY)) % texture.width
     );
@@ -193,7 +219,7 @@ export default class CameraSystem extends System {
 
     for (let i = 0; i < texture.height; i++) {
       const y1 = y;
-      const y2 = y + (yIncrementer + 0.5) + 1;
+      const y2 = y + (yIncrementer + box.size / 2) + 1;
 
       y += yIncrementer;
 
@@ -207,6 +233,76 @@ export default class CameraSystem extends System {
         y2,
         color: texture.colors[i][texturePositionX],
       });
+    }
+  }
+ 
+  _calculateSpriteProjection(
+    camera: Entity,
+    sprite: Entity
+  ) {
+    const cameraPosition = camera.getComponent(PositionComponent);
+    const cameraAngle = camera.getComponent(AngleComponent);
+    const cameraFov = camera.getComponent(CameraComponent);
+    const spritePosition = sprite.getComponent(PositionComponent);
+
+    // Get X and Y coords in relation of the player coords
+    const spriteXRelative = spritePosition.x - cameraPosition.x; 
+    const spriteYRelative = spritePosition.y - cameraPosition.y;
+
+    // Get angle of the sprite in relation of the player angle
+    const spriteAngleRadians = Math.atan2(spriteYRelative, spriteXRelative);
+    const spriteAngle = radiansToDegrees(spriteAngleRadians) - Math.floor(cameraAngle.angle - cameraFov.fov / 2);
+
+    // Three rule to discover the x position of the script
+    const spriteX = Math.floor(spriteAngle * this.width / cameraFov.fov);
+    
+    // Get the distance of the sprite (Pythagoras theorem)
+    const distance = Math.sqrt(Math.pow(cameraPosition.x - spritePosition.x, 2) + Math.pow(cameraPosition.y - spritePosition.y, 2));
+
+    // Calc sprite width and height
+    const spriteHeight = Math.floor(this.height / 2 / distance);
+    const spriteWidth = Math.floor(this.width / 2 / distance);
+
+    return {
+      distance,
+      x: spriteX,
+      height: spriteHeight,
+      width: spriteWidth,
+    };
+  }
+
+  _drawSprite(
+    camera: Entity,
+    sprite: Entity
+  ) {
+    const spriteProjection = this._calculateSpriteProjection(camera, sprite);
+    const spriteTexture = sprite.getComponent(SpriteComponent).sprite;
+
+    const wallHeight = Math.floor(this.height / spriteProjection.distance);
+    const xIncrementer = (spriteProjection.width) / spriteTexture.width;
+    const yIncrementer = (spriteProjection.height) / spriteTexture.height;
+
+    let xProjection = spriteProjection.x - spriteProjection.width / 2;
+
+    for(let spriteX = 0 ; spriteX < spriteTexture.width; spriteX++) {
+      let yProjection = this.height / 2 - spriteProjection.height / 2 - (spriteProjection.height /2 - wallHeight / 2) / 2;
+
+      for(let spriteY = 0; spriteY < spriteTexture.height; spriteY++) {
+          const color = spriteTexture.colors[spriteY][spriteX];
+
+          if (color.a !== 0) {
+            this.canvas.drawRect({
+              x: xProjection, 
+              y: yProjection, 
+              width: xIncrementer,
+              height: yIncrementer,
+              color
+            });
+          }
+
+          yProjection += yIncrementer;
+      }
+      xProjection += xIncrementer;
     }
   }
 

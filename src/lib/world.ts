@@ -6,34 +6,41 @@ import BoxComponent from "src/lib/ecs/components/BoxComponent";
 import CameraComponent from "src/lib/ecs/components/CameraComponent";
 import RotateComponent from "src/lib/ecs/components/RotateComponent";
 import MoveComponent from "src/lib/ecs/components/MoveComponent";
-import ColorComponent from "src/lib/ecs/components/ColorComponent";
+import MinimapComponent from "src/lib/ecs/components/MinimapComponent";
 import TextureManager from "src/managers/TextureManager";
 import CollisionComponent from "./ecs/components/CollisionComponent";
 import HealthComponent from "./ecs/components/HealthComponent";
+import SpriteComponent from "./ecs/components/SpriteComponent";
+import CircleComponent from "./ecs/components/CircleComponent";
+// import AIComponent from "./ecs/components/AIComponent";
 
 export function createEntities(level: Level, textureManager: TextureManager) {
     
     // player
     const player = new Entity();
-    player.addComponent(new BoxComponent(1));
+    player.addComponent(new CircleComponent(0.4));
     player.addComponent(new PositionComponent(level.player.x, level.player.y));
     player.addComponent(new HealthComponent(level.player.health, level.player.health));
     player.addComponent(new AngleComponent(level.player.angle));
     player.addComponent(new MoveComponent(3));
     player.addComponent(new RotateComponent(360 / 6));
-    player.addComponent(new CameraComponent(40));
-    player.addComponent(new ColorComponent('black'));
+    player.addComponent(new CameraComponent(60));
+    player.addComponent(new MinimapComponent('black'));
 
     // enemies
     const enemies:Entity[] = [];
     level.enemies.forEach((enemy) => {
         const entity = new Entity();
+        const texture = textureManager.get(enemy.sprite);
 
-        entity.addComponent(new BoxComponent(1));
+        // entity.addComponent(new AIComponent(2));
+        entity.addComponent(new CircleComponent(0.4));
         entity.addComponent(new PositionComponent(enemy.x, enemy.y));
         entity.addComponent(new HealthComponent(enemy.health, enemy.health));
         entity.addComponent(new AngleComponent(enemy.angle));
-        entity.addComponent(new ColorComponent('red'));
+        entity.addComponent(new SpriteComponent(texture));
+        entity.addComponent(new SpriteComponent(texture));
+        entity.addComponent(new MinimapComponent('red'));
 
         enemies.push(entity);
     });
@@ -42,7 +49,7 @@ export function createEntities(level: Level, textureManager: TextureManager) {
     const exit = new Entity();
     exit.addComponent(new BoxComponent(1));
     exit.addComponent(new PositionComponent(level.exit.x, level.exit.y));
-    exit.addComponent(new ColorComponent('yellow'));
+    exit.addComponent(new MinimapComponent('yellow'));
 
     // walls
     const walls:Entity[] = [];
@@ -61,7 +68,7 @@ export function createEntities(level: Level, textureManager: TextureManager) {
             wall.addComponent(new BoxComponent(1));
             wall.addComponent(new PositionComponent(x, y));
             wall.addComponent(new TextureComponent(texture))
-            wall.addComponent(new ColorComponent('grey'));
+            wall.addComponent(new MinimapComponent('grey'));
 
             walls.push(wall);
         });
