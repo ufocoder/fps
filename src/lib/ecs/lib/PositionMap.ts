@@ -1,25 +1,29 @@
-import Entity from "../Entity";
+export default class PositionMap<T> {
+  map: Map<number, T>;
 
-export default class PositionMap {
-  map: (Entity | undefined)[][];
+  rows: number;
+  cols: number;
 
   constructor(rows: number, cols: number) {
-    this.map = Array.from({ length: rows }, () => Array.from({ length: cols }, () => undefined));
+    this.cols = cols;
+    this.rows = rows;
+
+    this.map = new Map<number, T>();
   }
 
-  public set(x: number, y: number, entity: Entity) {
-    this.map[y][x] = entity;
+  public set(x: number, y: number, entity: T) {
+    this.map.set(y * this.rows + x, entity);
   }
 
   public get(x: number, y: number) {
-    return this.has(x,y) ? this.map[y][x] : undefined;
+    return this.map.get(y * this.rows + x);
   }
 
   public has(x: number, y: number) {
-    return Boolean(this.map[y] && this.map[y][x]);
+    return this.map.has(y * this.rows + x);
   }
 
   public clear() {
-    this.map = [[]];
+    this.map.clear();
   }
 }
