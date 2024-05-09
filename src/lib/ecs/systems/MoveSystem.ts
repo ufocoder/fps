@@ -13,7 +13,9 @@ import CameraComponent from "../components/CameraComponent";
 export default class MoveSystem extends System {
   requiredComponents = [PositionComponent, AngleComponent, RotateComponent, MoveComponent];
   
-  protected positionMap: PositionMap;
+  protected positionMap: PositionMap<Entity>;
+  protected cols: number;
+  protected rows: number;
 
   constructor(querySystem: QuerySystem, level: Level) {
     super(querySystem);
@@ -23,6 +25,9 @@ export default class MoveSystem extends System {
 
     this.positionMap = new PositionMap(cols, rows);
     
+    this.cols = cols;
+    this.rows = rows;
+
     this.querySystem.query([PositionComponent, CollisionComponent]).forEach(entity => {
       if (entity.hasComponent(CameraComponent)) {
         return;
@@ -95,6 +100,14 @@ export default class MoveSystem extends System {
       const playerSin = Math.sin(degreeToRadians(angleComponent.angle));
       const newX = positionComponent.x + k * playerCos * moveComponent.moveSpeed * dt;
       const newY = positionComponent.y + k * playerSin * moveComponent.moveSpeed * dt;
+
+      if (newX < 0 || newX > this.cols) {
+        return
+      }
+
+      if (newY < 0 || newY > this.rows) {
+        return
+      }
 
       if (!this.positionMap.has(Math.floor(newX), Math.floor(newY))) {
         positionComponent.y = newY;

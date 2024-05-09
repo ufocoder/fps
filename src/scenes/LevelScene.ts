@@ -25,7 +25,7 @@ export default class LevelScene implements BaseScene {
   protected readonly level: Level;
   protected readonly loop: Loop;
   protected onCompleteCallback?: () => void;
-  
+
   protected readonly querySystem: QuerySystem;
   protected readonly systems: System[];
   protected readonly entities: Entity[];
@@ -37,30 +37,31 @@ export default class LevelScene implements BaseScene {
     const querySystem = new QuerySystem(entities);
 
     this.systems = [
-        new ControlSystem(querySystem),
-        new AISystem(querySystem),
-        new MoveSystem(querySystem, level),
-        new CameraSystem(querySystem, container, level),
-        new MinimapSystem(querySystem, container, level),
+      new ControlSystem(querySystem),
+      new AISystem(querySystem),
+      new MoveSystem(querySystem, level),
+      new CameraSystem(querySystem, container, level, textureManager),
+      new MinimapSystem(querySystem, container, level),
     ];
-    
+
     this.entities = entities;
     this.querySystem = querySystem;
     this.loop = createLoop(this.onTick);
   }
 
   onTick = (dt: number) => {
-    this.systems.forEach(system => {
-        const entities = this.querySystem.query(system.requiredComponents);
-        system.update(dt, entities);
+    this.systems.forEach((system) => {
+      system.update(dt, this.querySystem.query(system.requiredComponents));
     });
 
     const [camera] = this.querySystem.query([CameraComponent]);
 
     if (
       camera &&
-      Math.floor(camera.getComponent(PositionComponent).x) === this.level.exit.x &&
-      Math.floor(camera.getComponent(PositionComponent).y) === this.level.exit.y &&
+      Math.floor(camera.getComponent(PositionComponent).x) ===
+        this.level.exit.x &&
+      Math.floor(camera.getComponent(PositionComponent).y) ===
+        this.level.exit.y &&
       this.onCompleteCallback
     ) {
       window.requestAnimationFrame(this.onCompleteCallback);
@@ -72,7 +73,7 @@ export default class LevelScene implements BaseScene {
   };
 
   start() {
-    this.systems.forEach(system => {
+    this.systems.forEach((system) => {
       system.start();
     });
     this.loop.play();
@@ -80,12 +81,12 @@ export default class LevelScene implements BaseScene {
 
   destroy() {
     // this.destroyListeners();
-    this.systems.forEach(system => {
-        system.destroy();
-    }) 
+    this.systems.forEach((system) => {
+      system.destroy();
+    });
   }
 
-/*
+  /*
   createListeners() {
     document.addEventListener("pointerdown", this.handleDocumentPointerdown);
     window.addEventListener("blur", this.handleWindowBlur);

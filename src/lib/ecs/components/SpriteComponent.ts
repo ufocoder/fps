@@ -1,7 +1,5 @@
 import { Component } from "src/lib/ecs/Component";
 
-type Sprite = Texture;
-
 export default class SpriteComponent implements Component {
     sprite: Sprite;
 

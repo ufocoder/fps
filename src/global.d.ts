@@ -58,3 +58,5 @@ interface Texture {
     height: number;
     colors: Color[][];
 }
+
+type Sprite = Texture

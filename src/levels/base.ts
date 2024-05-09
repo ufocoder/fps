@@ -25,9 +25,9 @@ const level: Level = {
     2: "exit",
   },
   player: {
-    x: 9.7,
-    y: 2.01,
-    angle: 180,
+    x: 0,
+    y: 5.5,
+    angle: 0,
     health: 100,
   },
   enemies: [
