@@ -22,6 +22,10 @@ export const sprites: SpritePreset[] = [
     id: "soldier",
     url: "./assets/characters/SoldierIdle.png",
   },
+  {
+    id: "zombie",
+    url: "./assets/characters/ZombieIdle.png"
+  }
 ];
 
 export const sounds: SoundPreset[] = [

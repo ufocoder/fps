@@ -1,11 +1,7 @@
 import Canvas from "src/lib/Canvas/BufferCanvas";
 import System from "src/lib/ecs/System";
 import Entity from "src/lib/ecs/Entity";
-import {
-  degreeToRadians,
-  radiansToDegrees,
-} from "src/lib/utils";
-// import BoxComponent from "src/lib/ecs/components/BoxComponent";
+import { degreeToRadians, distance, normalizeAngle } from "src/lib/utils";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
 import TextureComponent from "../components/TextureComponent";
@@ -14,6 +10,7 @@ import PositionMap from "../lib/PositionMap";
 import QuerySystem from "../lib/QuerySystem";
 import SpriteComponent from "../components/SpriteComponent";
 import TextureManager from "src/managers/TextureManager";
+import PolarMap, { PolarPosition } from "../lib/PolarMap";
 
 export default class CameraSystem extends System {
   requiredComponents = [CameraComponent, PositionComponent];
@@ -84,12 +81,16 @@ export default class CameraSystem extends System {
     const cameraAngle = camera.getComponent(AngleComponent);
     const cameraPosition = camera.getComponent(PositionComponent);
 
-    const spriteEntities: Entity[] = [];
+    const polarMap = new PolarMap(
+      camera,
+      this.querySystem.query([PositionComponent, SpriteComponent]),
+    );
+
     const incrementAngle = cameraFov.fov / this.width;
 
-    let rayAngle = cameraAngle.angle - cameraFov.fov / 2;
+    let rayAngle = normalizeAngle(cameraAngle.angle - cameraFov.fov / 2);
 
-    for (let x = 0; x < this.width; x++) {
+    for (let screenX = 0; screenX < this.width; screenX++) {
       const incrementRayX =
         Math.cos(degreeToRadians(rayAngle)) / this.rayPrecision;
       const incrementRayY =
@@ -122,9 +123,11 @@ export default class CameraSystem extends System {
           isPropogating = false;
         }
 
-        distanceRay = Math.sqrt(
-          Math.pow(cameraPosition.x - rayX, 2) +
-            Math.pow(cameraPosition.y - rayY, 2)
+        distanceRay = distance(
+          cameraPosition.x,
+          cameraPosition.y,
+          rayX,
+          rayY,
         );
 
         if (distanceRay >= this.rayMaxDistanceRay) {
@@ -135,23 +138,25 @@ export default class CameraSystem extends System {
       distanceRay =
         distanceRay * Math.cos(degreeToRadians(rayAngle - cameraAngle.angle));
 
-      if (wallEntity) {
-        const wallHeight = Math.floor(this.height / 2 / distanceRay);
+      const wallHeight = Math.floor(this.height / 2 / distanceRay);
 
-        this._drawHorizon(x, wallHeight);
-        this._drawFloor(x, wallHeight, rayAngle, camera);
-        this._drawWall(x, rayX, rayY, wallEntity, wallHeight);
+      if (wallEntity) {
+        this._drawHorizon(screenX, wallHeight);
+        this._drawFloor(screenX, wallHeight, rayAngle, camera);
+        this._drawWall(screenX, rayX, rayY, wallEntity, wallHeight);
       } else {
-        this._drawHorizon(x, 0);
-        this._drawFloor(x, 0, rayAngle, camera);
+        this._drawHorizon(screenX, 0);
+        this._drawFloor(screenX, 0, rayAngle, camera);
       }
 
-      rayAngle += incrementAngle;
-    }
+      polarMap
+        .select(distanceRay, rayAngle, rayAngle + incrementAngle)
+        .forEach(polarEntity => {
+          this._drawSpriteLine(screenX, rayAngle, polarEntity);
+        });
 
-    spriteEntities.forEach((sprite) => {
-      this._drawSprite(camera, sprite);
-    });
+      rayAngle += normalizeAngle(incrementAngle);
+    }
   }
 
   _drawHorizon(x: number, wallHeight: number) {
@@ -199,6 +204,31 @@ export default class CameraSystem extends System {
     }
   }
 
+  _drawSpriteLine(screenX: number, rayAngle: number, polarEntity: PolarPosition){
+    const spriteComponent = polarEntity.entity.getComponent(SpriteComponent).sprite;
+    const projectionHeight = Math.floor(this.height / 2 / polarEntity.distance);
+
+    const a1 = normalizeAngle(rayAngle - polarEntity.angleFrom);
+    const a2 = normalizeAngle(polarEntity.angleTo - polarEntity.angleFrom);
+    const xTexture = Math.floor(a1 / a2 * spriteComponent.width)
+    
+    const yIncrementer = (projectionHeight * 2) / spriteComponent.height;
+
+    let y = this.height / 2 - projectionHeight;
+
+    for (let i = 0; i < spriteComponent.height; i++) {
+      if (y > -yIncrementer && y < this.height) {
+        this.canvas.drawVerticalLine({
+          x: screenX,
+          y1: y,
+          y2: Math.floor(y + yIncrementer),
+          color: spriteComponent.colors[i][xTexture], 
+        });
+      }
+      y += yIncrementer;
+    }
+  }
+
   _drawFloor(
     x: number,
     wallHeight: number,
@@ -238,68 +268,4 @@ export default class CameraSystem extends System {
       this.canvas.drawPixel({ x, y, color });
     }
   }
-
-  _calculateEntityProjection(camera: Entity, entity: Entity) {
-    const cameraPosition = camera.getComponent(PositionComponent);
-    const cameraAngle = camera.getComponent(AngleComponent);
-    const cameraFov = camera.getComponent(CameraComponent);
-    const entityPosition = entity.getComponent(PositionComponent);
-
-    const dx = entityPosition.x - cameraPosition.x;
-    const dy = entityPosition.y - cameraPosition.y;
-
-    const entityAngleRadians = Math.atan2(dx, dy);
-    const entityAngle =
-      radiansToDegrees(entityAngleRadians) -
-      Math.floor(cameraAngle.angle - cameraFov.fov / 2);
-
-    const x = Math.floor((entityAngle * this.width) / cameraFov.fov);
-    const distance = Math.sqrt(dx ** 2 + dy ** 2);
-
-    const height = Math.floor(this.height / 2 / distance);
-    const width = Math.floor(this.width / 2 / distance);
-
-    return {
-      x,
-      distance,
-      height,
-      width,
-    };
-  }
-
-  _drawSprite(camera: Entity, sprite: Entity) {
-    const spriteProjection = this._calculateEntityProjection(camera, sprite);
-    const spriteTexture = sprite.getComponent(SpriteComponent).sprite;
-
-    const wallHeight = Math.floor(this.height / spriteProjection.distance);
-    const xIncrementer = spriteProjection.width / spriteTexture.width;
-    const yIncrementer = spriteProjection.height / spriteTexture.height;
-
-    let xProjection = spriteProjection.x - spriteProjection.width / 2;
-
-    for (let spriteX = 0; spriteX < spriteTexture.width; spriteX++) {
-      let yProjection =
-        this.height / 2 -
-        spriteProjection.height / 2 -
-        (spriteProjection.height / 2 - wallHeight / 2) / 2;
-
-      for (let spriteY = 0; spriteY < spriteTexture.height; spriteY++) {
-        const color = spriteTexture.colors[spriteY][spriteX];
-
-        if (color.a !== 0) {
-          this.canvas.drawRect({
-            x: xProjection,
-            y: yProjection,
-            width: xIncrementer,
-            height: yIncrementer,
-            color,
-          });
-        }
-
-        yProjection += yIncrementer;
-      }
-      xProjection += xIncrementer;
-    }
-  }
-
 }

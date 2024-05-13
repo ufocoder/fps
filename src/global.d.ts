@@ -14,6 +14,7 @@ interface Сharacter {
 
 interface Enemy extends Сharacter { 
     sprite: string;
+    radius: number;
 }
 
 type LevelMap = number[][];

@@ -1,4 +1,4 @@
-import { degreeToRadians } from "src/lib/utils";
+import { degreeToRadians, normalizeAngle } from "src/lib/utils";
 import Entity from "src/lib/ecs/Entity";
 import System from "src/lib/ecs/System";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
@@ -9,9 +9,10 @@ import CollisionComponent from "src/lib/ecs/components/CollisionComponent";
 import QuerySystem from "../lib/QuerySystem";
 import PositionMap from "../lib/PositionMap";
 import CameraComponent from "../components/CameraComponent";
+import CircleComponent from "../components/CircleComponent";
 
 export default class MoveSystem extends System {
-  requiredComponents = [PositionComponent, AngleComponent, RotateComponent, MoveComponent];
+  requiredComponents = [CircleComponent, PositionComponent, AngleComponent, RotateComponent, MoveComponent];
   
   protected positionMap: PositionMap<Entity>;
   protected cols: number;
@@ -69,8 +70,7 @@ export default class MoveSystem extends System {
     }
 
     if (k) {
-      angleComponent.angle = angleComponent.angle + k * rotateComponent.rotationSpeed * dt;
-      angleComponent.angle %= 360;
+      angleComponent.angle = normalizeAngle(angleComponent.angle + k * rotateComponent.rotationSpeed * dt);
     }
   }
 

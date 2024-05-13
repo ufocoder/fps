@@ -71,6 +71,9 @@ export default class BufferCanvas {
     }
 
     drawPixel({ x, y, color }: DrawPixelProps) {
+        if (color.a === 0) {
+            return;
+        }
         const offset = 4 * (Math.floor(x) + Math.floor(y) * this.width);
 
         this.buffer.data[offset] = color.r;

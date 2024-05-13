@@ -34,7 +34,7 @@ export function createEntities(level: Level, textureManager: TextureManager) {
         const texture = textureManager.get(enemy.sprite);
 
         // entity.addComponent(new AIComponent(2));
-        entity.addComponent(new CircleComponent(0.4));
+        entity.addComponent(new CircleComponent(enemy.radius));
         entity.addComponent(new PositionComponent(enemy.x, enemy.y));
         entity.addComponent(new HealthComponent(enemy.health, enemy.health));
         entity.addComponent(new AngleComponent(enemy.angle));
