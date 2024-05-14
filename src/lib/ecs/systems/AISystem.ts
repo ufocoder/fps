@@ -40,8 +40,8 @@ export default class AISystem extends System {
       // @TODO: move to move system
       if (entityAI.distance > distance) {
         entityAnimation.switchState('walk');
-        entityPosition.x += dx * dt 
-        entityPosition.y += dy * dt
+        entityPosition.x += dx * dt * entityAI.moveSpeed;
+        entityPosition.y += dy * dt * entityAI.moveSpeed;
       } else {
         entityAnimation.switchState('idle');
       }
