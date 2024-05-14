@@ -1,25 +1,23 @@
-import { Color } from "src/managers/TextureManager";
-
 const random = (from: number, to: number) => {
   return from + Math.random() * (to - from);
 };
 
 const generateEnemies = (limit: number) => {
   return new Array(limit).fill(0).map(() => ({
-      x: random(2, 4),
-      y: random(3, 8),
-      angle: 45,
-      health: 100,
-      sprite: "soldier",
-      radius: 0.4,
-  }))
-}
+    x: random(2, 4),
+    y: random(3, 8),
+    angle: 45,
+    health: 100,
+    sprite: "zombie",
+    radius: 0.4,
+  }));
+};
 
 const level: Level = {
   world: {
     colors: {
-      top: new Color(0, 0, 0, 255),
-      bottom: new Color(84, 98, 92, 255),
+      top: { r: 0, g: 0, b: 0, a: 255 },
+      bottom: { r: 84, g: 98, b: 92, a: 255 },
     },
   },
   map: [
@@ -45,8 +43,8 @@ const level: Level = {
     angle: 0,
     health: 100,
   },
-  enemies: generateEnemies(10)
-    /*
+  enemies: generateEnemies(10),
+  /*
   [
     {
       x: 3,
@@ -57,7 +55,6 @@ const level: Level = {
       radius: 0.4,
     },
   ]*/
-  ,
   exit: {
     x: 4,
     y: 5,

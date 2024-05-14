@@ -52,12 +52,22 @@ interface SoundPreset {
     volume?: number;
 }
 
-interface Texture {
+interface AnimationSpritePreset {
     id: string;
-    imageData: ImageData;
+    frames: string[]
+}
+
+interface TextureBitmap {
     width: number;
     height: number;
     colors: Color[][];
+}
+
+interface Color {
+    r: number;
+    g: number;
+    b: number;
+    a: number;
 }
 
 type Sprite = Texture

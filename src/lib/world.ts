@@ -12,9 +12,12 @@ import CollisionComponent from "./ecs/components/CollisionComponent";
 import HealthComponent from "./ecs/components/HealthComponent";
 import SpriteComponent from "./ecs/components/SpriteComponent";
 import CircleComponent from "./ecs/components/CircleComponent";
+import AIComponent from "./ecs/components/AIComponent";
+import AnimatedSpriteComponent from "./ecs/components/AnimationComponent";
+import AnimationManager from "src/managers/AnimationManager";
 // import AIComponent from "./ecs/components/AIComponent";
 
-export function createEntities(level: Level, textureManager: TextureManager) {
+export function createEntities(level: Level, textureManager: TextureManager, animationManager: AnimationManager,) {
     
     // player
     const player = new Entity();
@@ -33,7 +36,13 @@ export function createEntities(level: Level, textureManager: TextureManager) {
         const entity = new Entity();
         const texture = textureManager.get(enemy.sprite);
 
-        // entity.addComponent(new AIComponent(2));
+        entity.addComponent(new AIComponent(2));
+        entity.addComponent(new AnimatedSpriteComponent('idle', {
+            'idle': animationManager.get('zombieIdle'),
+            'damage': animationManager.get('zombieDamage'),
+            'death': animationManager.get('zombieDeath'),
+            'walk': animationManager.get('zombieWalk'),
+        })),
         entity.addComponent(new CircleComponent(enemy.radius));
         entity.addComponent(new PositionComponent(enemy.x, enemy.y));
         entity.addComponent(new HealthComponent(enemy.health, enemy.health));

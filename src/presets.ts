@@ -27,6 +27,41 @@ export const sprites: SpritePreset[] = [
     url: "./assets/characters/ZombieIdle.png"
   }
 ];
+ 
+export const animation: AnimationSpritePreset[] = [
+  {
+    id: "zombieIdle",
+    frames: [
+      "./assets/characters/ZombieIdle.png",
+    ],
+  },
+  {
+    id: "zombieWalk",
+    frames: [
+      "./assets/characters/ZombieWalk1.png",
+      "./assets/characters/ZombieWalk2.png",
+      "./assets/characters/ZombieWalk3.png",
+      "./assets/characters/ZombieWalk4.png",
+    ],
+  },
+  {
+    id: "zombieDamage",
+    frames: [
+      "./assets/characters/ZombieDamage1.png",
+      "./assets/characters/ZombieDamage2.png",
+    ],
+  },
+  {
+    id: "zombieDeath",
+    frames: [
+      "./assets/characters/ZombieDeath1.png",
+      "./assets/characters/ZombieDeath2.png",
+      "./assets/characters/ZombieDeath3.png",
+      "./assets/characters/ZombieDeath4.png",
+    ],
+  },
+];
+
 
 export const sounds: SoundPreset[] = [
   {

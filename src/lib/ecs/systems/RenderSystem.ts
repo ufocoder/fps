@@ -11,8 +11,9 @@ import QuerySystem from "../lib/QuerySystem";
 import SpriteComponent from "../components/SpriteComponent";
 import TextureManager from "src/managers/TextureManager";
 import PolarMap, { PolarPosition } from "../lib/PolarMap";
+import AnimatedSpriteComponent from "../components/AnimationComponent";
 
-export default class CameraSystem extends System {
+export default class RenderSystem extends System {
   requiredComponents = [CameraComponent, PositionComponent];
 
   protected walls: PositionMap<Entity>;
@@ -107,12 +108,12 @@ export default class CameraSystem extends System {
         rayX += incrementRayX;
         rayY += incrementRayY;
 
-        if (rayX < 0 || rayX > this.walls.cols) {
+        if (rayX < 0 || rayX > this.walls.rows) {
           isPropogating = false;
           continue;
         }
 
-        if (rayY < 0 || rayY > this.walls.rows) {
+        if (rayY < 0 || rayY > this.walls.cols) {
           isPropogating = false;
           continue;
         }
@@ -205,24 +206,27 @@ export default class CameraSystem extends System {
   }
 
   _drawSpriteLine(screenX: number, rayAngle: number, polarEntity: PolarPosition){
+    const animateComponent = polarEntity.entity.getComponent(AnimatedSpriteComponent).sprite;
     const spriteComponent = polarEntity.entity.getComponent(SpriteComponent).sprite;
     const projectionHeight = Math.floor(this.height / 2 / polarEntity.distance);
 
+    const sprite = animateComponent || spriteComponent;
+
     const a1 = normalizeAngle(rayAngle - polarEntity.angleFrom);
     const a2 = normalizeAngle(polarEntity.angleTo - polarEntity.angleFrom);
-    const xTexture = Math.floor(a1 / a2 * spriteComponent.width)
+    const xTexture = Math.floor(a1 / a2 * sprite.width)
     
-    const yIncrementer = (projectionHeight * 2) / spriteComponent.height;
+    const yIncrementer = (projectionHeight * 2) / sprite.height;
 
     let y = this.height / 2 - projectionHeight;
 
-    for (let i = 0; i < spriteComponent.height; i++) {
+    for (let i = 0; i < sprite.height; i++) {
       if (y > -yIncrementer && y < this.height) {
         this.canvas.drawVerticalLine({
           x: screenX,
           y1: y,
           y2: Math.floor(y + yIncrementer),
-          color: spriteComponent.colors[i][xTexture], 
+          color: sprite.colors[i][xTexture], 
         });
       }
       y += yIncrementer;

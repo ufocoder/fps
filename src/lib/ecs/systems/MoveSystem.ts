@@ -101,11 +101,11 @@ export default class MoveSystem extends System {
       const newX = positionComponent.x + k * playerCos * moveComponent.moveSpeed * dt;
       const newY = positionComponent.y + k * playerSin * moveComponent.moveSpeed * dt;
 
-      if (newX < 0 || newX > this.cols) {
+      if (newX <= 0 || newX > this.cols) {
         return
       }
 
-      if (newY < 0 || newY > this.rows) {
+      if (newY <= 0 || newY > this.rows) {
         return
       }
 

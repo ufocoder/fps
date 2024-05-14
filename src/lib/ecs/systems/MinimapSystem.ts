@@ -28,7 +28,7 @@ export default class MinimapSystem extends System {
     this.canvas = new Canvas({
       height: rows * this.scale,
       width: cols * this.scale,
-    });
+    }); 
   }
 
   start() {
@@ -37,6 +37,7 @@ export default class MinimapSystem extends System {
 
   update(_: number, entities: Entity[]) {
     this.canvas.clear();
+    this.canvas.drawBackground('green');
 
     entities.forEach((entity) => {
       const { x, y } = entity.getComponent(PositionComponent);

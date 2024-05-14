@@ -6,19 +6,22 @@ import System from "src/lib/ecs/System";
 import MinimapSystem from "src/lib/ecs/systems/MinimapSystem";
 import ControlSystem from "src/lib/ecs/systems/ControlSystem";
 import MoveSystem from "src/lib/ecs/systems/MoveSystem";
-import CameraSystem from "src/lib/ecs/systems/CameraSystem";
+import RenderSystem from "src/lib/ecs/systems/RenderSystem";
 import { createEntities } from "src/lib/world";
 import QuerySystem from "src/lib/ecs/lib/QuerySystem";
 import CameraComponent from "src/lib/ecs/components/CameraComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import BaseScene from "./BaseScene";
 import AISystem from "src/lib/ecs/systems/AISystem";
+import AnimationManager from "src/managers/AnimationManager";
+import AnimationSystem from "src/lib/ecs/systems/AnimationSystem";
 
 interface LevelSceneProps {
   container: HTMLElement;
   level: Level;
   soundManager: SoundManager;
   textureManager: TextureManager;
+  animationManager: AnimationManager;
 }
 
 export default class LevelScene implements BaseScene {
@@ -30,17 +33,18 @@ export default class LevelScene implements BaseScene {
   protected readonly systems: System[];
   protected readonly entities: Entity[];
 
-  constructor({ container, level, textureManager }: LevelSceneProps) {
+  constructor({ container, level, textureManager, animationManager }: LevelSceneProps) {
     this.level = level;
 
-    const entities = createEntities(level, textureManager);
+    const entities = createEntities(level, textureManager, animationManager);
     const querySystem = new QuerySystem(entities);
 
     this.systems = [
       new ControlSystem(querySystem),
       new AISystem(querySystem),
       new MoveSystem(querySystem, level),
-      new CameraSystem(querySystem, container, level, textureManager),
+      new AnimationSystem(querySystem),
+      new RenderSystem(querySystem, container, level, textureManager),
       new MinimapSystem(querySystem, container, level),
     ];
 

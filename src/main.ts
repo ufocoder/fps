@@ -5,16 +5,19 @@ import SoundManager from "./managers/SoundManager.ts";
 import TextureManager from "./managers/TextureManager.ts";
 import LevelScene from "./scenes/LevelScene.ts";
 import TitleScene from "./scenes/TitleScene.ts";
+import AnimationManager from "./managers/AnimationManager.ts";
 
 const container = document.getElementById('app')!;
 const soundManager = new SoundManager();
 const textureManager = new TextureManager();
+const animationManager = new AnimationManager();
 
 window.onload = async () => {
   try {
     await Promise.all([
       await soundManager.load(presets.sounds),
       await textureManager.load([...presets.textures, ...presets.sprites]),
+      await animationManager.load(presets.animation),
     ]);
 
     const introScene = new TitleScene(container, [
@@ -26,7 +29,8 @@ window.onload = async () => {
       container,
       level,
       soundManager,
-      textureManager
+      textureManager,
+      animationManager,
     });
 
     const winScene = new TitleScene(container, [
