@@ -20,6 +20,8 @@ window.onload = async () => {
       await animationManager.load(presets.animation),
     ]);
 
+    container.innerHTML = '';
+
     const introScene = new TitleScene(container, [
       'Level 1', 
       'press any key'
