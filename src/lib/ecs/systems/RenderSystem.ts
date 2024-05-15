@@ -206,11 +206,10 @@ export default class RenderSystem extends System {
   }
 
   _drawSpriteLine(screenX: number, rayAngle: number, polarEntity: PolarPosition){
-    const animateComponent = polarEntity.entity.getComponent(AnimatedSpriteComponent).sprite;
-    const spriteComponent = polarEntity.entity.getComponent(SpriteComponent).sprite;
+    const animateSprite = polarEntity.entity.getComponent(AnimatedSpriteComponent).sprite;
+    const staticSprite = polarEntity.entity.getComponent(SpriteComponent).sprite;
     const projectionHeight = Math.floor(this.height / 2 / polarEntity.distance);
-
-    const sprite = animateComponent || spriteComponent;
+    const sprite = animateSprite || staticSprite;
 
     const a1 = normalizeAngle(rayAngle - polarEntity.angleFrom);
     const a2 = normalizeAngle(polarEntity.angleTo - polarEntity.angleFrom);
