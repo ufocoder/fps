@@ -4,7 +4,7 @@ const random = (from: number, to: number) => {
 
 
 const generateZombies = (limit: number, x: number, y: number, dx: number, dy: number) => {
-  return new Array(limit).fill(0).map(() => generateZobie(
+  return new Array(limit).fill(0).map(() => generateZombie(
     random(x - dx, x + dx),
     random(y - dy, y + dy),
   ));
