@@ -1,25 +1,26 @@
 import { degreeToRadians, normalizeAngle } from "src/lib/utils";
-import Entity from "src/lib/ecs/Entity";
+import { Entity } from "src/lib/ecs/Entity";
 import System from "src/lib/ecs/System";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
 import MoveComponent from "src/lib/ecs/components/MoveComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import RotateComponent from "src/lib/ecs/components/RotateComponent";
 import CollisionComponent from "src/lib/ecs/components/CollisionComponent";
-import QuerySystem from "../lib/QuerySystem";
 import PositionMap from "../lib/PositionMap";
 import CameraComponent from "../components/CameraComponent";
 import CircleComponent from "../components/CircleComponent";
+import { ComponentContainer } from "../Component";
+import ECS from "..";
 
 export default class MoveSystem extends System {
-  requiredComponents = [CircleComponent, PositionComponent, AngleComponent, RotateComponent, MoveComponent];
+  componentsRequired = new Set([CircleComponent, PositionComponent, AngleComponent, RotateComponent, MoveComponent]);
   
-  protected positionMap: PositionMap<Entity>;
+  protected positionMap: PositionMap<ComponentContainer>;
   protected cols: number;
   protected rows: number;
 
-  constructor(querySystem: QuerySystem, level: Level) {
-    super(querySystem);
+  constructor(ecs: ECS, level: Level) {
+    super(ecs);
 
     const cols = level.map[0].length;
     const rows = level.map.length;
@@ -28,36 +29,37 @@ export default class MoveSystem extends System {
     
     this.cols = cols;
     this.rows = rows;
-
-    this.querySystem.query([PositionComponent, CollisionComponent]).forEach(entity => {
-      if (entity.hasComponent(CameraComponent)) {
+  }
+  
+  start(): void {
+    this.ecs.query([PositionComponent, CollisionComponent]).forEach(container => {
+      if (container.has(CameraComponent)) {
         return;
       }
 
-      const position = entity.getComponent(PositionComponent);
+      const position = container.get(PositionComponent);
 
       this.positionMap.set(
         Math.floor(position.x),
         Math.floor(position.y),
-        entity
+        container
       );
     })
   }
-  
-  start(): void {}
+
   destroy(): void {}
 
-  update(dt: number, entities: Entity[]) {
+  update(dt: number, entities: Set<Entity>) {
     entities.forEach(entity => {
-      
       this.rotate(dt, entity);
       this.move(dt, entity);
     });
   }
 
   protected rotate(dt: number, entity: Entity) {
-    const angleComponent = entity.getComponent(AngleComponent);
-    const rotateComponent = entity.getComponent(RotateComponent);
+    const components = this.ecs.getComponents(entity)
+    const angleComponent = components.get(AngleComponent);
+    const rotateComponent = components.get(RotateComponent);
 
     let k = 0;
 
@@ -75,15 +77,16 @@ export default class MoveSystem extends System {
   }
 
   protected move(dt: number, entity: Entity) {
-    const collisionComponent = entity.getComponent(CollisionComponent);
+    const components = this.ecs.getComponents(entity)
+    const collisionComponent = components.get(CollisionComponent);
 
     if (collisionComponent?.isCollided) {
       return;
     }
 
-    const angleComponent = entity.getComponent(AngleComponent);
-    const positionComponent = entity.getComponent(PositionComponent);
-    const moveComponent = entity.getComponent(MoveComponent);
+    const angleComponent = components.get(AngleComponent);
+    const positionComponent = components.get(PositionComponent);
+    const moveComponent = components.get(MoveComponent);
 
     let k = 0;
 

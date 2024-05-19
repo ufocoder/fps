@@ -1,6 +1,7 @@
 import { minmax } from "../utils";
 
 interface CanvasProps {
+    id?: string;
     width: number;
     height: number;
     scale?: number;
@@ -37,11 +38,14 @@ export default class BufferCanvas {
 
     protected buffer: ImageData;
     
-    constructor({ width, height, style, scale }: CanvasProps) {
+    constructor({ id, width, height, style, scale }: CanvasProps) {
         this.width = width;
         this.height = height;
 
         this.element = document.createElement('canvas');
+        if (id) {
+            this.element.id = id;
+        }
         this.element.width = width;
         this.element.height = height;
 

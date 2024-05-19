@@ -1,7 +1,7 @@
-import Entity from "src/lib/ecs/Entity";
 import System from "src/lib/ecs/System";
 import MoveComponent from "src/lib/ecs/components/MoveComponent";
 import RotateComponent from "src/lib/ecs/components/RotateComponent";
+import { Entity } from "../Entity";
 
 const keyCodes = {
   up: "KeyW",
@@ -11,7 +11,7 @@ const keyCodes = {
 };
 
 export default class ControlSystem extends System {
-  requiredComponents = [MoveComponent, RotateComponent];
+  componentsRequired = new Set([MoveComponent, RotateComponent]);
 
   direction = {
     up: false,
@@ -24,10 +24,11 @@ export default class ControlSystem extends System {
     this.createListeners();
   }
 
-  update(_: number, entities: Entity[]) {
+  update(_: number, entities: Set<Entity>) {
     entities.forEach((entity) => {
-      const rotateComponent = entity.getComponent(RotateComponent);
-      const moveComponent = entity.getComponent(MoveComponent);
+      const components = this.ecs.getComponents(entity)
+      const rotateComponent = components.get(RotateComponent);
+      const moveComponent = components.get(MoveComponent);
 
       rotateComponent.direction.left = this.direction.left;
       rotateComponent.direction.right = this.direction.right;

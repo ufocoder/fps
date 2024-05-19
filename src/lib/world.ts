@@ -1,4 +1,3 @@
-import Entity from "src/lib/ecs/Entity";
 import TextureComponent from "src/lib/ecs/components/TextureComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
@@ -15,78 +14,71 @@ import CircleComponent from "./ecs/components/CircleComponent";
 import AIComponent from "./ecs/components/AIComponent";
 import AnimatedSpriteComponent from "./ecs/components/AnimationComponent";
 import AnimationManager from "src/managers/AnimationManager";
+import ECS from "./ecs";
 // import AIComponent from "./ecs/components/AIComponent";
 
-export function createEntities(level: Level, textureManager: TextureManager, animationManager: AnimationManager,) {
+export function createWorld(ecs: ECS, level: Level, textureManager: TextureManager, animationManager: AnimationManager,) {
     
     // player
-    const player = new Entity();
-    player.addComponent(new CircleComponent(0.4));
-    player.addComponent(new PositionComponent(level.player.x, level.player.y));
-    player.addComponent(new HealthComponent(level.player.health, level.player.health));
-    player.addComponent(new AngleComponent(level.player.angle));
-    player.addComponent(new MoveComponent(3));
-    player.addComponent(new RotateComponent(360 / 6));
-    player.addComponent(new CameraComponent(60));
-    player.addComponent(new MinimapComponent('black'));
+    const player = ecs.addEntity();
+
+    ecs.addComponent(player, new CircleComponent(0.4));
+    ecs.addComponent(player, new PositionComponent(level.player.x, level.player.y));
+    ecs.addComponent(player, new HealthComponent(level.player.health, level.player.health));
+    ecs.addComponent(player, new AngleComponent(level.player.angle));
+    ecs.addComponent(player, new MoveComponent(3));
+    ecs.addComponent(player, new RotateComponent(360 / 4.5));
+    ecs.addComponent(player, new CameraComponent(60));
+    ecs.addComponent(player, new MinimapComponent('black'));
 
     // enemies
-    const enemies:Entity[] = [];
-    level.enemies.forEach((enemy) => {
-        const entity = new Entity();
+    level.enemies?.forEach((enemy) => {
+        const entity = ecs.addEntity();
         const texture = textureManager.get(enemy.sprite);
 
-        entity.addComponent(new AIComponent(2));
-        entity.addComponent(new AnimatedSpriteComponent('idle', {
-            'idle': animationManager.get('zombieIdle'),
-            'damage': animationManager.get('zombieDamage'),
-            'death': animationManager.get('zombieDeath'),
-            'walk': animationManager.get('zombieWalk'),
-        })),
-        entity.addComponent(new CircleComponent(enemy.radius));
-        entity.addComponent(new PositionComponent(enemy.x, enemy.y));
-        entity.addComponent(new HealthComponent(enemy.health, enemy.health));
-        entity.addComponent(new AngleComponent(enemy.angle));
-        entity.addComponent(new SpriteComponent(texture));
-        entity.addComponent(new SpriteComponent(texture));
-        entity.addComponent(new MinimapComponent('red'));
+        ecs.addComponent(entity, new AIComponent(2));
 
-        enemies.push(entity);
+        if (enemy.ai) {
+            ecs.addComponent(entity, new AnimatedSpriteComponent('idle', {
+                'attack': animationManager.get('zombieAttack'),
+                'idle': animationManager.get('zombieIdle'),
+                'damage': animationManager.get('zombieDamage'),
+                'death': animationManager.get('zombieDeath'),
+                'walk': animationManager.get('zombieWalk'),
+            }))
+        }
+        ecs.addComponent(entity, new CircleComponent(enemy.radius));
+        ecs.addComponent(entity, new PositionComponent(enemy.x, enemy.y));
+        ecs.addComponent(entity, new HealthComponent(enemy.health, enemy.health));
+        ecs.addComponent(entity, new AngleComponent(enemy.angle));
+        ecs.addComponent(entity, new SpriteComponent(texture));
+        ecs.addComponent(entity, new SpriteComponent(texture));
+        ecs.addComponent(entity, new MinimapComponent('red'));
     });
 
     // exit
-    const exit = new Entity();
-    exit.addComponent(new BoxComponent(1));
-    exit.addComponent(new PositionComponent(level.exit.x, level.exit.y));
-    exit.addComponent(new MinimapComponent('yellow'));
+    const exit = ecs.addEntity();
+
+    ecs.addComponent(exit, new BoxComponent(1));
+    ecs.addComponent(exit, new PositionComponent(level.exit.x, level.exit.y));
+    ecs.addComponent(exit, new MinimapComponent('yellow'));
 
     // walls
-    const walls:Entity[] = [];
-
     level.map.forEach((row, y) => {
         row.forEach((col, x) => {
             if (col === 0) {
                 return;
             }
-            const wall = new Entity();
+            const wall = ecs.addEntity();
 
             const textureName = level.textures[col]
             const texture = textureManager.get(textureName);
 
-            wall.addComponent(new CollisionComponent());
-            wall.addComponent(new BoxComponent(1));
-            wall.addComponent(new PositionComponent(x, y));
-            wall.addComponent(new TextureComponent(texture))
-            wall.addComponent(new MinimapComponent('grey'));
-
-            walls.push(wall);
+            ecs.addComponent(wall, new CollisionComponent());
+            ecs.addComponent(wall, new BoxComponent(1));
+            ecs.addComponent(wall, new PositionComponent(x, y));
+            ecs.addComponent(wall, new TextureComponent(texture))
+            ecs.addComponent(wall, new MinimapComponent('grey'));
         });
     });
-
-    return [
-        ...walls,
-        ...enemies,
-        exit,
-        player,
-    ];
 }

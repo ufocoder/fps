@@ -4,7 +4,7 @@ export default class PositionMap<T> {
   rows: number;
   cols: number;
 
-  constructor(rows: number, cols: number) {
+  constructor(cols: number, rows: number) {
     this.cols = cols;
     this.rows = rows;
 

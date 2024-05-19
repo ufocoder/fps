@@ -13,6 +13,7 @@ interface Сharacter {
 }
 
 interface Enemy extends Сharacter { 
+    ai?: boolean;
     sprite: string;
     radius: number;
 }
@@ -23,7 +24,8 @@ interface Level {
     map: LevelMap;
     textures: Record<number, string>;
     player: Сharacter;
-    enemies: Enemy[];
+    music: string;
+    enemies?: Enemy[];
     exit: {
         x: number;
         y: number;

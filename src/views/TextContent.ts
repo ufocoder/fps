@@ -9,6 +9,7 @@ export default class TextContent {
     constructor(text: string[]) {
         this.text = text;
         this.canvas = new Canvas({
+            id: "content",
             height: this.height, 
             width: this.width,
             style: "border: 1px solid black",

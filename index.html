@@ -7,16 +7,42 @@
     <title>Maze</title>
     <style>
       body {
+        margin: 0;
+        padding: 0;
         display: flex;
         justify-content: center;
         align-items: center;
         min-height: 100vh;
+        background: #000;
       }
+
       #app {
         position: absolute;
-        width: 800px;
-        height: 600px;
+        width: 100vw;
+        min-width: 800px;
+        min-height: 600px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
+
+      #ui {
+        position: absolute;
+        z-index: 2;
+      }
+
+      #minimap {
+        position: absolute;
+        right: 20px;
+        z-index: 3;
+      }
+
+      #camera canvas, 
+      #content canvas {
+        
+        width: 100%;
+      }
+
     </style>
   </head>
   <body>
