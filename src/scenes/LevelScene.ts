@@ -15,6 +15,7 @@ import BaseScene from "./BaseScene";
 import AISystem from "src/lib/ecs/systems/AISystem";
 import AnimationManager from "src/managers/AnimationManager";
 import AnimationSystem from "src/lib/ecs/systems/AnimationSystem";
+import RotationSystem from "src/lib/ecs/systems/RotationSystem";
 
 interface LevelSceneProps {
   container: HTMLElement;
@@ -43,6 +44,7 @@ export default class LevelScene implements BaseScene {
       new ControlSystem(querySystem),
       new AISystem(querySystem),
       new MoveSystem(querySystem, level),
+      new RotationSystem(querySystem, level),
       new AnimationSystem(querySystem),
       new RenderSystem(querySystem, container, level, textureManager),
       new MinimapSystem(querySystem, container, level),

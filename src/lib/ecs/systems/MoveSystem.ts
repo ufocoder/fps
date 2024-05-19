@@ -1,10 +1,9 @@
-import { degreeToRadians, normalizeAngle } from "src/lib/utils";
+import { degreeToRadians } from "src/lib/utils";
 import Entity from "src/lib/ecs/Entity";
 import System from "src/lib/ecs/System";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
 import MoveComponent from "src/lib/ecs/components/MoveComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
-import RotateComponent from "src/lib/ecs/components/RotateComponent";
 import CollisionComponent from "src/lib/ecs/components/CollisionComponent";
 import QuerySystem from "../lib/QuerySystem";
 import PositionMap from "../lib/PositionMap";
@@ -12,7 +11,7 @@ import CameraComponent from "../components/CameraComponent";
 import CircleComponent from "../components/CircleComponent";
 
 export default class MoveSystem extends System {
-  requiredComponents = [CircleComponent, PositionComponent, AngleComponent, RotateComponent, MoveComponent];
+  requiredComponents = [CircleComponent, PositionComponent, AngleComponent, MoveComponent];
   
   protected positionMap: PositionMap<Entity>;
   protected cols: number;
@@ -49,29 +48,8 @@ export default class MoveSystem extends System {
 
   update(dt: number, entities: Entity[]) {
     entities.forEach(entity => {
-      
-      this.rotate(dt, entity);
       this.move(dt, entity);
     });
-  }
-
-  protected rotate(dt: number, entity: Entity) {
-    const angleComponent = entity.getComponent(AngleComponent);
-    const rotateComponent = entity.getComponent(RotateComponent);
-
-    let k = 0;
-
-    if (rotateComponent.direction.right) {
-      k = 1;
-    }
-
-    if (rotateComponent.direction.left) {
-      k = -1;
-    }
-
-    if (k) {
-      angleComponent.angle = normalizeAngle(angleComponent.angle + k * rotateComponent.rotationSpeed * dt);
-    }
   }
 
   protected move(dt: number, entity: Entity) {

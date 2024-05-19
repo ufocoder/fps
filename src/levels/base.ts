@@ -40,7 +40,7 @@ const level: Level = {
   player: {
     x: 0,
     y: 5.5,
-    angle: 0,
+    angle: 90,
     health: 100,
   },
   enemies: generateEnemies(10),

@@ -19,23 +19,27 @@ export default class ControlSystem extends System {
     left: false,
     right: false,
   };
+
+  pointerStartX: number | undefined;
+  rotationDifference = 0;
   
   start(): void {
     this.createListeners();
   }
 
   update(_: number, entities: Entity[]) {
-    entities.forEach((entity) => {
-      const rotateComponent = entity.getComponent(RotateComponent);
-      const moveComponent = entity.getComponent(MoveComponent);
+      entities.forEach((entity) => {
+        const rotateComponent = entity.getComponent(RotateComponent);
+        const moveComponent = entity.getComponent(MoveComponent);
 
-      rotateComponent.direction.left = this.direction.left;
-      rotateComponent.direction.right = this.direction.right;
+        rotateComponent.rotationDifference = this.rotationDifference;
 
-      moveComponent.direction.forward = this.direction.up;
-      moveComponent.direction.back = this.direction.down;
+        moveComponent.direction.forward = this.direction.up;
+        moveComponent.direction.back = this.direction.down;
     });
-  }
+
+    this.rotationDifference = 0;
+}
 
   destroy(): void {
     this.destroyListeners();
@@ -79,13 +83,27 @@ export default class ControlSystem extends System {
     this.deactivateDirectionByKeyCode(e.code);
   };
 
+  handleDocumentMouseMove = (e: MouseEvent) => {
+    if (!this.pointerStartX) {
+        this.pointerStartX = e.x;
+    }
+
+    this.rotationDifference = e.x - this.pointerStartX;
+
+    this.pointerStartX = e.x;
+  };
+
   createListeners() {
     document.addEventListener("keydown", this.handleDocumentKeyDown);
     document.addEventListener("keyup", this.handleDocumentKeyUp);
+    document.body.addEventListener("click", document.body.requestPointerLock);
+    document.addEventListener("pointerlockchange", (e) => console.log(e));
+    document.addEventListener("mousemove", this.handleDocumentMouseMove);
   }
 
   destroyListeners() {
     document.removeEventListener("keydown", this.handleDocumentKeyDown);
     document.removeEventListener("keyup", this.handleDocumentKeyUp);
+    document.removeEventListener("mousemove", this.handleDocumentMouseMove);
   }
 }

@@ -26,7 +26,7 @@ export function createEntities(level: Level, textureManager: TextureManager, ani
     player.addComponent(new HealthComponent(level.player.health, level.player.health));
     player.addComponent(new AngleComponent(level.player.angle));
     player.addComponent(new MoveComponent(3));
-    player.addComponent(new RotateComponent(360 / 6));
+    player.addComponent(new RotateComponent());
     player.addComponent(new CameraComponent(60));
     player.addComponent(new MinimapComponent('black'));
 
