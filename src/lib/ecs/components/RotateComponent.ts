@@ -1,9 +1,11 @@
 import { Component } from "src/lib/ecs/Component";
 
 export default class RotateComponent implements Component {
-    rotationDifference: number;
+    rotationSpeed: number;
+    rotationFactor: number;
     
-    constructor() {
-        this.rotationDifference = 0;
+    constructor(rotationSpeed = 0) {
+        this.rotationSpeed = rotationSpeed;
+        this.rotationFactor = 0;
     }
 }

@@ -21,7 +21,7 @@ export default class ControlSystem extends System {
   };
 
   pointerStartX: number | undefined;
-  rotationDifference = 0;
+  rotationFactor = 0;
   
   start(): void {
     this.createListeners();
@@ -33,13 +33,13 @@ export default class ControlSystem extends System {
       const rotateComponent = components.get(RotateComponent);
       const moveComponent = components.get(MoveComponent);
 
-        rotateComponent.rotationDifference = this.rotationDifference;
+        rotateComponent.rotationFactor = this.rotationFactor;
 
         moveComponent.direction.forward = this.direction.up;
         moveComponent.direction.back = this.direction.down;
     });
 
-    this.rotationDifference = 0;
+    this.rotationFactor = 0;
 }
 
   destroy(): void {
@@ -85,20 +85,12 @@ export default class ControlSystem extends System {
   };
 
   handleDocumentMouseMove = (e: MouseEvent) => {
-    if (!this.pointerStartX) {
-        this.pointerStartX = e.x;
-    }
-
-    this.rotationDifference = e.x - this.pointerStartX;
-
-    this.pointerStartX = e.x;
+    this.rotationFactor = e.movementX;
   };
 
   createListeners() {
     document.addEventListener("keydown", this.handleDocumentKeyDown);
     document.addEventListener("keyup", this.handleDocumentKeyUp);
-    document.body.addEventListener("click", document.body.requestPointerLock);
-    document.addEventListener("pointerlockchange", (e) => console.log(e));
     document.addEventListener("mousemove", this.handleDocumentMouseMove);
   }
 

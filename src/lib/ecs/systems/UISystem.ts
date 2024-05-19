@@ -28,6 +28,7 @@ export default class UISystem extends System {
 
   start() {
     this.container.appendChild(this.canvas.element);
+    this.canvas.element.requestPointerLock();
   }
 
   update() {

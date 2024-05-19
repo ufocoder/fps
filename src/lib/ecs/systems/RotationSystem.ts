@@ -16,11 +16,11 @@ export default class RotationSystem extends System {
     });
   }
 
-  protected rotate(_: number, entity: Entity) {
+  protected rotate(dt: number, entity: Entity) {
     const components = this.ecs.getComponents(entity)
     const angleComponent = components.get(AngleComponent);
-    const rotateComponent = components.get(RotateComponent);
+    const { rotationFactor, rotationSpeed } = components.get(RotateComponent);
 
-    angleComponent.angle = normalizeAngle(angleComponent.angle + rotateComponent.rotationDifference);
+    angleComponent.angle = normalizeAngle(angleComponent.angle + rotationFactor * rotationSpeed * dt);
   }
 }
