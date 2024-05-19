@@ -1,7 +1,7 @@
 import { angle, distance, normalizeAngle } from "src/lib/utils";
-import Entity from "../Entity";
 import PositionComponent from "../components/PositionComponent";
 import CircleComponent from "../components/CircleComponent";
+import { ComponentContainer } from "../Component";
 
 type Radius = number;
 type Angle = number;
@@ -10,13 +10,13 @@ export interface PolarPosition {
   distance: Radius; 
   angleFrom: Angle;
   angleTo: Angle;
-  entity: Entity;
+  container: ComponentContainer;
 }
 
 export default class PolarMap {
   polarEntities: PolarPosition[] = [];
 
-  constructor(center: Entity, entities: Entity[]) {
+  constructor(center: ComponentContainer, entities: ComponentContainer[]) {
     this.calculatePolarEntities(center, entities);
   }
 
@@ -44,12 +44,12 @@ export default class PolarMap {
       .sort((pe1, pe2) => pe2.distance - pe1.distance)
   }
 
-  protected calculatePolarEntities(center: Entity, entities: Entity[]) {
-    const centerPosition = center.getComponent(PositionComponent);
+  protected calculatePolarEntities(center: ComponentContainer, entities: ComponentContainer[]) {
+    const centerPosition = center.get(PositionComponent);
 
-    this.polarEntities = entities.map(entity => {
-      const pointCircle = entity.getComponent(CircleComponent);
-      const pointPosition = entity.getComponent(PositionComponent);
+    this.polarEntities = entities.map(container => {
+      const pointCircle = container.get(CircleComponent);
+      const pointPosition = container.get(PositionComponent);
       const a = angle(
         centerPosition.x,
         centerPosition.y,
@@ -70,7 +70,7 @@ export default class PolarMap {
         distance: d,
         angleFrom: normalizeAngle(a - ta),
         angleTo: normalizeAngle(a + ta),
-        entity
+        container
       }
     }).filter(polarEntity => !isNaN(polarEntity.angleFrom));
   }

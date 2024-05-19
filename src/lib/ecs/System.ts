@@ -1,16 +1,16 @@
-import Entity from "./Entity";
-import QuerySystem from "./lib/QuerySystem";
+import ECS from ".";
+import { Entity } from "./Entity";
 
-export default abstract class BaseSystem {
-    querySystem: QuerySystem;
-    
-    requiredComponents: Array<Function> = [];
+export default abstract class System {
+    public ecs: ECS;
 
-    constructor(querySystem: QuerySystem) {
-        this.querySystem = querySystem;
+    public abstract componentsRequired: Set<Function>;
+
+    constructor(ecs: ECS) {
+        this.ecs = ecs;
     }
 
     abstract start(): void;
-    abstract update(dt: number, entities: Entity[]): void;
+    abstract update(dt: number, entities: Set<Entity>): void;
     abstract destroy(): void;
 }

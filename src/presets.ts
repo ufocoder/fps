@@ -1,15 +1,39 @@
 export const textures: TexturePreset[] = [
   {
-    id: "wall",
-    url: "./assets/textures/TECH_1C.PNG",
+    id: "TECH_1C",
+    url: "./assets/textures/TECH_1C.PNG"
   },
   {
-    id: "wall",
-    url: "./assets/textures/TECH_1C.PNG",
+    id: "TECH_1E",
+    url: "./assets/textures/TECH_1E.PNG"
   },
   {
-    id: "exit",
+    id: "TECH_2F",
+    url: "./assets/textures/TECH_2F.PNG"
+  },
+  {
+    id: "TECH_3B",
+    url: "./assets/textures/TECH_3B.PNG"
+  },
+  {
+    id: "TECH_4E",
+    url: "./assets/textures/TECH_4E.PNG"
+  },
+  {
+      id: "TECH_4F",
+      url: "./assets/textures/TECH_4F.PNG",
+  },
+  {
+    id: "DOOR_1A",
     url: "./assets/textures/DOOR_1A.PNG",
+  },
+  {
+    id: "DOOR_1C",
+    url: "./assets/textures/DOOR_1C.PNG",
+  },
+  {
+    id: "DOOR_1E",
+    url: "./assets/textures/DOOR_1E.PNG",
   },
   {
     id: "floor",
@@ -60,13 +84,30 @@ export const animation: AnimationSpritePreset[] = [
       "./assets/characters/ZombieDeath4.png",
     ],
   },
+  {
+    id: "zombieAttack",
+    frames: [
+      "./assets/characters/ZombieAttack1.png",
+      "./assets/characters/ZombieAttack2.png",
+    ],
+  },
 ];
 
 
 export const sounds: SoundPreset[] = [
   {
-    id: "background",
-    url: "./assets/music/background.mp3",
+    id: 'zombie-attack',
+    url: "./assets/sounds/zombie-attack.mp3",
     volume: 1,
   },
+  {
+    id: "dead-lift-yeti",
+    url: "./assets/music/dead-lift-yeti.mp3",
+    volume: 0.8,
+  },
+  {
+    id: "zombie-world-alex-besss",
+    url: "./assets/music/zombie-world-alex-besss.mp3",
+    volume: 0.8,
+  }
 ];

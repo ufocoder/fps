@@ -1,16 +1,15 @@
-import Entity from "src/lib/ecs/Entity";
+import { Entity } from "src/lib/ecs/Entity";
 import System from "src/lib/ecs/System";
 import AnimatedSpriteComponent from "../components/AnimationComponent";
 
-
 export default class AnimationSystem extends System {
-  requiredComponents = [AnimatedSpriteComponent];
+  componentsRequired = new Set([AnimatedSpriteComponent]);
 
   start(): void {}
 
-  update(dt: number, entities: Entity[]) {
+  update(dt: number, entities: Set<Entity>) {
     entities.forEach((entity) => {
-      entity.getComponent(AnimatedSpriteComponent).update(dt);
+      this.ecs.getComponents(entity).get(AnimatedSpriteComponent).update(dt);
     });
   }
 
