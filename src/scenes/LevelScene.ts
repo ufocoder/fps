@@ -11,7 +11,6 @@ import BaseScene from "./BaseScene";
 import AISystem from "src/lib/ecs/systems/AISystem";
 import AnimationManager from "src/managers/AnimationManager";
 import AnimationSystem from "src/lib/ecs/systems/AnimationSystem";
-import RotationSystem from "src/lib/ecs/systems/RotationSystem";
 import ECS from "src/lib/ecs";
 import { createWorld } from "src/lib/world";
 import UISystem from "src/lib/ecs/systems/UISystem";
@@ -41,7 +40,6 @@ export default class LevelScene implements BaseScene {
     ecs.addSystem(new ControlSystem(ecs));
     ecs.addSystem(new AISystem(ecs, level, soundManager));
     ecs.addSystem(new MoveSystem(ecs, level));
-    ecs.addSystem(new RotationSystem(ecs));
     ecs.addSystem(new AnimationSystem(ecs));
     ecs.addSystem(new RenderSystem(ecs, container, level, textureManager));
     ecs.addSystem(new UISystem(ecs, container));

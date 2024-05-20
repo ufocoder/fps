@@ -1,9 +1,10 @@
-import { degreeToRadians } from "src/lib/utils";
+import { degreeToRadians, normalizeAngle } from "src/lib/utils";
 import { Entity } from "src/lib/ecs/Entity";
 import System from "src/lib/ecs/System";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
 import MoveComponent from "src/lib/ecs/components/MoveComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
+import RotateComponent from "src/lib/ecs/components/RotateComponent";
 import CollisionComponent from "src/lib/ecs/components/CollisionComponent";
 import PositionMap from "../lib/PositionMap";
 import CameraComponent from "../components/CameraComponent";
@@ -12,7 +13,7 @@ import { ComponentContainer } from "../Component";
 import ECS from "..";
 
 export default class MoveSystem extends System {
-  componentsRequired = new Set([CircleComponent, PositionComponent, AngleComponent, MoveComponent]);
+  componentsRequired = new Set([CircleComponent, PositionComponent, AngleComponent, RotateComponent, MoveComponent]);
   
   protected positionMap: PositionMap<ComponentContainer>;
   protected cols: number;
@@ -50,8 +51,17 @@ export default class MoveSystem extends System {
 
   update(dt: number, entities: Set<Entity>) {
     entities.forEach(entity => {
+      this.rotate(dt, entity);
       this.move(dt, entity);
     });
+  }
+
+  protected rotate(dt: number, entity: Entity) {
+    const components = this.ecs.getComponents(entity)
+    const angleComponent = components.get(AngleComponent);
+    const { rotationFactor, rotationSpeed } = components.get(RotateComponent);
+
+    angleComponent.angle = normalizeAngle(angleComponent.angle + rotationFactor * rotationSpeed * dt);
   }
 
   protected move(dt: number, entity: Entity) {
