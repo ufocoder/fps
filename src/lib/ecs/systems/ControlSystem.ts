@@ -2,6 +2,7 @@ import System from "src/lib/ecs/System";
 import MoveComponent from "src/lib/ecs/components/MoveComponent";
 import RotateComponent from "src/lib/ecs/components/RotateComponent";
 import { Entity } from "../Entity";
+import ECS from "..";
 
 const keyCodes = {
   up: "KeyW",
@@ -13,6 +14,8 @@ const keyCodes = {
 export default class ControlSystem extends System {
   componentsRequired = new Set([MoveComponent, RotateComponent]);
 
+  protected readonly container: HTMLElement;
+
   direction = {
     up: false,
     down: false,
@@ -22,9 +25,17 @@ export default class ControlSystem extends System {
 
   pointerStartX: number | undefined;
   rotationFactor = 0;
+  isPointerLocked = false;
   
+  constructor(ecs: ECS, container: HTMLElement) {
+    super(ecs);
+
+    this.container = container;
+  }
+
   start(): void {
     this.createListeners();
+    this.requestPointerLock();
   }
 
   update(_: number, entities: Set<Entity>) {
@@ -43,6 +54,7 @@ export default class ControlSystem extends System {
 }
 
   destroy(): void {
+    document.exitPointerLock();
     this.destroyListeners();
   }
 
@@ -88,15 +100,32 @@ export default class ControlSystem extends System {
     this.rotationFactor = e.movementX;
   };
 
+  handlePointerLockChange = () => {
+    if (this.isPointerLocked) {
+        document.addEventListener("mousemove", this.handleDocumentMouseMove);
+    } else {
+        document.removeEventListener("mousemove", this.handleDocumentMouseMove);
+    }
+
+    this.isPointerLocked = !this.isPointerLocked;
+  }
+
+  requestPointerLock = () => {
+    this.container.requestPointerLock();
+    this.isPointerLocked = true;
+  };
+
   createListeners() {
     document.addEventListener("keydown", this.handleDocumentKeyDown);
     document.addEventListener("keyup", this.handleDocumentKeyUp);
-    document.addEventListener("mousemove", this.handleDocumentMouseMove);
+    document.addEventListener("pointerlockchange", this.handlePointerLockChange);
+    this.container.addEventListener("click", this.requestPointerLock);
   }
 
   destroyListeners() {
     document.removeEventListener("keydown", this.handleDocumentKeyDown);
     document.removeEventListener("keyup", this.handleDocumentKeyUp);
-    document.removeEventListener("mousemove", this.handleDocumentMouseMove);
+    document.removeEventListener("pointerlockchange", this.handlePointerLockChange);
+    this.container.removeEventListener("click", this.requestPointerLock);
   }
 }
