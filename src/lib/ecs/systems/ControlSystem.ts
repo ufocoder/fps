@@ -4,11 +4,11 @@ import RotateComponent from "src/lib/ecs/components/RotateComponent";
 import { Entity } from "../Entity";
 import ECS from "..";
 
-const keyCodes = {
-  up: "KeyW",
-  down: "KeyS",
-  left: "KeyA",
-  right: "KeyD",
+const keyCodes: Record<string, string> = {
+    KeyW: 'up',
+    KeyS: 'down',
+    KeyA: 'left',
+    KeyD: 'right',
 };
 
 export default class ControlSystem extends System {
@@ -16,7 +16,7 @@ export default class ControlSystem extends System {
 
   protected readonly container: HTMLElement;
 
-  direction = {
+  direction: Record<string, boolean> = {
     up: false,
     down: false,
     left: false,
@@ -44,10 +44,12 @@ export default class ControlSystem extends System {
       const rotateComponent = components.get(RotateComponent);
       const moveComponent = components.get(MoveComponent);
 
-        rotateComponent.rotationFactor = this.rotationFactor;
+      rotateComponent.rotationFactor = this.rotationFactor;
 
-        moveComponent.direction.forward = this.direction.up;
-        moveComponent.direction.back = this.direction.down;
+      moveComponent.direction.forward = this.direction.up;
+      moveComponent.direction.back = this.direction.down;
+      moveComponent.direction.left = this.direction.left;
+      moveComponent.direction.right = this.direction.right;
     });
 
     this.rotationFactor = 0;
@@ -58,42 +60,22 @@ export default class ControlSystem extends System {
     this.destroyListeners();
   }
 
-  activateDirectionByKeyCode = (keyCode: string) => {
-    if (keyCode === keyCodes.up) {
-      this.direction.up = true;
-    }
-    if (keyCode === keyCodes.down) {
-      this.direction.down = true;
-    }
-    if (keyCode === keyCodes.left) {
-      this.direction.left = true;
-    }
-    if (keyCode === keyCodes.right) {
-      this.direction.right = true;
-    }
-  };
+  setDirection(keyCode: string, value: boolean) {
+    const direction = keyCodes[keyCode];
 
-  deactivateDirectionByKeyCode = (keyCode: string) => {
-    if (keyCode === keyCodes.up) {
-      this.direction.up = false;
+    if (!direction) {
+        return;
     }
-    if (keyCode === keyCodes.down) {
-      this.direction.down = false;
-    }
-    if (keyCode === keyCodes.left) {
-      this.direction.left = false;
-    }
-    if (keyCode === keyCodes.right) {
-      this.direction.right = false;
-    }
-  };
+
+    this.direction[direction] = value;
+  }
 
   handleDocumentKeyDown = (e: KeyboardEvent) => {
-    this.activateDirectionByKeyCode(e.code);
+    this.setDirection(e.code, true);
   };
 
   handleDocumentKeyUp = (e: KeyboardEvent) => {
-    this.deactivateDirectionByKeyCode(e.code);
+    this.setDirection(e.code, false);
   };
 
   handleDocumentMouseMove = (e: MouseEvent) => {
