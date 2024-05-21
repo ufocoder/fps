@@ -79,8 +79,8 @@ export default class MoveSystem extends System {
         moveSpeed,
     } = components.get(MoveComponent);
 
-    const k = 1 * Number(forward) - 1 * Number(back);
-    const n = 1 * Number(right) - 1 * Number(left);
+    const k = Number(forward) - Number(back);
+    const n = Number(right) - Number(left);
 
     if (k || n) {
       const playerAngle = degreeToRadians(angleComponent.angle);
