@@ -83,7 +83,7 @@ export default class AISystem extends System {
         entityAI.lastAttackTime = 0;
       }
 
-      if (entityAI.lastAttackTime >= 1) {
+      if (entityAI.lastAttackTime >= 0.5) {
         this.soundManager.play('zombie-attack');
         cameraHealth.current = Math.max(0, cameraHealth.current - entityAI.damagePerSecond);
         entityAI.lastAttackTime = 0;
