@@ -15,6 +15,7 @@ import AIComponent from "./ecs/components/AIComponent";
 import AnimatedSpriteComponent from "./ecs/components/AnimationComponent";
 import AnimationManager from "src/managers/AnimationManager";
 import ECS from "./ecs";
+import EnemyComponent from "./ecs/components/EnemyComponent";
 // import AIComponent from "./ecs/components/AIComponent";
 
 export function createWorld(ecs: ECS, level: Level, textureManager: TextureManager, animationManager: AnimationManager,) {
@@ -36,9 +37,11 @@ export function createWorld(ecs: ECS, level: Level, textureManager: TextureManag
         const entity = ecs.addEntity();
         const texture = textureManager.get(enemy.sprite);
 
-        ecs.addComponent(entity, new AIComponent(2));
+        ecs.addComponent(entity, new MoveComponent(1));
+        ecs.addComponent(entity, new EnemyComponent())
 
         if (enemy.ai) {
+            ecs.addComponent(entity, new AIComponent(2));
             ecs.addComponent(entity, new AnimatedSpriteComponent('idle', {
                 'attack': animationManager.get('zombieAttack'),
                 'idle': animationManager.get('zombieIdle'),
@@ -47,12 +50,13 @@ export function createWorld(ecs: ECS, level: Level, textureManager: TextureManag
                 'walk': animationManager.get('zombieWalk'),
             }))
         }
+
         ecs.addComponent(entity, new CircleComponent(enemy.radius));
         ecs.addComponent(entity, new PositionComponent(enemy.x, enemy.y));
         ecs.addComponent(entity, new HealthComponent(enemy.health, enemy.health));
         ecs.addComponent(entity, new AngleComponent(enemy.angle));
         ecs.addComponent(entity, new SpriteComponent(texture));
-        ecs.addComponent(entity, new SpriteComponent(texture));
+        ecs.addComponent(entity, new RotateComponent());
         ecs.addComponent(entity, new MinimapComponent('red'));
     });
 
