@@ -2,16 +2,14 @@ import Canvas from "src/lib/Canvas/DefaultCanvas";
 import System from "src/lib/ecs/System";
 import { Entity } from "src/lib/ecs/Entity";
 import BoxComponent from "src/lib/ecs/components/BoxComponent";
+import CircleComponent from "src/lib/ecs/components/CircleComponent";
+import MinimapComponent from "src/lib/ecs/components/MinimapComponent";
 import ColorComponent from "src/lib/ecs/components/MinimapComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
-
-import MinimapComponent from "../components/MinimapComponent";
-import CircleComponent from "../components/CircleComponent";
-import CameraComponent from "../components/CameraComponent";
 import ECS from "src/lib/ecs";
 
 export default class MinimapSystem extends System {
-  componentsRequired = new Set([PositionComponent, MinimapComponent]);
+  componentsRequired = new Set([MinimapComponent, PositionComponent]);
 
   readonly scale: number = 10;
   readonly canvas: Canvas;
@@ -45,10 +43,6 @@ export default class MinimapSystem extends System {
       const components = this.ecs.getComponents(entity);
       const { x, y } = components.get(PositionComponent);
       const { color } = components.get(ColorComponent);
-
-      if (components.has(CameraComponent)) {
-        // @TODO: render rays
-      }
 
       if (components.has(BoxComponent)) {
         const { size } = components.get(BoxComponent);
