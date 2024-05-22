@@ -12,9 +12,19 @@ import ECS from "src/lib/ecs";
 import TextureComponent from "../components/TextureComponent";
 import PositionMap from "../lib/PositionMap";
 import { ComponentContainer } from "../Component";
+import EnemyComponent from "../components/EnemyComponent";
+import MoveComponent, { MainDirection } from "../components/MoveComponent";
+import AngleComponent from "../components/AngleComponent";
+// import { normalizeAngle, radiansToDegrees } from "src/lib/utils";
 
 export default class AISystem extends System {
-  componentsRequired = new Set([AIComponent, AnimatedSpriteComponent, CircleComponent, PositionComponent]);
+  componentsRequired = new Set([
+    AIComponent,
+    EnemyComponent,
+    PositionComponent,
+    AngleComponent,
+    MoveComponent,
+  ]);
 
   protected readonly soundManager: SoundManager;
   protected readonly textureMap: PositionMap<ComponentContainer>;
@@ -22,7 +32,7 @@ export default class AISystem extends System {
   constructor(ecs: ECS, level: Level, soundManager: SoundManager) {
     super(ecs);
     this.soundManager = soundManager;
-    
+
     const cols = level.map[0].length;
     const rows = level.map.length;
 
@@ -30,54 +40,64 @@ export default class AISystem extends System {
   }
 
   start(): void {
-    this.ecs.query([PositionComponent, TextureComponent]).forEach(container => {
-      if (container.has(CameraComponent)) {
-        return;
-      }
+    this.ecs
+      .query([PositionComponent, TextureComponent])
+      .forEach((container) => {
+        if (container.has(CameraComponent)) {
+          return;
+        }
 
-      const position = container.get(PositionComponent);
+        const position = container.get(PositionComponent);
 
-      this.textureMap.set(
-        Math.floor(position.x),
-        Math.floor(position.y),
-        container
-      );
-    })
+        this.textureMap.set(
+          Math.floor(position.x),
+          Math.floor(position.y),
+          container
+        );
+      });
   }
 
   update(dt: number, entities: Set<Entity>) {
-    const [camera] = this.ecs.query([HealthComponent, CircleComponent, CameraComponent]);
+    const [camera] = this.ecs.query([
+      HealthComponent,
+      CircleComponent,
+      CameraComponent,
+    ]);
 
     const cameraPosition = camera.get(PositionComponent);
     const cameraCircle = camera.get(CircleComponent);
+    const cameraAngle = camera.get(AngleComponent);
     const cameraHealth = camera.get(HealthComponent);
 
     entities.forEach((entity: Entity) => {
       const components = this.ecs.getComponents(entity);
       const entityAI = components.get(AIComponent);
       const entityPosition = components.get(PositionComponent);
+      const entityAngle = components.get(AngleComponent);
       const entityCircle = components.get(CircleComponent);
+      const entityMove = components.get(MoveComponent);
       const entityAnimation = components.get(AnimatedSpriteComponent);
 
       const dx = cameraPosition.x - entityPosition.x;
       const dy = cameraPosition.y - entityPosition.y;
-      const distance = Math.sqrt(dx**2 + dy**2) - cameraCircle.radius - entityCircle.radius;
+      const d =
+        Math.sqrt(dx ** 2 + dy ** 2) -
+        cameraCircle.radius -
+        entityCircle?.radius;
 
-      // @TODO: move to move system
-      if (entityAI.distance > distance && distance > 0) {
-        entityAnimation.switchState('walk');
-        const newX = entityPosition.x + dx * dt * entityAI.moveSpeed;
-        const newY = entityPosition.y + dy * dt * entityAI.moveSpeed;
-        if (!this.textureMap.has(Math.floor(newX), Math.floor(newY))) {
-          entityPosition.x = newX;
-          entityPosition.y = newY;
-        }
+      if (entityAI.distance > d && d > 0) {
+        const newAngle = cameraAngle.angle + 180; // normalizeAngle(-radiansToDegrees(Math.acos(dx / d)));
+
+        entityAnimation.switchState("walk");
+        entityMove.mainDirection = MainDirection.Forward;
+        entityAngle.angle = newAngle;
       } else {
-        entityAnimation.switchState('idle');
+        entityMove.mainDirection = MainDirection.None;
+        entityAnimation.switchState("idle");
       }
 
-      if (distance <= 0) {
-        entityAnimation.switchState('attack');
+      if (d <= 0) {
+        entityAnimation.switchState("attack");
         entityAI.lastAttackTime += dt;
       } else {
         entityAI.lastAttackTime = 0;
@@ -91,6 +111,5 @@ export default class AISystem extends System {
     });
   }
 
-  destroy(){}
-
+  destroy() {}
 }
