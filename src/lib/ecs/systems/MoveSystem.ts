@@ -59,21 +59,9 @@ export default class MoveSystem extends System {
   protected rotate(dt: number, entity: Entity) {
     const components = this.ecs.getComponents(entity)
     const angleComponent = components.get(AngleComponent);
-    const rotateComponent = components.get(RotateComponent);
+    const { rotationFactor, rotationSpeed } = components.get(RotateComponent);
 
-    let k = 0;
-
-    if (rotateComponent.direction.right) {
-      k = 1;
-    }
-
-    if (rotateComponent.direction.left) {
-      k = -1;
-    }
-
-    if (k) {
-      angleComponent.angle = normalizeAngle(angleComponent.angle + k * rotateComponent.rotationSpeed * dt);
-    }
+    angleComponent.angle = normalizeAngle(angleComponent.angle + rotationFactor * rotationSpeed * dt);
   }
 
   protected move(dt: number, entity: Entity) {
@@ -86,23 +74,20 @@ export default class MoveSystem extends System {
 
     const angleComponent = components.get(AngleComponent);
     const positionComponent = components.get(PositionComponent);
-    const moveComponent = components.get(MoveComponent);
+    const {
+        direction: { forward, back, right, left },
+        moveSpeed,
+    } = components.get(MoveComponent);
 
-    let k = 0;
+    const k = Number(forward) - Number(back);
+    const n = Number(right) - Number(left);
 
-    if (moveComponent.direction.forward) {
-      k = 1;
-    }
-
-    if (moveComponent.direction.back) {
-      k = -1;
-    }
-
-    if (k) {
-      const playerCos = Math.cos(degreeToRadians(angleComponent.angle));
-      const playerSin = Math.sin(degreeToRadians(angleComponent.angle));
-      const newX = positionComponent.x + k * playerCos * moveComponent.moveSpeed * dt;
-      const newY = positionComponent.y + k * playerSin * moveComponent.moveSpeed * dt;
+    if (k || n) {
+      const playerAngle = degreeToRadians(angleComponent.angle);
+      const playerCos = Math.cos(playerAngle);
+      const playerSin = Math.sin(playerAngle);
+      const newX = positionComponent.x + (k * playerCos + n * playerSin) * moveSpeed * dt;
+      const newY = positionComponent.y + (k * playerSin + n * playerCos) * moveSpeed * dt;
 
       if (newX <= 0 || newX > this.cols) {
         return

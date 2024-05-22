@@ -6,6 +6,8 @@ export default class MoveComponent implements Component {
     direction = {
         forward: false,
         back: false,
+        left: false,
+        right: false,
     };
 
     constructor(moveSpeed: number = 0) {

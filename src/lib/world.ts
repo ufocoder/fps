@@ -27,7 +27,7 @@ export function createWorld(ecs: ECS, level: Level, textureManager: TextureManag
     ecs.addComponent(player, new HealthComponent(level.player.health, level.player.health));
     ecs.addComponent(player, new AngleComponent(level.player.angle));
     ecs.addComponent(player, new MoveComponent(3));
-    ecs.addComponent(player, new RotateComponent(360 / 4.5));
+    ecs.addComponent(player, new RotateComponent(360 / 15));
     ecs.addComponent(player, new CameraComponent(60));
     ecs.addComponent(player, new MinimapComponent('black'));
 
