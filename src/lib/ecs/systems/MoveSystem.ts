@@ -6,14 +6,13 @@ import MoveComponent from "src/lib/ecs/components/MoveComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import RotateComponent from "src/lib/ecs/components/RotateComponent";
 import CollisionComponent from "src/lib/ecs/components/CollisionComponent";
-import PositionMap from "../lib/PositionMap";
-import CameraComponent from "../components/CameraComponent";
-import CircleComponent from "../components/CircleComponent";
-import { ComponentContainer } from "../Component";
+import PositionMap from "src/lib/ecs/lib/PositionMap";
+import CameraComponent from "src/lib/ecs/components/CameraComponent";
+import { ComponentContainer } from "src/lib/ecs/Component";
 import ECS from "..";
 
 export default class MoveSystem extends System {
-  componentsRequired = new Set([CircleComponent, PositionComponent, AngleComponent, RotateComponent, MoveComponent]);
+  componentsRequired = new Set([PositionComponent, AngleComponent, RotateComponent, MoveComponent]);
   
   protected positionMap: PositionMap<ComponentContainer>;
   protected cols: number;
@@ -74,20 +73,21 @@ export default class MoveSystem extends System {
 
     const angleComponent = components.get(AngleComponent);
     const positionComponent = components.get(PositionComponent);
-    const {
-        direction: { forward, back, right, left },
-        moveSpeed,
-    } = components.get(MoveComponent);
+    const { mainDirection, sideDirection, moveSpeed } = components.get(MoveComponent);
 
-    const k = Number(forward) - Number(back);
-    const n = Number(right) - Number(left);
+    const m = Number(mainDirection);
+    const s = Number(sideDirection) * (-1);
 
-    if (k || n) {
-      const playerAngle = degreeToRadians(angleComponent.angle);
-      const playerCos = Math.cos(playerAngle);
-      const playerSin = Math.sin(playerAngle);
-      const newX = positionComponent.x + (k * playerCos + n * playerSin) * moveSpeed * dt;
-      const newY = positionComponent.y + (k * playerSin + n * playerCos) * moveSpeed * dt;
+    if (m || s) {
+      const mainAngle = degreeToRadians(angleComponent.angle);
+      const mainCos = Math.cos(mainAngle);
+      const mainSin = Math.sin(mainAngle);
+      const sideAngle = degreeToRadians(angleComponent.angle - 90);
+      const sideCos = Math.cos(sideAngle);
+      const sideSin = Math.sin(sideAngle);
+
+      const newX = positionComponent.x + (m * mainCos + s * sideCos) * moveSpeed * dt;
+      const newY = positionComponent.y + (m * mainSin + s * sideSin) * moveSpeed * dt;
 
       if (newX <= 0 || newX > this.cols) {
         return

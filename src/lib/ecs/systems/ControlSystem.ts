@@ -1,14 +1,17 @@
 import System from "src/lib/ecs/System";
-import MoveComponent from "src/lib/ecs/components/MoveComponent";
+import MoveComponent, {
+  MainDirection,
+  SideDirection,
+} from "src/lib/ecs/components/MoveComponent";
 import RotateComponent from "src/lib/ecs/components/RotateComponent";
-import { Entity } from "../Entity";
-import ECS from "..";
+import { Entity } from "src/lib/ecs/Entity";
+import ECS from "src/lib/ecs";
 
 const keyCodes: Record<string, string> = {
-    KeyW: 'up',
-    KeyS: 'down',
-    KeyA: 'left',
-    KeyD: 'right',
+  KeyW: "up",
+  KeyS: "down",
+  KeyA: "left",
+  KeyD: "right",
 };
 
 export default class ControlSystem extends System {
@@ -26,7 +29,7 @@ export default class ControlSystem extends System {
   pointerStartX: number | undefined;
   rotationFactor = 0;
   isPointerLocked = false;
-  
+
   constructor(ecs: ECS, container: HTMLElement) {
     super(ecs);
 
@@ -40,35 +43,46 @@ export default class ControlSystem extends System {
 
   update(_: number, entities: Set<Entity>) {
     entities.forEach((entity) => {
-      const components = this.ecs.getComponents(entity)
+      const components = this.ecs.getComponents(entity);
       const rotateComponent = components.get(RotateComponent);
       const moveComponent = components.get(MoveComponent);
 
       rotateComponent.rotationFactor = this.rotationFactor;
 
-      moveComponent.direction.forward = this.direction.up;
-      moveComponent.direction.back = this.direction.down;
-      moveComponent.direction.left = this.direction.left;
-      moveComponent.direction.right = this.direction.right;
+      if (this.direction.up) {
+        moveComponent.mainDirection = MainDirection.Forward;
+      } else if (this.direction.down) {
+        moveComponent.mainDirection = MainDirection.Back;
+      } else {
+        moveComponent.mainDirection = MainDirection.None;
+      }
+
+      if (this.direction.left) {
+        moveComponent.sideDirection = SideDirection.Left;
+      } else if (this.direction.right) {
+        moveComponent.sideDirection = SideDirection.Right;
+      } else {
+        moveComponent.sideDirection = SideDirection.None;
+      }
     });
 
     this.rotationFactor = 0;
-}
+  }
 
   destroy(): void {
     document.exitPointerLock();
     this.destroyListeners();
   }
 
-  setDirection(keyCode: string, value: boolean) {
+  setDirection = (keyCode: string, status: boolean) => {
     const direction = keyCodes[keyCode];
 
     if (!direction) {
-        return;
+      return;
     }
 
-    this.direction[direction] = value;
-  }
+    this.direction[direction] = status;
+  };
 
   handleDocumentKeyDown = (e: KeyboardEvent) => {
     this.setDirection(e.code, true);
@@ -84,13 +98,13 @@ export default class ControlSystem extends System {
 
   handlePointerLockChange = () => {
     if (this.isPointerLocked) {
-        document.addEventListener("mousemove", this.handleDocumentMouseMove);
+      document.addEventListener("mousemove", this.handleDocumentMouseMove);
     } else {
-        document.removeEventListener("mousemove", this.handleDocumentMouseMove);
+      document.removeEventListener("mousemove", this.handleDocumentMouseMove);
     }
 
     this.isPointerLocked = !this.isPointerLocked;
-  }
+  };
 
   requestPointerLock = () => {
     this.container.requestPointerLock();
