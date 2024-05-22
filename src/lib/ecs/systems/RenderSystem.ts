@@ -3,14 +3,14 @@ import System from "src/lib/ecs/System";
 import { degreeToRadians, distance, normalizeAngle } from "src/lib/utils";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
-import TextureComponent from "../components/TextureComponent";
+import TextureComponent from "src/lib/ecs/components/TextureComponent";
 import CameraComponent from "src/lib/ecs/components/CameraComponent";
-import PositionMap from "../lib/PositionMap";
-import SpriteComponent from "../components/SpriteComponent";
+import PositionMap from "src/lib/ecs/lib/PositionMap";
+import SpriteComponent from "src/lib/ecs/components/SpriteComponent";
 import TextureManager from "src/managers/TextureManager";
-import PolarMap, { PolarPosition } from "../lib/PolarMap";
-import AnimatedSpriteComponent from "../components/AnimationComponent";
-import { ComponentContainer } from "../Component";
+import PolarMap, { PolarPosition } from "src/lib/ecs/lib/PolarMap";
+import AnimatedSpriteComponent from "src/lib/ecs/components/AnimationComponent";
+import { ComponentContainer } from "src/lib/ecs/Component";
 import ECS from "..";
 
 export default class RenderSystem extends System {
