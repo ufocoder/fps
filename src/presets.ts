@@ -91,6 +91,44 @@ export const animation: AnimationSpritePreset[] = [
       "./assets/characters/ZombieAttack2.png",
     ],
   },
+  {
+    id: "soldierIdle",
+    frames: [
+      "./assets/characters/SoldierIdle.png",
+    ],
+  },
+  {
+    id: "soldierWalk",
+    frames: [
+      "./assets/characters/SoldierWalk1.png",
+      "./assets/characters/SoldierWalk2.png",
+      "./assets/characters/SoldierWalk3.png",
+      "./assets/characters/SoldierWalk4.png",
+    ],
+  },
+  {
+    id: "soldierDamage",
+    frames: [
+      "./assets/characters/SoldierDamage1.png",
+      "./assets/characters/SoldierDamage2.png",
+    ],
+  },
+  {
+    id: "soldierDeath",
+    frames: [
+      "./assets/characters/SoldierDeath1.png",
+      "./assets/characters/SoldierDeath2.png",
+      "./assets/characters/SoldierDeath3.png",
+      "./assets/characters/SoldierDeath4.png",
+    ],
+  },
+  {
+    id: "soldierAttack",
+    frames: [
+      "./assets/characters/SoldierAttack1.png",
+      "./assets/characters/SoldierAttack2.png",
+    ],
+  },
 ];
 
 

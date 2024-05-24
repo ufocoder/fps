@@ -15,7 +15,7 @@ import { ComponentContainer } from "../Component";
 import EnemyComponent from "../components/EnemyComponent";
 import MoveComponent, { MainDirection } from "../components/MoveComponent";
 import AngleComponent from "../components/AngleComponent";
-// import { normalizeAngle, radiansToDegrees } from "src/lib/utils";
+import { normalizeAngle, radiansToDegrees } from "src/lib/utils";
 
 export default class AISystem extends System {
   componentsRequired = new Set([
@@ -66,7 +66,6 @@ export default class AISystem extends System {
 
     const cameraPosition = camera.get(PositionComponent);
     const cameraCircle = camera.get(CircleComponent);
-    const cameraAngle = camera.get(AngleComponent);
     const cameraHealth = camera.get(HealthComponent);
 
     entities.forEach((entity: Entity) => {
@@ -85,12 +84,11 @@ export default class AISystem extends System {
         cameraCircle.radius -
         entityCircle?.radius;
 
-      if (entityAI.distance > d && d > 0) {
-        const newAngle = cameraAngle.angle + 180; // normalizeAngle(-radiansToDegrees(Math.acos(dx / d)));
-
+      if (entityAI.distance > d  && d > 0) {
+        const angle = radiansToDegrees(Math.atan(dy / dx));
         entityAnimation.switchState("walk");
         entityMove.mainDirection = MainDirection.Forward;
-        entityAngle.angle = newAngle;
+        entityAngle.angle = normalizeAngle(angle);
       } else {
         entityMove.mainDirection = MainDirection.None;
         entityAnimation.switchState("idle");

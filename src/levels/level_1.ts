@@ -21,28 +21,35 @@ const level: Level = {
     5: "DOOR_1E",
   },
   player: {
-    x: 1.5,
+    x: 17.5,
     y: 2.5,
-    angle: 0,
+    angle: 180,
     health: 100,
   },
   enemies: [
     {
+      ai: true,
+      type: 'soldier',
       sprite: 'soldier',
       health: 0,
-      angle: 10,
-      x: 18.5, 
+      angle: 180,
+      x: 14.5,
+//      x: 18.5, 
       y: 1.5,
       radius: 0.5,
     },
+    /*
     {
+      ai: true,
+      type: 'soldier',
       sprite: 'soldier',
       health: 0,
-      angle: 10,
+      angle: 180,
       x: 18.5, 
       y: 3.5,
       radius: 0.5,
     },
+    */
   ],
   exit: {
     x: 18,

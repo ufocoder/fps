@@ -15,6 +15,7 @@ import ECS from "src/lib/ecs";
 import { createWorld } from "src/lib/world";
 import UISystem from "src/lib/ecs/systems/UISystem";
 import HealthComponent from "src/lib/ecs/components/HealthComponent";
+import FireSystem from "src/lib/ecs/systems/FireSystem";
 
 interface LevelSceneProps {
   container: HTMLElement;
@@ -38,6 +39,7 @@ export default class LevelScene implements BaseScene {
     const ecs = new ECS();
 
     ecs.addSystem(new ControlSystem(ecs, container));
+    ecs.addSystem(new FireSystem(ecs));
     ecs.addSystem(new AISystem(ecs, level, soundManager));
     ecs.addSystem(new MoveSystem(ecs, level));
     ecs.addSystem(new AnimationSystem(ecs));

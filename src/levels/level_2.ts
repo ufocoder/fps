@@ -55,7 +55,7 @@ const level: Level = {
     angle: 90,
     health: 100,
   },
-  enemies: [
+  zombies: [
     generateZombie(1.5, 9.5),
 
     generateZombie(4.5, 6.5),

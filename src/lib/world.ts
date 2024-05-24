@@ -41,14 +41,28 @@ export function createWorld(ecs: ECS, level: Level, textureManager: TextureManag
         ecs.addComponent(entity, new EnemyComponent())
 
         if (enemy.ai) {
-            ecs.addComponent(entity, new AIComponent(2));
-            ecs.addComponent(entity, new AnimatedSpriteComponent('idle', {
-                'attack': animationManager.get('zombieAttack'),
-                'idle': animationManager.get('zombieIdle'),
-                'damage': animationManager.get('zombieDamage'),
-                'death': animationManager.get('zombieDeath'),
-                'walk': animationManager.get('zombieWalk'),
-            }))
+            ecs.addComponent(entity, new AIComponent(20));
+        }
+
+        switch (enemy.type) {
+            case "zombie":
+                ecs.addComponent(entity, new AnimatedSpriteComponent('idle', {
+                    'attack': animationManager.get('zombieAttack'),
+                    'idle': animationManager.get('zombieIdle'),
+                    'damage': animationManager.get('zombieDamage'),
+                    'death': animationManager.get('zombieDeath'),
+                    'walk': animationManager.get('zombieWalk'),
+                }))
+                break;
+            case "soldier":
+                ecs.addComponent(entity, new AnimatedSpriteComponent('idle', {
+                    'attack': animationManager.get('soldierAttack'),
+                    'idle': animationManager.get('soldierIdle'),
+                    'damage': animationManager.get('soldierDamage'),
+                    'death': animationManager.get('soldierDeath'),
+                    'walk': animationManager.get('soldierWalk'),
+                }))
+                break;
         }
 
         ecs.addComponent(entity, new CircleComponent(enemy.radius));

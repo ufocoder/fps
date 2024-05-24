@@ -82,6 +82,9 @@ export default class MoveSystem extends System {
       const mainAngle = degreeToRadians(angleComponent.angle);
       const mainCos = Math.cos(mainAngle);
       const mainSin = Math.sin(mainAngle);
+      if (entity === 1) {
+        console.log('angle', angleComponent.angle, 'cos', mainCos, 'sin', mainSin)
+      }
       const sideAngle = degreeToRadians(angleComponent.angle - 90);
       const sideCos = Math.cos(sideAngle);
       const sideSin = Math.sin(sideAngle);
