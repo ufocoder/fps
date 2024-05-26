@@ -20,7 +20,7 @@ const generateZombie = (x: number, y: number) => ({
   sprite: "zombie",
   radius: 0.4,
   ai: true,
-});
+} as Enemy);
 
 const level: Level = {
   world: {
