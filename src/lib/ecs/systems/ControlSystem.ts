@@ -6,6 +6,7 @@ import MoveComponent, {
 import RotateComponent from "src/lib/ecs/components/RotateComponent";
 import { Entity } from "src/lib/ecs/Entity";
 import ECS from "src/lib/ecs";
+import ControlComponent from "../components/ControlComponent";
 
 const keyCodes: Record<string, string> = {
   KeyW: "up",
@@ -15,7 +16,7 @@ const keyCodes: Record<string, string> = {
 };
 
 export default class ControlSystem extends System {
-  componentsRequired = new Set([MoveComponent, RotateComponent]);
+  componentsRequired = new Set([ControlComponent, MoveComponent, RotateComponent]);
 
   protected readonly container: HTMLElement;
 

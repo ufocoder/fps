@@ -16,6 +16,7 @@ import AnimatedSpriteComponent from "./ecs/components/AnimationComponent";
 import AnimationManager from "src/managers/AnimationManager";
 import ECS from "./ecs";
 import EnemyComponent from "./ecs/components/EnemyComponent";
+import ControlComponent from "./ecs/components/ControlComponent";
 // import AIComponent from "./ecs/components/AIComponent";
 
 export function createWorld(ecs: ECS, level: Level, textureManager: TextureManager, animationManager: AnimationManager) {
@@ -23,6 +24,7 @@ export function createWorld(ecs: ECS, level: Level, textureManager: TextureManag
     // player
     const player = ecs.addEntity();
 
+    ecs.addComponent(player, new ControlComponent());
     ecs.addComponent(player, new CircleComponent(0.4));
     ecs.addComponent(player, new PositionComponent(level.player.x, level.player.y));
     ecs.addComponent(player, new HealthComponent(level.player.health, level.player.health));
