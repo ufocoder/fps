@@ -53,7 +53,6 @@ export default class RenderSystem extends System {
         const { x, y } = container.get(PositionComponent);
         this.textureMap.set(x, y, container);
       });
-    console.log()
 
     this.container.appendChild(this.canvas.element);
   }

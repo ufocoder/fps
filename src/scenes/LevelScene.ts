@@ -16,6 +16,7 @@ import { createWorld } from "src/lib/world";
 import UISystem from "src/lib/ecs/systems/UISystem";
 import HealthComponent from "src/lib/ecs/components/HealthComponent";
 import FireSystem from "src/lib/ecs/systems/FireSystem";
+import RotateSystem from "src/lib/ecs/systems/RotateSystem";
 
 interface LevelSceneProps {
   container: HTMLElement;
@@ -42,6 +43,7 @@ export default class LevelScene implements BaseScene {
     ecs.addSystem(new FireSystem(ecs));
     ecs.addSystem(new AISystem(ecs, level, soundManager));
     ecs.addSystem(new MoveSystem(ecs, level));
+    ecs.addSystem(new RotateSystem(ecs));
     ecs.addSystem(new AnimationSystem(ecs));
     ecs.addSystem(new RenderSystem(ecs, container, level, textureManager));
     ecs.addSystem(new UISystem(ecs, container));

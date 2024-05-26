@@ -18,7 +18,7 @@ import ECS from "./ecs";
 import EnemyComponent from "./ecs/components/EnemyComponent";
 // import AIComponent from "./ecs/components/AIComponent";
 
-export function createWorld(ecs: ECS, level: Level, textureManager: TextureManager, animationManager: AnimationManager,) {
+export function createWorld(ecs: ECS, level: Level, textureManager: TextureManager, animationManager: AnimationManager) {
     
     // player
     const player = ecs.addEntity();
@@ -41,7 +41,7 @@ export function createWorld(ecs: ECS, level: Level, textureManager: TextureManag
         ecs.addComponent(entity, new EnemyComponent())
 
         if (enemy.ai) {
-            ecs.addComponent(entity, new AIComponent(20));
+            ecs.addComponent(entity, new AIComponent(2));
         }
 
         switch (enemy.type) {

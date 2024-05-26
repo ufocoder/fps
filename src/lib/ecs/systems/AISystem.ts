@@ -79,15 +79,18 @@ export default class AISystem extends System {
 
       const dx = cameraPosition.x - entityPosition.x;
       const dy = cameraPosition.y - entityPosition.y;
-      const d =
-        Math.sqrt(dx ** 2 + dy ** 2) -
-        cameraCircle.radius -
-        entityCircle?.radius;
+      const d = Math.sqrt(dx ** 2 + dy ** 2) - cameraCircle.radius - entityCircle?.radius;
 
       if (entityAI.distance > d  && d > 0) {
-        const angle = radiansToDegrees(Math.atan(dy / dx));
+        let angle = radiansToDegrees(Math.atan(dy / dx));
+
         entityAnimation.switchState("walk");
         entityMove.mainDirection = MainDirection.Forward;
+
+        if (dx <= 0) {
+          angle += 180
+        }
+
         entityAngle.angle = normalizeAngle(angle);
       } else {
         entityMove.mainDirection = MainDirection.None;

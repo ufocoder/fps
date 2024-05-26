@@ -16,6 +16,7 @@ const generateZombie = (x: number, y: number) => ({
   y,
   angle: 45,
   health: 100,
+  type: 'zombie',
   sprite: "zombie",
   radius: 0.4,
   ai: true,
@@ -55,9 +56,8 @@ const level: Level = {
     angle: 90,
     health: 100,
   },
-  zombies: [
+  enemies: [
     generateZombie(1.5, 9.5),
-
     generateZombie(4.5, 6.5),
     generateZombie(4.5, 7.5),
     generateZombie(4.5, 8.5),
