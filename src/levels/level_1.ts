@@ -1,3 +1,5 @@
+import { generateSoldier } from "./generators";
+
 const level: Level = {
   world: {
     colors: {
@@ -21,30 +23,14 @@ const level: Level = {
     5: "DOOR_1E",
   },
   player: {
-    x: 2,
+    x: 15,
     y: 2.5,
-    angle: 0,
+    angle: 17,
     health: 100,
   },
   enemies: [
-    {
-      type: 'soldier',
-      sprite: 'soldier',
-      health: 0,
-      angle: 180,
-      x: 18.5,
-      y: 1.75,
-      radius: 0.5,
-    },
-    {
-      type: 'soldier',
-      sprite: 'soldier',
-      health: 0,
-      angle: 180,
-      x: 18.5, 
-      y: 3.25,
-      radius: 0.5,
-    },
+    generateSoldier(18.5, 1.75),
+    generateSoldier(18.5, 3.25),
   ],
   exit: {
     x: 18,

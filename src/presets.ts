@@ -41,17 +41,6 @@ export const textures: TexturePreset[] = [
   }
 ];
 
-export const sprites: SpritePreset[] = [
-  {
-    id: "soldier",
-    url: "./assets/characters/SoldierIdle.png",
-  },
-  {
-    id: "zombie",
-    url: "./assets/characters/ZombieIdle.png"
-  }
-];
- 
 export const animation: AnimationSpritePreset[] = [
   {
     id: "zombieIdle",
@@ -91,6 +80,7 @@ export const animation: AnimationSpritePreset[] = [
       "./assets/characters/ZombieAttack2.png",
     ],
   },
+  // soldier
   {
     id: "soldierIdle",
     frames: [
@@ -129,8 +119,85 @@ export const animation: AnimationSpritePreset[] = [
       "./assets/characters/SoldierAttack2.png",
     ],
   },
+  // commando
+  {
+    id: "commandoIdle",
+    frames: [
+      "./assets/characters/CommandoIdle.png",
+    ],
+  },
+  {
+    id: "commandoWalk",
+    frames: [
+      "./assets/characters/CommandoWalk1.png",
+      "./assets/characters/CommandoWalk2.png",
+      "./assets/characters/CommandoWalk3.png",
+      "./assets/characters/CommandoWalk4.png",
+    ],
+  },
+  {
+    id: "commandoDamage",
+    frames: [
+      "./assets/characters/CommandoDamage1.png",
+      "./assets/characters/CommandoDamage2.png",
+    ],
+  },
+  {
+    id: "commandoDeath",
+    frames: [
+      "./assets/characters/CommandoDeath1.png",
+      "./assets/characters/CommandoDeath2.png",
+      "./assets/characters/CommandoDeath3.png",
+      "./assets/characters/CommandoDeath4.png",
+    ],
+  },
+  {
+    id: "commandoAttack",
+    frames: [
+      "./assets/characters/CommandoAttack1.png",
+      "./assets/characters/CommandoAttack2.png",
+    ],
+  },
+  // tank
+  {
+    id: "tankIdle",
+    frames: [
+      "./assets/characters/TankIdle.png",
+    ],
+  },
+  {
+    id: "tankWalk",
+    frames: [
+      "./assets/characters/TankWalk1.png",
+      "./assets/characters/TankWalk2.png",
+      "./assets/characters/TankWalk3.png",
+      "./assets/characters/TankWalk4.png",
+    ],
+  },
+  {
+    id: "tankDamage",
+    frames: [
+      "./assets/characters/TankDamage1.png",
+      "./assets/characters/TankDamage2.png",
+    ],
+  },
+  {
+    id: "tankDeath",
+    frames: [
+      "./assets/characters/TankDeath1.png",
+      "./assets/characters/TankDeath2.png",
+      "./assets/characters/TankDeath3.png",
+      "./assets/characters/TankDeath4.png",
+    ],
+  },
+  {
+    id: "tankAttack",
+    frames: [
+      "./assets/characters/TankAttack1.png",
+      "./assets/characters/TankAttack2.png",
+    ],
+  },
 ];
-
 
 export const sounds: SoundPreset[] = [
   {

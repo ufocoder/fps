@@ -12,6 +12,7 @@ import PolarMap, { PolarPosition } from "src/lib/ecs/lib/PolarMap";
 import AnimatedSpriteComponent from "src/lib/ecs/components/AnimationComponent";
 import { ComponentContainer } from "src/lib/ecs/Component";
 import ECS from "..";
+import EnemyComponent from "../components/EnemyComponent";
 
 export default class RenderSystem extends System {
   componentsRequired = new Set([PositionComponent]);
@@ -64,7 +65,7 @@ export default class RenderSystem extends System {
       return;
     }
 
-    const sprites = this.ecs.query([PositionComponent, SpriteComponent]);
+    const sprites = this.ecs.query([PositionComponent, EnemyComponent]);
     const polarMap = new PolarMap(player, sprites);
 
     this.canvas.createBufferSnapshot();
@@ -144,7 +145,7 @@ export default class RenderSystem extends System {
         this._drawHorizonLine(screenX, 0);
         this._drawFloorLine(screenX, 0, rayAngle, player);
       }
-  
+
       polarMap
         .select(distanceRay, rayAngle, rayAngle + incrementAngle)
         .forEach(polarEntity => {
@@ -206,6 +207,7 @@ export default class RenderSystem extends System {
     const projectionHeight = Math.floor(this.height / 2 / polarEntity.distance);
     const sprite = animateSprite || staticSprite;
 
+    console.log(sprite);
     const a1 = normalizeAngle(rayAngle - polarEntity.angleFrom);
     const a2 = normalizeAngle(polarEntity.angleTo - polarEntity.angleFrom);
     const xTexture = Math.floor(a1 / a2 * sprite.width)

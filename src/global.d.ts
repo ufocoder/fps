@@ -13,7 +13,7 @@ interface Сharacter {
 }
 
 interface Enemy extends Сharacter { 
-    ai?: boolean;
+    ai?: number;
     type: 'zombie' | 'flyguy' | 'soldier' | 'commando' | 'tank' | 'slayer'
     sprite: string;
     radius: number;
