@@ -1,7 +1,7 @@
 import { angle, distance, normalizeAngle } from "src/lib/utils";
-import PositionComponent from "../components/PositionComponent";
-import CircleComponent from "../components/CircleComponent";
-import { ComponentContainer } from "../Component";
+import PositionComponent from "src/lib/ecs/components/PositionComponent";
+import CircleComponent from "src/lib/ecs/components/CircleComponent";
+import { ComponentContainer } from "src/lib/ecs/Component";
 
 type Radius = number;
 type Angle = number;
@@ -14,11 +14,10 @@ export interface PolarPosition {
 }
 
 export default class PolarMap {
-  polarEntities: PolarPosition[] = [];
+  public center?: ComponentContainer;
+  public entities?: ComponentContainer[];
 
-  constructor(center: ComponentContainer, entities: ComponentContainer[]) {
-    this.calculatePolarEntities(center, entities);
-  }
+  protected polarEntities: PolarPosition[] = [];
 
   public select(distanceTo: number, angleFrom: number, angleTo: number) {
 
@@ -44,10 +43,14 @@ export default class PolarMap {
       .sort((pe1, pe2) => pe2.distance - pe1.distance)
   }
 
-  protected calculatePolarEntities(center: ComponentContainer, entities: ComponentContainer[]) {
-    const centerPosition = center.get(PositionComponent);
+  public calculatePolarEntities() {
+    const centerPosition = this.center?.get(PositionComponent);
 
-    this.polarEntities = entities.map(container => {
+    if (!this.entities || !centerPosition) {
+      return
+    }
+
+    this.polarEntities = this.entities.map(container => {
       const pointCircle = container.get(CircleComponent);
       const pointPosition = container.get(PositionComponent);
       const a = angle(

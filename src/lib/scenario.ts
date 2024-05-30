@@ -1,7 +1,7 @@
 import ECS from "src/lib/ecs";
 import AIComponent from "src/lib/ecs/components/AIComponent";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
-import AnimatedSpriteComponent from "src/lib/ecs/components/AnimationComponent";
+import AnimatedSpriteComponent from "src/lib/ecs/components/AnimatedSpriteComponent";
 import AnimationManager from "src/managers/AnimationManager";
 import BoxComponent from "src/lib/ecs/components/BoxComponent";
 import CameraComponent from "src/lib/ecs/components/CameraComponent";
@@ -18,7 +18,7 @@ import TextureComponent from "src/lib/ecs/components/TextureComponent";
 import TextureManager from "src/managers/TextureManager";
 import WeaponComponent from "./ecs/components/WeaponComponent";
 
-export function createWorld(
+export function createEntities(
   ecs: ECS,
   level: Level,
   textureManager: TextureManager,
@@ -29,7 +29,7 @@ export function createWorld(
 
   ecs.addComponent(player, new ControlComponent());
   ecs.addComponent(player, new CircleComponent(0.4));
-  ecs.addComponent(player, new WeaponComponent());
+  ecs.addComponent(player, new WeaponComponent(10, 1_000));
   ecs.addComponent(
     player,
     new PositionComponent(level.player.x, level.player.y)
@@ -52,10 +52,9 @@ export function createWorld(
     ecs.addComponent(entity, new EnemyComponent());
 
     if (enemy.ai) {
-      ecs.addComponent(entity, new AIComponent(enemy.ai));
+      ecs.addComponent(entity, new AIComponent(enemy.ai, enemy.attack, 500));
     }
 
-    console.log('enemy.type', enemy.type)
     switch (enemy.type) {
       case "zombie":
         ecs.addComponent(
@@ -70,6 +69,10 @@ export function createWorld(
         );
         break;
       case "soldier":
+        ecs.addComponent(
+          entity, 
+          new WeaponComponent(enemy.attack)
+        );
         ecs.addComponent(
           entity,
           new AnimatedSpriteComponent("idle", {
@@ -107,6 +110,10 @@ export function createWorld(
         break;
       case "commando":
         ecs.addComponent(
+          entity, 
+          new WeaponComponent(enemy.attack)
+        );
+        ecs.addComponent(
           entity,
           new AnimatedSpriteComponent("idle", {
             attack: animationManager.get("commandoAttack"),
@@ -118,6 +125,10 @@ export function createWorld(
         );
         break;
       case "tank":
+        ecs.addComponent(
+          entity, 
+          new WeaponComponent(enemy.attack)
+        );
         ecs.addComponent(
           entity,
           new AnimatedSpriteComponent("idle", {

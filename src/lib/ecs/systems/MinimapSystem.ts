@@ -6,14 +6,13 @@ import CircleComponent from "src/lib/ecs/components/CircleComponent";
 import MinimapComponent from "src/lib/ecs/components/MinimapComponent";
 import ColorComponent from "src/lib/ecs/components/MinimapComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
-import ECS from "src/lib/ecs";
+import ECS from "src/lib/ecs/ExtendedECS";
 
 export default class MinimapSystem extends System {
-  componentsRequired = new Set([MinimapComponent, PositionComponent]);
+  public readonly componentsRequired = new Set([MinimapComponent, PositionComponent]);
 
-  readonly scale: number = 10;
-  readonly canvas: Canvas;
-
+  protected readonly scale: number = 10;
+  protected readonly canvas: Canvas;
   protected readonly container: HTMLElement;
 
   constructor(ecs: ECS, container: HTMLElement, level: Level) {

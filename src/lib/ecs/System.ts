@@ -1,10 +1,10 @@
-import ECS from ".";
-import { Entity } from "./Entity";
+import ECS from "src/lib/ecs/ExtendedECS";
+import { Entity } from "src/lib/ecs/Entity";
 
 export default abstract class System {
     public ecs: ECS;
 
-    public abstract componentsRequired: Set<Function>;
+    public readonly abstract componentsRequired: Set<Function>;
 
     constructor(ecs: ECS) {
         this.ecs = ecs;

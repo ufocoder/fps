@@ -8,6 +8,7 @@ export default class AnimatedSpriteComponent implements Component {
     sprite: TextureBitmap;
     animationSpeed: number = 0.2;
     timeSinceLastFrame: number = 0;
+    loop: boolean = false;
 
     constructor(initialState: string, states: Record<string, TextureBitmap[]>) {
         this.states = states;
@@ -16,10 +17,13 @@ export default class AnimatedSpriteComponent implements Component {
         this.sprite = states[initialState][0];
     }
 
-    // @TODO: improve
     update(dt: number) {
         const frames = this.states[this.currentState];
         this.timeSinceLastFrame += dt;
+
+        if (!this.loop && this.currentFrame === frames.length -1) {
+            return
+        }
 
         if (this.timeSinceLastFrame > this.animationSpeed) {
             this.currentFrame = (this.currentFrame + 1) % frames.length;
@@ -28,9 +32,10 @@ export default class AnimatedSpriteComponent implements Component {
         }
     }
 
-    switchState(stateName: string) {
+    switchState(stateName: string, loop: boolean) {
         if (stateName in this.states) {
             this.currentState = stateName;
         }
+        this.loop = loop;
     }
 }

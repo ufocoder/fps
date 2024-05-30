@@ -4,9 +4,9 @@ export default class PositionMap<T> {
   rows: number;
   cols: number;
 
-  constructor(cols: number, rows: number) {
-    this.cols = cols;
-    this.rows = rows;
+  constructor(levelMap: LevelMap) {
+    this.cols = levelMap[0].length;
+    this.rows = levelMap.length;
 
     this.map = new Map<number, T>();
   }
@@ -21,6 +21,10 @@ export default class PositionMap<T> {
 
   public has(x: number, y: number) {
     return this.map.has(y * this.cols + x);
+  }
+
+  public reset(x: number, y: number) {
+    return this.map.delete(y * this.cols + x);
   }
 
   public clear() {

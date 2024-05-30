@@ -1,4 +1,4 @@
-import { minmax } from "../utils";
+import { minmax } from "src/lib/utils";
 
 interface CanvasProps {
     id?: string;

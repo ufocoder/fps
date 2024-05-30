@@ -1,9 +1,8 @@
-
-import Canvas from "src/lib/Canvas/DefaultCanvas";
-import ECS from "src/lib/ecs";
+import ECS from "src/lib/ecs/ExtendedECS";
 import System from "src/lib/ecs/System";
 import HealthComponent from "src/lib/ecs/components/HealthComponent";
-import CameraComponent from "../components/CameraComponent";
+import CameraComponent from "src/lib/ecs/components/CameraComponent";
+import Canvas from "src/lib/Canvas/DefaultCanvas";
 
 export default class UISystem extends System {
   componentsRequired = new Set([HealthComponent]);
@@ -33,8 +32,9 @@ export default class UISystem extends System {
 
   update() {
     const [player] = this.ecs.query([CameraComponent, HealthComponent]);
+    const playerContainer = this.ecs.getComponents(player);
 
-    if (!player) {
+    if (!playerContainer) {
         return;
     }
 
@@ -42,7 +42,7 @@ export default class UISystem extends System {
     this.canvas.drawText({
         x: 20,
         y: 30,
-        text: player.get(HealthComponent).current.toString(),
+        text: playerContainer.get(HealthComponent).current.toString(),
         color: 'red',
         font: '24px serif',
     });

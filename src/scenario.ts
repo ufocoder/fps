@@ -50,19 +50,19 @@ export function createScenario({
     });
 
     scene.onComplete(() => {
-      soundManager.pause(level.music);
+      soundManager.pauseBackground(level.music);
       scene.destroy();
       switchToLevelNextScene();
     });
 
     scene.onFailed(() => {
-      soundManager.pause(level.music);
+      soundManager.pauseBackground(level.music);
       scene.destroy();
       showFailedScene();
     });
 
     scene.start();
-    soundManager.play(level.music);
+    soundManager.playBackground(level.music);
   };
 
 

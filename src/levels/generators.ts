@@ -3,16 +3,21 @@ const random = (from: number, to: number) => {
 };
 
 export const generateEntities =
-  <T>(generator: (x: number, y: number) => T) =>
+  <T>(generator: (x: number, y: number, ai: number) => T) =>
   (limit: number, x: number, y: number, dx: number, dy: number, ai: number = 0) => {
     return new Array(limit)
       .fill(0)
-      .map(() => generator(random(x - dx, x + dx), random(y - dy, y + dy)), ai);
+      .map(() => generator(
+        random(x - dx, x + dx), 
+        random(y - dy, y + dy), 
+        ai
+      ));
   };
 
 export const generateZombie = (x: number, y: number, ai: number = 0) =>
   ({
     type: "zombie",
+    attack: 5,
     health: 100,
     radius: 0.4,
     ai,
@@ -26,6 +31,7 @@ export const generateFlyguy = (x: number, y: number, ai: number = 0) =>
     type: "flyguy",
     health: 150,
     radius: 0.4,
+    attack: 10,
     ai,
     x,
     y,
@@ -35,7 +41,8 @@ export const generateSoldier = (x: number, y: number, ai: number = 0) =>
   ({
     type: "soldier",
     health: 200,
-    radius: 0.6,
+    radius: 0.4,
+    attack: 20,
     ai,
     x,
     y,

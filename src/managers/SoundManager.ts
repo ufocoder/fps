@@ -16,11 +16,18 @@ export default class SoundManager {
         })));
     }
 
-    play(id: string) {
+    playSound(id: string) {
+        const audio = this.sounds[id];
+        const copy = audio.cloneNode() as HTMLAudioElement;
+
+        copy.play();
+    }
+
+    playBackground(id: string) {
         this.sounds[id].play();
     }
 
-    pause(id: string) {
+    pauseBackground(id: string) {
         this.sounds[id].pause();
     }
 }

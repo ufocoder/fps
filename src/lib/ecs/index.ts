@@ -4,7 +4,6 @@ import System from "./System";
 
 export default class ECS {
     protected entities = new Map<Entity, ComponentContainer>();
-    protected entitiesByQuery: Map<string, ComponentContainer[]> = new Map();
     protected systems = new Map<System, Set<Entity>>();
 
     protected nextEntityID = 0;
@@ -30,24 +29,6 @@ export default class ECS {
         for (const system of this.systems.keys()) {
             system.destroy();
         }
-    }
-
-    public query(componentClasses: Function[]): ComponentContainer[] {
-        const key = componentClasses.map(type => type.name).sort().join(',');
-
-        if (!this.entitiesByQuery.has(key)) {
-            const matchingEntities: ComponentContainer[] = [];
-            
-            for (const components of this.entities.values()) {
-                if (components.all(componentClasses)) {
-                    matchingEntities.push(components);
-                }
-            }
-
-            this.entitiesByQuery.set(key, matchingEntities);
-        }
-    
-        return this.entitiesByQuery.get(key)!;
     }
 
     public addEntity(): Entity {
@@ -99,6 +80,14 @@ export default class ECS {
 
         for (const entity of this.entities.keys()) {
             this.syncSystem(entity, system);
+        }
+    }
+
+    public getSystem<T extends System>(systemClass: { new (...args:any[]): T }): T | undefined {
+        for (const system of this.systems.keys()) {
+            if (system instanceof systemClass) {
+                return system;
+            }
         }
     }
 

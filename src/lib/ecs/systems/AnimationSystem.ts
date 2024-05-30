@@ -1,9 +1,9 @@
 import { Entity } from "src/lib/ecs/Entity";
 import System from "src/lib/ecs/System";
-import AnimatedSpriteComponent from "../components/AnimationComponent";
+import AnimatedSpriteComponent from "src/lib/ecs/components/AnimatedSpriteComponent";
 
 export default class AnimationSystem extends System {
-  componentsRequired = new Set([AnimatedSpriteComponent]);
+  public readonly componentsRequired = new Set([AnimatedSpriteComponent]);
 
   start(): void {}
 

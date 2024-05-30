@@ -1,23 +1,21 @@
-import Canvas from "src/lib/Canvas/BufferCanvas";
+import ECS from "src/lib/ecs/ExtendedECS";
 import System from "src/lib/ecs/System";
-import { degreeToRadians, distance, normalizeAngle } from "src/lib/utils";
-import PositionComponent from "src/lib/ecs/components/PositionComponent";
+import { ComponentContainer } from "src/lib/ecs/Component";
+import AnimatedSpriteComponent from "src/lib/ecs/components/AnimatedSpriteComponent";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
 import TextureComponent from "src/lib/ecs/components/TextureComponent";
 import CameraComponent from "src/lib/ecs/components/CameraComponent";
-import PositionMap from "src/lib/ecs/lib/PositionMap";
 import SpriteComponent from "src/lib/ecs/components/SpriteComponent";
+import PositionComponent from "src/lib/ecs/components/PositionComponent";
+import Canvas from "src/lib/Canvas/BufferCanvas";
 import TextureManager from "src/managers/TextureManager";
-import PolarMap, { PolarPosition } from "src/lib/ecs/lib/PolarMap";
-import AnimatedSpriteComponent from "src/lib/ecs/components/AnimationComponent";
-import { ComponentContainer } from "src/lib/ecs/Component";
-import ECS from "..";
-import EnemyComponent from "../components/EnemyComponent";
+import { PolarPosition } from "src/lib/ecs/lib/PolarMap";
+import { degreeToRadians, distance, normalizeAngle } from "src/lib/utils";
+import MapTextureSystem from "./MapTextureSystem";
+import MapPolarSystem from "./MapPolarSystem";
 
 export default class RenderSystem extends System {
-  componentsRequired = new Set([PositionComponent]);
-
-  protected textureMap: PositionMap<ComponentContainer>;
+  public readonly componentsRequired = new Set([PositionComponent]);
 
   protected readonly width: number = 640;
   protected readonly height: number = 480;
@@ -31,8 +29,6 @@ export default class RenderSystem extends System {
 
   constructor(ecs: ECS, container: HTMLElement, level: Level, textureManager: TextureManager) {
     super(ecs);
-    const cols = level.map[0].length;
-    const rows = level.map.length;
 
     this.level = level;
     this.container = container;
@@ -44,32 +40,22 @@ export default class RenderSystem extends System {
     });
 
     this.textureManager = textureManager;
-    this.textureMap = new PositionMap(cols, rows);
   }
 
   start() {
-    const textures = this.ecs.query([PositionComponent, TextureComponent]);
-    
-    textures.forEach((container) => {
-        const { x, y } = container.get(PositionComponent);
-        this.textureMap.set(x, y, container);
-      });
-
     this.container.appendChild(this.canvas.element);
   }
 
   update() {
     const [player] = this.ecs.query([CameraComponent]);
+    const playerContainer = this.ecs.getComponents(player);
 
-    if (!player) {
+    if (!playerContainer) {
       return;
     }
 
-    const sprites = this.ecs.query([PositionComponent, EnemyComponent]);
-    const polarMap = new PolarMap(player, sprites);
-
     this.canvas.createBufferSnapshot();
-    this.render(player, polarMap);
+    this.render(playerContainer);
     this.canvas.commitBufferSnapshot();
   }
 
@@ -77,10 +63,12 @@ export default class RenderSystem extends System {
     this.canvas.element.remove();
   }
 
-  render(player: ComponentContainer, polarMap: PolarMap) {
+  render(player: ComponentContainer) {
     const playerFov = player.get(CameraComponent);
     const playerAngle = player.get(AngleComponent);
     const playerPosition = player.get(PositionComponent);
+    const textureMap = this.ecs.getSystem(MapTextureSystem)!.textureMap;
+    const polarMap = this.ecs.getSystem(MapPolarSystem)!.polarMap;
 
     const incrementAngle = playerFov.fov / this.width;
 
@@ -103,17 +91,17 @@ export default class RenderSystem extends System {
         rayX += incrementRayX;
         rayY += incrementRayY;
 
-        if (rayX < 0 || rayX > this.textureMap.cols) {
+        if (rayX < 0 || rayX > textureMap.cols) {
           isPropogating = false;
           continue;
         }
 
-        if (rayY < 0 || rayY > this.textureMap.rows) {
+        if (rayY < 0 || rayY > textureMap.rows) {
           isPropogating = false;
           continue;
         }
 
-        wallEntity = this.textureMap.get(Math.floor(rayX), Math.floor(rayY));
+        wallEntity = textureMap.get(Math.floor(rayX), Math.floor(rayY));
 
         if (wallEntity) {
           isPropogating = false;
@@ -207,7 +195,6 @@ export default class RenderSystem extends System {
     const projectionHeight = Math.floor(this.height / 2 / polarEntity.distance);
     const sprite = animateSprite || staticSprite;
 
-    console.log(sprite);
     const a1 = normalizeAngle(rayAngle - polarEntity.angleFrom);
     const a2 = normalizeAngle(polarEntity.angleTo - polarEntity.angleFrom);
     const xTexture = Math.floor(a1 / a2 * sprite.width)

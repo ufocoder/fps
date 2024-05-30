@@ -1,24 +1,20 @@
+import ECS from "src/lib/ecs/ExtendedECS";
 import System from "src/lib/ecs/System";
 import { Entity } from "src/lib/ecs/Entity";
+import AIComponent from "src/lib/ecs/components/AIComponent";
+import AngleComponent from "src/lib/ecs/components/AngleComponent";
+import AnimatedSpriteComponent from "src/lib/ecs/components/AnimatedSpriteComponent";
+import CameraComponent from "src/lib/ecs/components/CameraComponent";
+import CircleComponent from "src/lib/ecs/components/CircleComponent";
+import EnemyComponent from "src/lib/ecs/components/EnemyComponent";
+import HealthComponent from "src/lib/ecs/components/HealthComponent";
+import MoveComponent, { MainDirection } from "src/lib/ecs/components/MoveComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
-
-import AIComponent from "../components/AIComponent";
-import CameraComponent from "../components/CameraComponent";
-import CircleComponent from "../components/CircleComponent";
-import HealthComponent from "../components/HealthComponent";
-import AnimatedSpriteComponent from "../components/AnimationComponent";
 import SoundManager from "src/managers/SoundManager";
-import ECS from "src/lib/ecs";
-import TextureComponent from "../components/TextureComponent";
-import PositionMap from "../lib/PositionMap";
-import { ComponentContainer } from "../Component";
-import EnemyComponent from "../components/EnemyComponent";
-import MoveComponent, { MainDirection } from "../components/MoveComponent";
-import AngleComponent from "../components/AngleComponent";
 import { normalizeAngle, radiansToDegrees } from "src/lib/utils";
 
 export default class AISystem extends System {
-  componentsRequired = new Set([
+  public readonly componentsRequired = new Set([
     AIComponent,
     EnemyComponent,
     PositionComponent,
@@ -27,87 +23,77 @@ export default class AISystem extends System {
   ]);
 
   protected readonly soundManager: SoundManager;
-  protected readonly textureMap: PositionMap<ComponentContainer>;
 
-  constructor(ecs: ECS, level: Level, soundManager: SoundManager) {
+  constructor(ecs: ECS, soundManager: SoundManager) {
     super(ecs);
     this.soundManager = soundManager;
-
-    const cols = level.map[0].length;
-    const rows = level.map.length;
-
-    this.textureMap = new PositionMap(cols, rows);
   }
 
-  start(): void {
-    this.ecs
-      .query([PositionComponent, TextureComponent])
-      .forEach((container) => {
-        if (container.has(CameraComponent)) {
-          return;
-        }
-
-        const position = container.get(PositionComponent);
-
-        this.textureMap.set(
-          Math.floor(position.x),
-          Math.floor(position.y),
-          container
-        );
-      });
-  }
+  start(): void {}
 
   update(dt: number, entities: Set<Entity>) {
-    const [camera] = this.ecs.query([
+    const [player] = this.ecs.query([
       HealthComponent,
       CircleComponent,
       CameraComponent,
     ]);
+    
+    const container = this.ecs.getComponents(player);
 
-    const cameraPosition = camera.get(PositionComponent);
-    const cameraCircle = camera.get(CircleComponent);
-    const cameraHealth = camera.get(HealthComponent);
+    const playerPosition = container.get(PositionComponent);
+    const playerCircle = container.get(CircleComponent);
+    const playerHealth = container.get(HealthComponent);
 
     entities.forEach((entity: Entity) => {
       const components = this.ecs.getComponents(entity);
-      const entityAI = components.get(AIComponent);
-      const entityPosition = components.get(PositionComponent);
-      const entityAngle = components.get(AngleComponent);
-      const entityCircle = components.get(CircleComponent);
-      const entityMove = components.get(MoveComponent);
-      const entityAnimation = components.get(AnimatedSpriteComponent);
+      const enemyAI = components.get(AIComponent);
+      const enemyHealth = components.get(HealthComponent);
+      const enemyPosition = components.get(PositionComponent);
+      const enemyAngle = components.get(AngleComponent);
+      const enemyCircle = components.get(CircleComponent);
+      const enemyMove = components.get(MoveComponent);
+      const enemyAnimation = components.get(AnimatedSpriteComponent);
+      // const enemyWeapon = components.get(WeaponComponent);
 
-      const dx = cameraPosition.x - entityPosition.x;
-      const dy = cameraPosition.y - entityPosition.y;
-      const d = Math.sqrt(dx ** 2 + dy ** 2) - cameraCircle.radius - entityCircle?.radius;
+      if (enemyHealth.current <= 0) {
+        return;
+      }
 
-      if (entityAI.distance > d  && d > 0) {
+      const dx = playerPosition.x - enemyPosition.x;
+      const dy = playerPosition.y - enemyPosition.y;
+      const d = Math.sqrt(dx ** 2 + dy ** 2) - playerCircle.radius - enemyCircle?.radius;
+
+      const shouldEnemyMove = enemyAI.distance > d  && d > 0;
+      const shouldEnemyAttack = d <= 0;
+      const shouldEnemyDamage = enemyAI.lastAttackTime >= enemyAI.frequence / 1_000
+
+      if (shouldEnemyMove) {
         let angle = radiansToDegrees(Math.atan(dy / dx));
 
-        entityAnimation.switchState("walk");
-        entityMove.mainDirection = MainDirection.Forward;
+        enemyAnimation.switchState("walk", true);
+        enemyMove.mainDirection = MainDirection.Forward;
 
         if (dx <= 0) {
           angle += 180
         }
 
-        entityAngle.angle = normalizeAngle(angle);
+        enemyAngle.angle = normalizeAngle(angle);
       } else {
-        entityMove.mainDirection = MainDirection.None;
-        entityAnimation.switchState("idle");
+        enemyMove.mainDirection = MainDirection.None;
+        enemyAnimation.switchState("idle", true);
       }
 
-      if (d <= 0) {
-        entityAnimation.switchState("attack");
-        entityAI.lastAttackTime += dt;
+      if (shouldEnemyAttack) {
+        enemyAnimation.switchState("attack", true);
+        enemyAI.lastAttackTime += dt;
       } else {
-        entityAI.lastAttackTime = 0;
+        enemyAI.lastAttackTime = 0;
       }
 
-      if (entityAI.lastAttackTime >= 0.5) {
-        this.soundManager.play('zombie-attack');
-        cameraHealth.current = Math.max(0, cameraHealth.current - entityAI.damagePerSecond);
-        entityAI.lastAttackTime = 0;
+      if (shouldEnemyDamage) {
+        this.soundManager.playSound('hurt');
+        playerHealth.current = Math.max(0, playerHealth.current - enemyAI.damage);
+        enemyAI.lastAttackTime = 0;
       }
     });
   }
