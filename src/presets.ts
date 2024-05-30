@@ -200,19 +200,26 @@ export const animation: AnimationSpritePreset[] = [
 ];
 
 export const sounds: SoundPreset[] = [
-  {
-    id: 'zombie-attack',
-    url: "./assets/sounds/zombie-attack.mp3",
+  ...[
+    'hurt',
+    'gun-shot',
+    'lazer-shot',
+    'zombie-attack'
+  ].map(id => ({
+    id,
+    url: `./assets/sounds/${id}.mp3`,
     volume: 1,
-  },
-  {
-    id: "dead-lift-yeti",
-    url: "./assets/music/dead-lift-yeti.mp3",
+  })),
+  ...[
+    'dead-lift-yeti',
+    'heavy-duty-zoo',
+    'on-the-edge-reakt',
+    'scorcher-abbynoise',
+    'shocking-red-abbynoise',
+    'zombie-world-alex-besss',
+  ].map(id => ({
+    id,
+    url: `./assets/music/${id}.mp3`,
     volume: 0.8,
-  },
-  {
-    id: "zombie-world-alex-besss",
-    url: "./assets/music/zombie-world-alex-besss.mp3",
-    volume: 0.8,
-  }
+  })),
 ];
