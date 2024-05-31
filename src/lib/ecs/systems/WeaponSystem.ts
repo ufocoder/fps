@@ -109,10 +109,10 @@ export default class WeaponSystem extends System {
   };
 
   createListeners() {
-    document.addEventListener("keydown", this.handleDocumentClick);
+    document.addEventListener("click", this.handleDocumentClick);
   }
 
   destroyListeners() {
-    document.removeEventListener("keydown", this.handleDocumentClick);
+    document.removeEventListener("click", this.handleDocumentClick);
   }
 }
