@@ -16,8 +16,6 @@ import SoundManager from "src/managers/SoundManager";
 import ECS from "src/lib/ecs/ExtendedECS";
 import AnimatedSpriteComponent from "src/lib/ecs/components/AnimatedSpriteComponent";
 
-const spaceKeyCode = "Space";
-
 export default class WeaponSystem extends System {
   public readonly componentsRequired = new Set([BulletComponent, CircleComponent]);
 
@@ -80,11 +78,7 @@ export default class WeaponSystem extends System {
     this.destroyListeners();
   }
 
-  handleDocumentKeyDown = (e: KeyboardEvent) => {
-    if (e.code !== spaceKeyCode) {
-      return
-    }
-
+  handleDocumentClick = (e: MouseEvent) => {
     e.preventDefault();
 
     const [player] = this.ecs.query([CameraComponent, WeaponComponent, AngleComponent, PositionComponent]);
@@ -93,6 +87,7 @@ export default class WeaponSystem extends System {
     if (!playerContainer) {
       return;
     }
+
     const weapon = playerContainer.get(WeaponComponent);
 
     if (weapon.bullets <= 0) {
@@ -114,10 +109,10 @@ export default class WeaponSystem extends System {
   };
 
   createListeners() {
-    document.addEventListener("keydown", this.handleDocumentKeyDown);
+    document.addEventListener("keydown", this.handleDocumentClick);
   }
 
   destroyListeners() {
-    document.removeEventListener("keydown", this.handleDocumentKeyDown);
+    document.removeEventListener("keydown", this.handleDocumentClick);
   }
 }
