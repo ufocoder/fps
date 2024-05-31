@@ -26,7 +26,7 @@ interface Level {
     map: LevelMap;
     textures: Record<number, string>;
     player: Сharacter;
-    music: string;
+    music?: string;
     enemies?: Enemy[];
     exit: {
         x: number;
