@@ -6,7 +6,6 @@ import AnimationManager from "src/managers/AnimationManager";
 import BoxComponent from "src/lib/ecs/components/BoxComponent";
 import CameraComponent from "src/lib/ecs/components/CameraComponent";
 import CircleComponent from "src/lib/ecs/components/CircleComponent";
-import CollisionComponent from "src/lib/ecs/components/CollisionComponent";
 import ControlComponent from "src/lib/ecs/components/ControlComponent";
 import EnemyComponent from "src/lib/ecs/components/EnemyComponent";
 import HealthComponent from "src/lib/ecs/components/HealthComponent";
@@ -29,7 +28,7 @@ export function createEntities(
 
   ecs.addComponent(player, new ControlComponent());
   ecs.addComponent(player, new CircleComponent(0.4));
-  ecs.addComponent(player, new WeaponComponent(10, 1_000));
+  ecs.addComponent(player, new WeaponComponent(30, 10, 1_000));
   ecs.addComponent(
     player,
     new PositionComponent(level.player.x, level.player.y)
@@ -71,7 +70,7 @@ export function createEntities(
       case "soldier":
         ecs.addComponent(
           entity, 
-          new WeaponComponent(enemy.attack)
+          new WeaponComponent(Infinity, enemy.attack)
         );
         ecs.addComponent(
           entity,
@@ -111,7 +110,7 @@ export function createEntities(
       case "commando":
         ecs.addComponent(
           entity, 
-          new WeaponComponent(enemy.attack)
+          new WeaponComponent(Infinity, enemy.attack)
         );
         ecs.addComponent(
           entity,
@@ -127,7 +126,7 @@ export function createEntities(
       case "tank":
         ecs.addComponent(
           entity, 
-          new WeaponComponent(enemy.attack)
+          new WeaponComponent(Infinity, enemy.attack)
         );
         ecs.addComponent(
           entity,
@@ -168,7 +167,6 @@ export function createEntities(
       const textureName = level.textures[col];
       const texture = textureManager.get(textureName);
 
-      ecs.addComponent(wall, new CollisionComponent());
       ecs.addComponent(wall, new BoxComponent(1));
       ecs.addComponent(wall, new PositionComponent(x, y));
       ecs.addComponent(wall, new TextureComponent(texture));

@@ -57,9 +57,9 @@ const level: Level = {
     generateZombie(18.5, 2.5, 2),
     generateZombie(18.5, 3.5, 2),
     generateZombie(18.5, 4.5, 2),
-    ...generateZombies(5, 14.5, 4.5, 1, 1, 2),
-    ...generateZombies(15, 18, 5, 1, 1, 2),
-    ...generateZombies(15, 17, 7, 1, 1, 2),
+    ...generateZombies(15, 14.5, 4.5, 1, 1, 2),
+    ...generateZombies(25, 18, 5, 1, 1, 2),
+    ...generateZombies(25, 17, 7, 1, 1, 2),
   ],
   exit: {
     x: 22,

@@ -4,7 +4,6 @@ import System from "src/lib/ecs/System";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
 import MoveComponent from "src/lib/ecs/components/MoveComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
-import CollisionComponent from "src/lib/ecs/components/CollisionComponent";
 import MapTextureSystem from "./MapTextureSystem";
 
 export default class MoveSystem extends System {
@@ -23,12 +22,6 @@ export default class MoveSystem extends System {
 
   protected move(dt: number, entity: Entity) {
     const components = this.ecs.getComponents(entity)
-    const collisionComponent = components.get(CollisionComponent);
-
-    if (collisionComponent?.isCollided) {
-      return;
-    }
-
     const angleComponent = components.get(AngleComponent);
     const positionComponent = components.get(PositionComponent);
     const { mainDirection, sideDirection, moveSpeed } = components.get(MoveComponent);

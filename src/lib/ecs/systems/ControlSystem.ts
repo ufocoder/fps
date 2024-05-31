@@ -1,11 +1,11 @@
+import ECS from "src/lib/ecs/ExtendedECS";
+import { Entity } from "src/lib/ecs/Entity";
 import System from "src/lib/ecs/System";
 import MoveComponent, {
   MainDirection,
   SideDirection,
 } from "src/lib/ecs/components/MoveComponent";
 import RotateComponent from "src/lib/ecs/components/RotateComponent";
-import { Entity } from "src/lib/ecs/Entity";
-import ECS from "src/lib/ecs/ExtendedECS";
 import ControlComponent from "src/lib/ecs/components/ControlComponent";
 
 const keyCodes: Record<string, string> = {

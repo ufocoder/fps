@@ -1,11 +1,11 @@
-import { normalizeAngle } from "src/lib/utils";
-import { Entity } from "src/lib/ecs/Entity";
 import System from "src/lib/ecs/System";
+import { Entity } from "src/lib/ecs/Entity";
+import { normalizeAngle } from "src/lib/utils";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
 import RotateComponent from "src/lib/ecs/components/RotateComponent";
 
 export default class RotateSystem extends System {
-  componentsRequired = new Set([AngleComponent, RotateComponent]);
+  public readonly componentsRequired = new Set([AngleComponent, RotateComponent]);
   
   start(): void {}
 

@@ -1,11 +1,12 @@
 import ECS from "src/lib/ecs/ExtendedECS";
 import System from "src/lib/ecs/System";
+import Canvas from "src/lib/Canvas/DefaultCanvas";
 import HealthComponent from "src/lib/ecs/components/HealthComponent";
 import CameraComponent from "src/lib/ecs/components/CameraComponent";
-import Canvas from "src/lib/Canvas/DefaultCanvas";
+import WeaponComponent from "src/lib/ecs/components/WeaponComponent";
 
 export default class UISystem extends System {
-  componentsRequired = new Set([HealthComponent]);
+  public readonly componentsRequired = new Set([HealthComponent]);
 
   protected readonly width: number = 640;
   protected readonly height: number = 480;
@@ -38,14 +39,30 @@ export default class UISystem extends System {
         return;
     }
 
+    const health = playerContainer.get(HealthComponent);
+    const weapon = playerContainer.get(WeaponComponent);
+
     this.canvas.clear();
-    this.canvas.drawText({
+
+    if (health) {
+      this.canvas.drawText({
+          x: 20,
+          y: 30,
+          text: health.current.toString(),
+          color: 'red',
+          font: '24px serif',
+      });
+    }
+
+    if (weapon) {
+      this.canvas.drawText({
         x: 20,
-        y: 30,
-        text: playerContainer.get(HealthComponent).current.toString(),
+        y: 60,
+        text: weapon.bullets.toString(),
         color: 'red',
         font: '24px serif',
-    });
+     });
+    }
   }
 
   destroy(): void {

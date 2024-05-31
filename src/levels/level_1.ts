@@ -33,8 +33,8 @@ const level: Level = {
   enemies: [
     generateSoldier(18, 1.75, 4),
     generateSoldier(18, 3.25, 4),
-    ...generateZombies(4, 6, 2.5, 0.75, 0.75, 2),
-    ...generateZombies(4, 9.5, 4.5, 1, 0.75, 2),
+    ...generateZombies(6, 6, 2.5, 0.75, 0.75, 2),
+    ...generateZombies(6, 9.5, 4.5, 1, 0.75, 2),
   ],
   exit: {
     x: 18,

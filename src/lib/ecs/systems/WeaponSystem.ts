@@ -93,11 +93,17 @@ export default class WeaponSystem extends System {
     if (!playerContainer) {
       return;
     }
+    const weapon = playerContainer.get(WeaponComponent);
+
+    if (weapon.bullets <= 0) {
+      return
+    }
 
     this.soundManager.playSound('gun-shot');
 
-    const weapon = playerContainer.get(WeaponComponent);
     const entity = this.ecs.addEntity();
+
+    weapon.bullets -= 1;
 
     this.ecs.addComponent(entity, new BulletComponent(weapon.damage));
     this.ecs.addComponent(entity, new PositionComponent(playerContainer.get(PositionComponent).x, playerContainer.get(PositionComponent).y));
