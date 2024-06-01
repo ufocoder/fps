@@ -1,10 +1,7 @@
-Wolfenstein like First Person game
-==================================
+Browser First Person Shooter
+============================
 
-Version: 0.1.0
-
-Build with: TypeScript
-
+This is a [wolfenstein](https://en.wikipedia.org/wiki/Wolfenstein)-like single player game. It uses old approaches from the 1990s, raycasting algorithm. All the graphics calculations take place on the CPU, so the game has performance limitations, but it's enough for playing.
 
 ## Assets
 - https://little-martian.itch.io/retro-texture-pack
