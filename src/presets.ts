@@ -41,6 +41,17 @@ export const textures: TexturePreset[] = [
   }
 ];
 
+export const sprites: SpritePreset[] = [
+  {
+    id: 'health_pack',
+    url: './assets/items/health_pack.png'
+  },
+  {
+    id: 'ammo',
+    url: './assets/items/ammo.png'
+  }
+];
+
 export const animation: AnimationSpritePreset[] = [
   {
     id: "zombieIdle",

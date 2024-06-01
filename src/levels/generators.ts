@@ -2,6 +2,22 @@ const random = (from: number, to: number) => {
   return from + Math.random() * (to - from);
 };
 
+export const generateAmmo = (x: number, y: number) =>
+  ({ 
+    type: 'ammo',
+    radius: 0.3,
+    x,
+    y,
+  }) as Item;
+
+export const generateHealthPack = (x: number, y: number) =>
+  ({ 
+    type: 'health_pack',
+    radius: 0.3,
+    x,
+    y,
+  }) as Item;
+
 export const generateEntities =
   <T>(generator: (x: number, y: number, ai: number) => T) =>
   (limit: number, x: number, y: number, dx: number, dy: number, ai: number = 0) => {
