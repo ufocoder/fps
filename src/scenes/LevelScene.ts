@@ -83,12 +83,12 @@ export default class LevelScene implements BaseScene {
           this.level.exit.y
       );
     }
-    
+
     const enemies = this.ecs.query([EnemyComponent, HealthComponent]);
 
     for (const enemy of enemies) {
       if (this.ecs.getComponents(enemy).get(HealthComponent).current > 0) {
-        return false
+        return false;
       }
     }
 
@@ -96,7 +96,6 @@ export default class LevelScene implements BaseScene {
   }
 
   shouldLevelBeFailed() {
-  
     const [player] = this.ecs.query([CameraComponent]);
     const playerContainer = this.ecs.getComponents(player);
 
@@ -104,7 +103,7 @@ export default class LevelScene implements BaseScene {
       return;
     }
 
-    return playerContainer.get(HealthComponent).current <= 0
+    return playerContainer.get(HealthComponent).current <= 0;
   }
 
   onTick = (dt: number) => {
