@@ -12,6 +12,7 @@ import MoveComponent, { MainDirection } from "src/lib/ecs/components/MoveCompone
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import SoundManager from "src/managers/SoundManager";
 import { normalizeAngle, radiansToDegrees } from "src/lib/utils";
+import PlayerComponent from "../components/PlayerComponent";
 
 export default class AISystem extends System {
   public readonly componentsRequired = new Set([
@@ -33,19 +34,21 @@ export default class AISystem extends System {
 
   update(dt: number, entities: Set<Entity>) {
     const [player] = this.ecs.query([
+      PlayerComponent,
       HealthComponent,
       CircleComponent,
       CameraComponent,
     ]);
     
-    const container = this.ecs.getComponents(player);
+    const playerContainer = this.ecs.getComponents(player);
 
-    const playerPosition = container.get(PositionComponent);
-    const playerCircle = container.get(CircleComponent);
-    const playerHealth = container.get(HealthComponent);
+    const playerPosition = playerContainer.get(PositionComponent);
+    const playerCircle = playerContainer.get(CircleComponent);
+    const playerHealth = playerContainer.get(HealthComponent);
 
     entities.forEach((entity: Entity) => {
       const components = this.ecs.getComponents(entity);
+
       const enemyAI = components.get(AIComponent);
       const enemyHealth = components.get(HealthComponent);
       const enemyPosition = components.get(PositionComponent);
@@ -53,7 +56,6 @@ export default class AISystem extends System {
       const enemyCircle = components.get(CircleComponent);
       const enemyMove = components.get(MoveComponent);
       const enemyAnimation = components.get(AnimatedSpriteComponent);
-      // const enemyWeapon = components.get(WeaponComponent);
 
       if (enemyHealth.current <= 0) {
         return;

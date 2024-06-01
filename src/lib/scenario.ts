@@ -18,6 +18,7 @@ import TextureManager from "src/managers/TextureManager";
 import WeaponComponent from "./ecs/components/WeaponComponent";
 import CollisionComponent from "./ecs/components/CollisionComponent";
 import SpriteComponent from "./ecs/components/SpriteComponent";
+import PlayerComponent from "./ecs/components/PlayerComponent";
 
 export function createEntities(
   ecs: ECS,
@@ -28,6 +29,7 @@ export function createEntities(
   // player
   const player = ecs.addEntity();
 
+  ecs.addComponent(player, new PlayerComponent());
   ecs.addComponent(player, new ControlComponent());
   ecs.addComponent(player, new CircleComponent(0.4));
   ecs.addComponent(player, new WeaponComponent(30, 100, 1_000));

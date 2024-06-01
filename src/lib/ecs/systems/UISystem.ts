@@ -1,7 +1,7 @@
 import ECS from "src/lib/ecs/ExtendedECS";
 import System from "src/lib/ecs/System";
 import Canvas from "src/lib/Canvas/DefaultCanvas";
-import CameraComponent from "src/lib/ecs/components/CameraComponent";
+import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
 import HealthComponent from "src/lib/ecs/components/HealthComponent";
 import WeaponComponent from "src/lib/ecs/components/WeaponComponent";
 
@@ -32,7 +32,7 @@ export default class UISystem extends System {
   }
 
   update() {
-    const [player] = this.ecs.query([CameraComponent, HealthComponent]);
+    const [player] = this.ecs.query([PlayerComponent]);
     const playerContainer = this.ecs.getComponents(player);
 
     if (!playerContainer) {

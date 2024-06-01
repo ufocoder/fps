@@ -1,9 +1,10 @@
 import { Entity } from "src/lib/ecs/Entity";
 import System from "src/lib/ecs/System";
-import PositionComponent from "src/lib/ecs/components/PositionComponent";
-import CameraComponent from "src/lib/ecs/components/CameraComponent";
-import PolarMap from "src/lib/ecs/lib/PolarMap";
 import AnimatedSpriteComponent from "src/lib/ecs/components/AnimatedSpriteComponent";
+import CircleComponent from "src/lib/ecs/components/CircleComponent";
+import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
+import PolarMap from "src/lib/ecs/lib/PolarMap";
+import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import SpriteComponent from "src/lib/ecs/components/SpriteComponent";
 
 export default class MapPolarSystem extends System {
@@ -13,7 +14,7 @@ export default class MapPolarSystem extends System {
   start(): void {}
 
   update(_: number, entities: Set<Entity>) {
-    const [player] = this.ecs.query([CameraComponent]);
+    const [player] = this.ecs.query([PlayerComponent, CircleComponent, PositionComponent]);
 
     const spriteContainers = [];
 

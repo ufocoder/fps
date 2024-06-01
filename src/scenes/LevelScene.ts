@@ -6,7 +6,6 @@ import SoundManager from "src/managers/SoundManager";
 import AISystem from "src/lib/ecs/systems/AISystem";
 import AnimationManager from "src/managers/AnimationManager";
 import AnimationSystem from "src/lib/ecs/systems/AnimationSystem";
-import CameraComponent from "src/lib/ecs/components/CameraComponent";
 import ControlSystem from "src/lib/ecs/systems/ControlSystem";
 import HealthComponent from "src/lib/ecs/components/HealthComponent";
 import MinimapSystem from "src/lib/ecs/systems/MinimapSystem";
@@ -20,6 +19,7 @@ import WeaponSystem from "src/lib/ecs/systems/WeaponSystem";
 import MapPolarSystem from "src/lib/ecs/systems/MapPolarSystem";
 import MapTextureSystem from "src/lib/ecs/systems/MapTextureSystem";
 import EnemyComponent from "src/lib/ecs/components/EnemyComponent";
+import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
 
 interface LevelSceneProps {
   container: HTMLElement;
@@ -60,15 +60,15 @@ export default class LevelScene implements BaseScene {
     ecs.addSystem(new RotateSystem(ecs));
     ecs.addSystem(new AnimationSystem(ecs));
     ecs.addSystem(new RenderSystem(ecs, container, level, textureManager));
-    ecs.addSystem(new UISystem(ecs, container));
     ecs.addSystem(new MinimapSystem(ecs, container, level));
+    ecs.addSystem(new UISystem(ecs, container));
 
     this.ecs = ecs;
     this.loop = createLoop(this.onTick);
   }
 
   shouldLevelBeCompleted() {
-    const [player] = this.ecs.query([CameraComponent]);
+    const [player] = this.ecs.query([PlayerComponent, PositionComponent]);
     const playerContainer = this.ecs.getComponents(player);
 
     if (!playerContainer) {
@@ -96,7 +96,7 @@ export default class LevelScene implements BaseScene {
   }
 
   shouldLevelBeFailed() {
-    const [player] = this.ecs.query([CameraComponent]);
+    const [player] = this.ecs.query([PlayerComponent, HealthComponent]);
     const playerContainer = this.ecs.getComponents(player);
 
     if (!playerContainer) {

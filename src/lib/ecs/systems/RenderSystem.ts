@@ -1,18 +1,20 @@
+
+import MapTextureSystem from "./MapTextureSystem";
+import MapPolarSystem from "./MapPolarSystem";
+import { PolarPosition } from "src/lib/ecs/lib/PolarMap";
 import ECS from "src/lib/ecs/ExtendedECS";
 import System from "src/lib/ecs/System";
 import { ComponentContainer } from "src/lib/ecs/Component";
-import AnimatedSpriteComponent from "src/lib/ecs/components/AnimatedSpriteComponent";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
-import TextureComponent from "src/lib/ecs/components/TextureComponent";
+import AnimatedSpriteComponent from "src/lib/ecs/components/AnimatedSpriteComponent";
 import CameraComponent from "src/lib/ecs/components/CameraComponent";
-import SpriteComponent from "src/lib/ecs/components/SpriteComponent";
+import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
+import SpriteComponent from "src/lib/ecs/components/SpriteComponent";
+import TextureComponent from "src/lib/ecs/components/TextureComponent";
 import Canvas from "src/lib/Canvas/BufferCanvas";
 import TextureManager from "src/managers/TextureManager";
-import { PolarPosition } from "src/lib/ecs/lib/PolarMap";
 import { degreeToRadians, distance, normalizeAngle } from "src/lib/utils";
-import MapTextureSystem from "./MapTextureSystem";
-import MapPolarSystem from "./MapPolarSystem";
 
 export default class RenderSystem extends System {
   public readonly componentsRequired = new Set([PositionComponent]);
@@ -47,7 +49,7 @@ export default class RenderSystem extends System {
   }
 
   update() {
-    const [player] = this.ecs.query([CameraComponent]);
+    const [player] = this.ecs.query([PlayerComponent]);
     const playerContainer = this.ecs.getComponents(player);
 
     if (!playerContainer) {
