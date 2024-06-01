@@ -22,7 +22,7 @@ export function createScenario({
   let levelIndex = 0;
 
   const showFinalScene = () => {
-    const scene = new TitleScene(container, "You win");
+    const scene = new TitleScene(container, "Congratulation!", ["You saved the world from zombies"]);
     scene.start();
   };
 
@@ -70,7 +70,6 @@ export function createScenario({
       soundManager.playBackground(level.music);
     }
   };
-
 
   const startScene = new TitleScene(container, "Shoot or run", ["Use WASD and mouse to play", "Press any key to start"]);
 

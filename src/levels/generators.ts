@@ -1,3 +1,5 @@
+import { degreeToRadians } from "src/lib/utils";
+
 const random = (from: number, to: number) => {
   return from + Math.random() * (to - from);
 };
@@ -31,6 +33,21 @@ export const generateEntities =
         ai
       ));
   };
+
+export const generateCircle = (x: number, y: number, radius: number, total: number): number[][] => {
+  const step = 360 / total;
+  const coords = [];
+
+  for (let angle = 0; angle < 360; angle += step) {
+    coords.push([
+      x + radius * Math.cos(degreeToRadians(angle)),
+      y + radius * Math.sin(degreeToRadians(angle))
+    ]);
+  }
+
+  return coords;
+  
+}
 
 export const generateZombie = (x: number, y: number, ai: number = 0) =>
   ({
@@ -90,5 +107,6 @@ export const generateTank = (x: number, y: number, ai: number = 0) =>
 
 export const generateZombies = generateEntities(generateZombie);
 export const generateSoldiers = generateEntities(generateSoldier);
+export const generateCommandos = generateEntities(generateCommando);
 export const generateFlygies = generateEntities(generateFlyguy);
 export const generateTanks = generateEntities(generateTank);

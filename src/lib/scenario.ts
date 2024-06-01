@@ -45,7 +45,7 @@ export function createEntities(
   ecs.addComponent(player, new AngleComponent(level.player.angle));
   ecs.addComponent(player, new MoveComponent(3));
   ecs.addComponent(player, new CollisionComponent());
-  ecs.addComponent(player, new RotateComponent(360 / 25));
+  ecs.addComponent(player, new RotateComponent(360 / 30));
   ecs.addComponent(player, new CameraComponent(60));
   ecs.addComponent(player, new MinimapComponent("black"));
 
