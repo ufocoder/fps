@@ -2,11 +2,12 @@ import { Entity } from "src/lib/ecs/Entity";
 import System from "src/lib/ecs/System";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import CameraComponent from "src/lib/ecs/components/CameraComponent";
-import EnemyComponent from "src/lib/ecs/components/EnemyComponent";
 import PolarMap from "src/lib/ecs/lib/PolarMap";
+import AnimatedSpriteComponent from "src/lib/ecs/components/AnimatedSpriteComponent";
+import SpriteComponent from "src/lib/ecs/components/SpriteComponent";
 
 export default class MapPolarSystem extends System {
-  public readonly componentsRequired = new Set([PositionComponent, EnemyComponent]);
+  public readonly componentsRequired = new Set([PositionComponent]);
   public readonly polarMap: PolarMap = new PolarMap();
 
   start(): void {}
@@ -15,8 +16,14 @@ export default class MapPolarSystem extends System {
     const [player] = this.ecs.query([CameraComponent]);
 
     const spriteContainers = [];
+
     for (const entity of entities) {
-      spriteContainers.push(this.ecs.getComponents(entity));
+      if (
+        this.ecs.getComponents(entity).has(AnimatedSpriteComponent) ||
+        this.ecs.getComponents(entity).has(SpriteComponent)
+      ) {
+        spriteContainers.push(this.ecs.getComponents(entity));
+      }
     }
 
     this.polarMap.center = this.ecs.getComponents(player);
