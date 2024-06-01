@@ -8,3 +8,4 @@ This is a [wolfenstein](https://en.wikipedia.org/wiki/Wolfenstein)-like single p
 ## Assets
 - Textures, https://little-martian.itch.io/retro-texture-pack
 - Characters, https://fredrichi.itch.io/free-characters-with-animations-for-fps-game
+- Weapon, https://wolfenstein.fandom.com/wiki/Pistol
