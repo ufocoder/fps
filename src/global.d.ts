@@ -8,8 +8,9 @@ interface Color {
 interface Item {
     x: number;
     y: number;
-    type: "health_pack" | "key" | "ammo";
+    type: "health_pack" | "ammo";
     radius: number;
+    value: number;
 }
 
 

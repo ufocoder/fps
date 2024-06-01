@@ -49,7 +49,11 @@ export const sprites: SpritePreset[] = [
   {
     id: 'ammo',
     url: './assets/items/ammo.png'
-  }
+  },
+  {
+    id: 'shotgun', 
+    url: './assets/weapons/shotgun.png'
+  },
 ];
 
 export const animation: AnimationSpritePreset[] = [
@@ -89,6 +93,45 @@ export const animation: AnimationSpritePreset[] = [
     frames: [
       "./assets/characters/ZombieAttack1.png",
       "./assets/characters/ZombieAttack2.png",
+    ],
+  },
+  // flyguy
+  {
+    id: "flyguyIdle",
+    frames: [
+      "./assets/characters/FlyguyIdle.png",
+    ],
+  },
+  {
+    id: "flyguyWalk",
+    frames: [
+      "./assets/characters/FlyguyWalk1.png",
+      "./assets/characters/FlyguyWalk2.png",
+      "./assets/characters/FlyguyWalk3.png",
+      "./assets/characters/FlyguyWalk4.png",
+    ],
+  },
+  {
+    id: "flyguyDamage",
+    frames: [
+      "./assets/characters/FlyguyDamage1.png",
+      "./assets/characters/FlyguyDamage2.png",
+    ],
+  },
+  {
+    id: "flyguyDeath",
+    frames: [
+      "./assets/characters/FlyguyDeath1.png",
+      "./assets/characters/FlyguyDeath2.png",
+      "./assets/characters/FlyguyDeath3.png",
+      "./assets/characters/FlyguyDeath4.png",
+    ],
+  },
+  {
+    id: "flyguyAttack",
+    frames: [
+      "./assets/characters/FlyguyAttack1.png",
+      "./assets/characters/FlyguyAttack2.png",
     ],
   },
   // soldier
@@ -213,6 +256,7 @@ export const animation: AnimationSpritePreset[] = [
 export const sounds: SoundPreset[] = [
   ...[
     'hurt',
+    'pick',
     'gun-shot',
     'lazer-shot',
     'zombie-attack'

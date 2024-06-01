@@ -1,4 +1,4 @@
-import { generateAmmo, generateHealthPack, generateSoldier } from "./generators";
+import { generateSoldier } from "./generators";
 
 const level: Level = {
   world: {
@@ -7,7 +7,7 @@ const level: Level = {
       bottom: { r: 84, g: 98, b: 92, a: 255 },
     },
   },
-  music: 'dead-lift-yeti',
+  music: 'scorcher-abbynoise',
   map: [
     [1, 1, 1, 1, 2, 1, 1, 1],
     [1, 0, 0, 0, 0, 0, 0, 1],
@@ -16,10 +16,6 @@ const level: Level = {
     [1, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 1],
     [1, 1, 1, 1, 1, 1, 1, 1],
-  ],
-  items: [
-    generateHealthPack(2, 2, 20),
-    generateAmmo(2.5, 2, 20),
   ],
   textures: {
     1: "TECH_1C",
@@ -35,6 +31,7 @@ const level: Level = {
     health: 100,
   },
   enemies: [
+    generateSoldier(4, 4, 4),
     generateSoldier(4, 4, 4),
   ],
   exit: {

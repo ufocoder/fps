@@ -4,11 +4,10 @@ import { Entity } from "src/lib/ecs/Entity";
 import AIComponent from "src/lib/ecs/components/AIComponent";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
 import AnimatedSpriteComponent from "src/lib/ecs/components/AnimatedSpriteComponent";
-import CameraComponent from "src/lib/ecs/components/CameraComponent";
 import CircleComponent from "src/lib/ecs/components/CircleComponent";
 import EnemyComponent from "src/lib/ecs/components/EnemyComponent";
 import HealthComponent from "src/lib/ecs/components/HealthComponent";
-import MoveComponent, { MainDirection } from "src/lib/ecs/components/MoveComponent";
+import MoveComponent, { MainDirection, SideDirection } from "src/lib/ecs/components/MoveComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import SoundManager from "src/managers/SoundManager";
 import { normalizeAngle, radiansToDegrees } from "src/lib/utils";
@@ -37,7 +36,6 @@ export default class AISystem extends System {
       PlayerComponent,
       HealthComponent,
       CircleComponent,
-      CameraComponent,
     ]);
     
     const playerContainer = this.ecs.getComponents(player);
@@ -82,6 +80,7 @@ export default class AISystem extends System {
         enemyAngle.angle = normalizeAngle(angle);
       } else {
         enemyMove.mainDirection = MainDirection.None;
+        enemyMove.sideDirection = SideDirection.None;
         enemyAnimation.switchState("idle", true);
       }
 

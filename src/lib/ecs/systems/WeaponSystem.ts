@@ -2,11 +2,12 @@ import System from "src/lib/ecs/System";
 import { ComponentContainer } from "src/lib/ecs/Component";
 import { distance } from "src/lib/utils";
 import { Entity } from "src/lib/ecs/Entity";
+import Canvas from "src/lib/Canvas/DefaultCanvas";
 import AIComponent from "src/lib/ecs/components/AIComponent";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
 import AnimatedSpriteComponent from "src/lib/ecs/components/AnimatedSpriteComponent";
 import BulletComponent from "src/lib/ecs/components/BulletComponent";
-import CameraComponent from "src/lib/ecs/components/CameraComponent";
+import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
 import CircleComponent from "src/lib/ecs/components/CircleComponent";
 import CollisionComponent from "../components/CollisionComponent";
 import ECS from "src/lib/ecs/ExtendedECS";
@@ -17,19 +18,41 @@ import MoveComponent, { MainDirection } from "src/lib/ecs/components/MoveCompone
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import SoundManager from "src/managers/SoundManager";
 import WeaponComponent from "src/lib/ecs/components/WeaponComponent";
+import TextureManager from "src/managers/TextureManager";
 
 export default class WeaponSystem extends System {
   public readonly componentsRequired = new Set([BulletComponent, CircleComponent]);
 
+  protected readonly width: number = 640;
+  protected readonly height: number = 480;
+  protected readonly canvas: Canvas;
+  protected readonly container: HTMLElement;
+
+  protected readonly textureManager: TextureManager;
   protected readonly soundManager: SoundManager;
   
-  constructor(ecs: ECS, soundManager: SoundManager) {
+  constructor(ecs: ECS, container: HTMLElement, textureManager: TextureManager, soundManager: SoundManager) {
     super(ecs);
+  
+    this.container = container;
     this.soundManager = soundManager;
+    this.textureManager = textureManager;
+
+    this.canvas = new Canvas({
+      id: 'ui',
+      height: this.height,
+      width: this.width,
+    });
   }
 
   start(): void {
+    this.container.appendChild(this.canvas.element);
     this.createListeners();
+  }
+  
+  destroy(): void {
+    this.canvas.element.remove();
+    this.destroyListeners();
   }
 
   update(_: number, entities: Set<Entity>) {
@@ -55,11 +78,13 @@ export default class WeaponSystem extends System {
         }
         
         if (health.current <= 0) {
-          animation.switchState("death", false);
-
           this.ecs.removeComponent(enemy, MoveComponent);
           this.ecs.removeComponent(enemy, HealthComponent);
           this.ecs.removeComponent(enemy, AIComponent);
+
+          if (animation) {
+            animation.switchState("death", false);
+          }
         }
 
         this.ecs.removeEntity(entity);
@@ -83,12 +108,8 @@ export default class WeaponSystem extends System {
     };
   }
 
-  destroy(): void {
-    this.destroyListeners();
-  }
-
   handleDocumentClick = () => {
-    const [player] = this.ecs.query([CameraComponent, WeaponComponent, AngleComponent, PositionComponent]);
+    const [player] = this.ecs.query([PlayerComponent, WeaponComponent, AngleComponent, PositionComponent]);
     const playerContainer = this.ecs.getComponents(player)
 
     if (!playerContainer) {

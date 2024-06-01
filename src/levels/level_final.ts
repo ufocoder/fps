@@ -1,4 +1,4 @@
-import { generateTank, generateZombie } from "./generators";
+import { generateTank, generateZombies } from "./generators";
 
 
 const level: Level = {
@@ -37,8 +37,13 @@ const level: Level = {
     health: 100,
   },
   enemies: [
-    generateZombie(4, 5, 5),
-    generateTank(5, 5, 5),
+    ...generateZombies(3, 5, 1, 1, 2, 4),
+    ...generateZombies(3, 5, 1, 1, 2, 4),
+    ...generateZombies(3, 5, 1, 1, 2, 4),
+
+    generateTank(8, 8, 8),
+
+    
   ],
 };
 

@@ -56,6 +56,7 @@ export default class MoveSystem extends System {
         positionComponent.y = newY;
         positionComponent.x = newX;
       } else {
+        collisionComponent.collidedWith = 'texture';
         collisionComponent.isCollided = true;
       }
     }

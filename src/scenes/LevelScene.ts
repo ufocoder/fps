@@ -16,10 +16,12 @@ import RotateSystem from "src/lib/ecs/systems/RotateSystem";
 import TextureManager from "src/managers/TextureManager";
 import UISystem from "src/lib/ecs/systems/UISystem";
 import WeaponSystem from "src/lib/ecs/systems/WeaponSystem";
+import MapItemSystem from "src/lib/ecs/systems/MapItemSystem";
 import MapPolarSystem from "src/lib/ecs/systems/MapPolarSystem";
 import MapTextureSystem from "src/lib/ecs/systems/MapTextureSystem";
 import EnemyComponent from "src/lib/ecs/components/EnemyComponent";
 import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
+
 
 interface LevelSceneProps {
   container: HTMLElement;
@@ -53,12 +55,13 @@ export default class LevelScene implements BaseScene {
 
     ecs.addSystem(new MapTextureSystem(ecs, level));
     ecs.addSystem(new MapPolarSystem(ecs));
+    ecs.addSystem(new MapItemSystem(ecs, soundManager));
     ecs.addSystem(new ControlSystem(ecs, container));
-    ecs.addSystem(new WeaponSystem(ecs, soundManager));
+    ecs.addSystem(new AnimationSystem(ecs));
     ecs.addSystem(new AISystem(ecs, soundManager));
+    ecs.addSystem(new WeaponSystem(ecs, container, textureManager, soundManager));
     ecs.addSystem(new MoveSystem(ecs));
     ecs.addSystem(new RotateSystem(ecs));
-    ecs.addSystem(new AnimationSystem(ecs));
     ecs.addSystem(new RenderSystem(ecs, container, level, textureManager));
     ecs.addSystem(new MinimapSystem(ecs, container, level));
     ecs.addSystem(new UISystem(ecs, container));

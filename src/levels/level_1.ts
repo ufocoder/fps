@@ -7,7 +7,7 @@ const level: Level = {
       bottom: { r: 84, g: 98, b: 92, a: 255 },
     },
   },
-  music: 'dead-lift-yeti',
+  music: 'shocking-red-abbynoise',
   map: [
     [1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -31,8 +31,8 @@ const level: Level = {
     health: 100,
   },
   items: [
-    generateHealthPack(2, 2),
-    generateAmmo(2.5, 2),
+    generateHealthPack(2, 2, 100),
+    generateAmmo(2.5, 2, 20),
   ],
   enemies: [
     generateSoldier(18, 1.75, 4),

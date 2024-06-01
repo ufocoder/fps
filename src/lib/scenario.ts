@@ -19,6 +19,7 @@ import WeaponComponent from "./ecs/components/WeaponComponent";
 import CollisionComponent from "./ecs/components/CollisionComponent";
 import SpriteComponent from "./ecs/components/SpriteComponent";
 import PlayerComponent from "./ecs/components/PlayerComponent";
+import ItemComponent from "./ecs/components/ItemComponent";
 
 export function createEntities(
   ecs: ECS,
@@ -44,7 +45,7 @@ export function createEntities(
   ecs.addComponent(player, new AngleComponent(level.player.angle));
   ecs.addComponent(player, new MoveComponent(3));
   ecs.addComponent(player, new CollisionComponent());
-  ecs.addComponent(player, new RotateComponent(360 / 20));
+  ecs.addComponent(player, new RotateComponent(360 / 25));
   ecs.addComponent(player, new CameraComponent(60));
   ecs.addComponent(player, new MinimapComponent("black"));
 
@@ -53,23 +54,20 @@ export function createEntities(
     const entity = ecs.addEntity();
 
     ecs.addComponent(entity, new PositionComponent(item.x, item.y));
+    ecs.addComponent(entity, new PositionComponent(item.x, item.y));
     ecs.addComponent(entity, new CircleComponent(item.radius));
     ecs.addComponent(entity, new MinimapComponent("orange"));
 
     switch (item.type) {
       case "health_pack":
+        ecs.addComponent(entity, new ItemComponent('health_pack', item.value));
         ecs.addComponent(
           entity,
           new SpriteComponent(textureManager.get("health_pack"))
         );
         break;
-      case "key":
-        ecs.addComponent(
-          entity,
-          new SpriteComponent(textureManager.get("key"))
-        );
-        break;
       case "ammo":
+        ecs.addComponent(entity, new ItemComponent('ammo', item.value));
         ecs.addComponent(
           entity,
           new SpriteComponent(textureManager.get("ammo"))
