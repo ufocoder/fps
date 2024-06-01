@@ -59,7 +59,7 @@ export default class LevelScene implements BaseScene {
     ecs.addSystem(new ControlSystem(ecs, container));
     ecs.addSystem(new AnimationSystem(ecs));
     ecs.addSystem(new AISystem(ecs, soundManager));
-    ecs.addSystem(new WeaponSystem(ecs, container, textureManager, soundManager));
+    ecs.addSystem(new WeaponSystem(ecs, container, animationManager, soundManager));
     ecs.addSystem(new MoveSystem(ecs));
     ecs.addSystem(new RotateSystem(ecs));
     ecs.addSystem(new RenderSystem(ecs, container, level, textureManager));

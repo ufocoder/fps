@@ -50,13 +50,25 @@ export const sprites: SpritePreset[] = [
     id: 'ammo',
     url: './assets/items/ammo.png'
   },
-  {
-    id: 'shotgun', 
-    url: './assets/weapons/shotgun.png'
-  },
 ];
 
 export const animation: AnimationSpritePreset[] = [
+  {
+    id: "pistolIdle",
+    frames: [
+      "./assets/weapons/pistol_1.png",
+    ],
+  },
+  {
+    id: "pistolAttack",
+    frames: [
+      "./assets/weapons/pistol_1.png",
+      "./assets/weapons/pistol_2.png",
+      "./assets/weapons/pistol_3.png",
+      "./assets/weapons/pistol_4.png",
+      "./assets/weapons/pistol_5.png",
+    ],
+  },
   {
     id: "zombieIdle",
     frames: [

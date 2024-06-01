@@ -2,7 +2,7 @@ import System from "src/lib/ecs/System";
 import { ComponentContainer } from "src/lib/ecs/Component";
 import { distance } from "src/lib/utils";
 import { Entity } from "src/lib/ecs/Entity";
-import Canvas from "src/lib/Canvas/DefaultCanvas";
+import Canvas from "src/lib/Canvas/BufferCanvas";
 import AIComponent from "src/lib/ecs/components/AIComponent";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
 import AnimatedSpriteComponent from "src/lib/ecs/components/AnimatedSpriteComponent";
@@ -18,7 +18,7 @@ import MoveComponent, { MainDirection } from "src/lib/ecs/components/MoveCompone
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import SoundManager from "src/managers/SoundManager";
 import WeaponComponent from "src/lib/ecs/components/WeaponComponent";
-import TextureManager from "src/managers/TextureManager";
+import AnimationManager from "src/managers/AnimationManager";
 
 export default class WeaponSystem extends System {
   public readonly componentsRequired = new Set([BulletComponent, CircleComponent]);
@@ -28,20 +28,26 @@ export default class WeaponSystem extends System {
   protected readonly canvas: Canvas;
   protected readonly container: HTMLElement;
 
-  protected readonly textureManager: TextureManager;
+  protected readonly weaponSprite?: AnimatedSpriteComponent;
   protected readonly soundManager: SoundManager;
+  protected readonly animationManager: AnimationManager;
   
-  constructor(ecs: ECS, container: HTMLElement, textureManager: TextureManager, soundManager: SoundManager) {
+  constructor(ecs: ECS, container: HTMLElement, animationManager: AnimationManager, soundManager: SoundManager) {
     super(ecs);
   
     this.container = container;
     this.soundManager = soundManager;
-    this.textureManager = textureManager;
+    this.animationManager = animationManager;
 
     this.canvas = new Canvas({
-      id: 'ui',
+      id: 'weapon',
       height: this.height,
       width: this.width,
+    });
+
+    this.weaponSprite = new AnimatedSpriteComponent('idle', {
+      attack: animationManager.get("pistolAttack"),
+      idle: animationManager.get("pistolIdle"),
     });
   }
 
@@ -55,8 +61,30 @@ export default class WeaponSystem extends System {
     this.destroyListeners();
   }
 
-  update(_: number, entities: Set<Entity>) {
+  renderSprite() {
+    if (this.weaponSprite) {
+      const texture = this.weaponSprite.sprite;
+
+      
+      this.canvas.clear();
+      this.canvas.createBufferSnapshot();
+      this.canvas.drawImage({
+        x: this.width / 2 - texture.width / 2, 
+        y: this.height - texture.height, 
+        texture,
+      });
+      this.canvas.commitBufferSnapshot();
+    }
+
+  }
+
+  update(dt: number, entities: Set<Entity>) {
     const enemies = this.ecs.query([EnemyComponent, CircleComponent, HealthComponent]);
+
+    if (this.weaponSprite) {
+      this.weaponSprite.update(dt);
+      this.renderSprite();
+    }
 
     entities.forEach((entity) => {
       const bullet = this.ecs.getComponents(entity);
@@ -125,6 +153,7 @@ export default class WeaponSystem extends System {
     weapon.bulletTotal -= 1;
 
     this.soundManager.playSound('gun-shot');
+    this.weaponSprite?.switchState('attack', false);
 
     const entity = this.ecs.addEntity();
 

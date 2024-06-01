@@ -29,6 +29,13 @@ interface DrawPixelProps {
     color: Color;
 }
 
+
+interface DrawImageProps {
+    x: number;
+    y: number;
+    texture: TextureBitmap;
+}
+
 export default class BufferCanvas {
     readonly width: number;
     readonly height: number;
@@ -86,6 +93,21 @@ export default class BufferCanvas {
         this.buffer.data[offset + 3] = color.a;
     }
 
+    drawImage({ x, y, texture } : DrawImageProps) {
+        for (let i = 0; i < texture.height; i++) {
+            for (let j = 0; j < texture.width; j++) {
+                const color = texture.colors[i][j];
+                if (color.a !== 0) {
+                    this.drawPixel({
+                        x: x + j, 
+                        y: y + i, 
+                        color,
+                    });
+                }
+            }
+        }
+    }
+
     drawVerticalLine({ x, y1, y2, color }: DrawVerticalLineProps) {
         for (let y = y1; y < y2; y++) {
             this.drawPixel({ x, y, color });
@@ -107,9 +129,5 @@ export default class BufferCanvas {
                 })
             }
         }
-    }
-
-    drawImage() {
-        
     }
 }
