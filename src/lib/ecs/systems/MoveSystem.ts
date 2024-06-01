@@ -4,11 +4,11 @@ import System from "src/lib/ecs/System";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
 import MoveComponent from "src/lib/ecs/components/MoveComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
+import CollisionComponent from "src/lib/ecs/components/CollisionComponent";
 import MapTextureSystem from "./MapTextureSystem";
 
 export default class MoveSystem extends System {
-  public readonly componentsRequired = new Set([PositionComponent, AngleComponent, MoveComponent]);
-  
+  public readonly componentsRequired = new Set([PositionComponent, AngleComponent, MoveComponent, CollisionComponent]);
 
   start(): void {}
 
@@ -24,6 +24,7 @@ export default class MoveSystem extends System {
     const components = this.ecs.getComponents(entity)
     const angleComponent = components.get(AngleComponent);
     const positionComponent = components.get(PositionComponent);
+    const collisionComponent = components.get(CollisionComponent);
     const { mainDirection, sideDirection, moveSpeed } = components.get(MoveComponent);
 
     const m = Number(mainDirection);
@@ -54,6 +55,8 @@ export default class MoveSystem extends System {
       if (!textureMap.has(Math.floor(newX), Math.floor(newY))) {
         positionComponent.y = newY;
         positionComponent.x = newX;
+      } else {
+        collisionComponent.isCollided = true;
       }
     }
   }
