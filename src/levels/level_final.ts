@@ -40,10 +40,6 @@ const level: Level = {
     generateZombie(4, 5, 5),
     generateTank(5, 5, 5),
   ],
-  exit: {
-    x: 22,
-    y: 1,
-  },
 };
 
 export default level;

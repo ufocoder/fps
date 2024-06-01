@@ -72,7 +72,7 @@ export function createScenario({
   };
 
 
-  const startScene = new TitleScene(container, "Demo", "Press any key");
+  const startScene = new TitleScene(container, "Shoot or run", ["Use WASD and mouse to play", "Press any key to start"]);
 
   startScene.onComplete(() => {
     startScene.destroy();
