@@ -1,8 +1,8 @@
 import ECS from "src/lib/ecs/ExtendedECS";
 import System from "src/lib/ecs/System";
 import Canvas from "src/lib/Canvas/DefaultCanvas";
-import HealthComponent from "src/lib/ecs/components/HealthComponent";
 import CameraComponent from "src/lib/ecs/components/CameraComponent";
+import HealthComponent from "src/lib/ecs/components/HealthComponent";
 import WeaponComponent from "src/lib/ecs/components/WeaponComponent";
 
 export default class UISystem extends System {
@@ -58,7 +58,7 @@ export default class UISystem extends System {
       this.canvas.drawText({
         x: 20,
         y: 60,
-        text: weapon.bullets.toString(),
+        text: weapon.bulletTotal.toString(),
         color: 'red',
         font: '24px serif',
      });

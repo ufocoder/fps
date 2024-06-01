@@ -1,20 +1,22 @@
 import System from "src/lib/ecs/System";
-import { Entity } from "src/lib/ecs/Entity";
-import PositionComponent from "src/lib/ecs/components/PositionComponent";
-import CameraComponent from "src/lib/ecs/components/CameraComponent";
-import AngleComponent from "src/lib/ecs/components/AngleComponent";
-import MoveComponent, { MainDirection } from "src/lib/ecs/components/MoveComponent";
-import CircleComponent from "src/lib/ecs/components/CircleComponent";
-import MinimapComponent from "src/lib/ecs/components/MinimapComponent";
-import BulletComponent from "src/lib/ecs/components/BulletComponent";
-import EnemyComponent from "src/lib/ecs/components/EnemyComponent";
 import { ComponentContainer } from "src/lib/ecs/Component";
-import HealthComponent from "src/lib/ecs/components/HealthComponent";
 import { distance } from "src/lib/utils";
-import WeaponComponent from "src/lib/ecs/components/WeaponComponent";
-import SoundManager from "src/managers/SoundManager";
-import ECS from "src/lib/ecs/ExtendedECS";
+import { Entity } from "src/lib/ecs/Entity";
+import AIComponent from "src/lib/ecs/components/AIComponent";
+import AngleComponent from "src/lib/ecs/components/AngleComponent";
 import AnimatedSpriteComponent from "src/lib/ecs/components/AnimatedSpriteComponent";
+import BulletComponent from "src/lib/ecs/components/BulletComponent";
+import CameraComponent from "src/lib/ecs/components/CameraComponent";
+import CircleComponent from "src/lib/ecs/components/CircleComponent";
+import CollisionComponent from "../components/CollisionComponent";
+import ECS from "src/lib/ecs/ExtendedECS";
+import EnemyComponent from "src/lib/ecs/components/EnemyComponent";
+import HealthComponent from "src/lib/ecs/components/HealthComponent";
+import MinimapComponent from "src/lib/ecs/components/MinimapComponent";
+import MoveComponent, { MainDirection } from "src/lib/ecs/components/MoveComponent";
+import PositionComponent from "src/lib/ecs/components/PositionComponent";
+import SoundManager from "src/managers/SoundManager";
+import WeaponComponent from "src/lib/ecs/components/WeaponComponent";
 
 export default class WeaponSystem extends System {
   public readonly componentsRequired = new Set([BulletComponent, CircleComponent]);
@@ -35,30 +37,37 @@ export default class WeaponSystem extends System {
 
     entities.forEach((entity) => {
       const bullet = this.ecs.getComponents(entity);
-      const enemy = this.hasCollision(bullet, enemies);
+
+      if (bullet.get(CollisionComponent).isCollided) {
+        this.ecs.removeEntity(entity);
+        return;
+      }
+
+      const enemy = this.findEnemyCollision(bullet, enemies);
 
       if (enemy) {
         const container = this.ecs.getComponents(enemy);
+        const health = container.get(HealthComponent);
+        const animation = container.get(AnimatedSpriteComponent);
 
-        if (container) {
-          const health = container.get(HealthComponent);
-          const move = container.get(MoveComponent);
-          const animation = container.get(AnimatedSpriteComponent);
-
+        if (health.current > 0) {
           health.current -= bullet.get(BulletComponent).damage;
-
-          if (health.current <= 0) {
-            animation.switchState("death", false);
-            move.moveSpeed = 0;
-            // this.ecs.removeEntity(enemy);
-            return
-          }
         }
+        
+        if (health.current <= 0) {
+          animation.switchState("death", false);
+
+          this.ecs.removeComponent(enemy, MoveComponent);
+          this.ecs.removeComponent(enemy, HealthComponent);
+          this.ecs.removeComponent(enemy, AIComponent);
+        }
+
+        this.ecs.removeEntity(entity);
       }
     });
   }
 
-  hasCollision(bullet: ComponentContainer, enemies: Set<Entity>): Entity | undefined  {
+  findEnemyCollision(bullet: ComponentContainer, enemies: Set<Entity>): Entity | undefined  {
     const bulletCircle = bullet.get(CircleComponent);
     const bulletPosition = bullet.get(PositionComponent);
 
@@ -78,9 +87,7 @@ export default class WeaponSystem extends System {
     this.destroyListeners();
   }
 
-  handleDocumentClick = (e: MouseEvent) => {
-    e.preventDefault();
-
+  handleDocumentClick = () => {
     const [player] = this.ecs.query([CameraComponent, WeaponComponent, AngleComponent, PositionComponent]);
     const playerContainer = this.ecs.getComponents(player)
 
@@ -90,22 +97,23 @@ export default class WeaponSystem extends System {
 
     const weapon = playerContainer.get(WeaponComponent);
 
-    if (weapon.bullets <= 0) {
+    if (weapon.bulletTotal <= 0) {
       return
     }
+
+    weapon.bulletTotal -= 1;
 
     this.soundManager.playSound('gun-shot');
 
     const entity = this.ecs.addEntity();
 
-    weapon.bullets -= 1;
-
     this.ecs.addComponent(entity, new BulletComponent(weapon.damage));
+    this.ecs.addComponent(entity, new CollisionComponent());
     this.ecs.addComponent(entity, new PositionComponent(playerContainer.get(PositionComponent).x, playerContainer.get(PositionComponent).y));
     this.ecs.addComponent(entity, new AngleComponent(playerContainer.get(AngleComponent).angle));
     this.ecs.addComponent(entity, new CircleComponent(0.25));
     this.ecs.addComponent(entity, new MinimapComponent('yellow'));
-    this.ecs.addComponent(entity, new MoveComponent(10, MainDirection.Forward));
+    this.ecs.addComponent(entity, new MoveComponent(weapon.bulletSpeed, MainDirection.Forward));
   };
 
   createListeners() {
