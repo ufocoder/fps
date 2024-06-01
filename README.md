@@ -6,5 +6,5 @@ This is a [wolfenstein](https://en.wikipedia.org/wiki/Wolfenstein)-like single p
 ![image](./docs/screenshot.png)
 
 ## Assets
-- https://little-martian.itch.io/retro-texture-pack
-- https://fredrichi.itch.io/free-characters-with-animations-for-fps-game
+- Textures, https://little-martian.itch.io/retro-texture-pack
+- Characters, https://fredrichi.itch.io/free-characters-with-animations-for-fps-game
