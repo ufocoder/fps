@@ -121,6 +121,7 @@ export default class RenderSystem extends System {
         }
       }
 
+      const oldDistanceRay = distanceRay;
       distanceRay =
         distanceRay * Math.cos(degreeToRadians(rayAngle - playerAngle.angle));
 
@@ -137,7 +138,7 @@ export default class RenderSystem extends System {
       }
 
       polarMap
-        .select(distanceRay, rayAngle, rayAngle + incrementAngle)
+        .select(oldDistanceRay, rayAngle)
         .forEach(polarEntity => {
           this._drawSpriteLine(screenX, rayAngle, polarEntity);
         });
