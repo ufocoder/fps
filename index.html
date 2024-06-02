@@ -1,66 +1,64 @@
 <!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/maze.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shoot or run</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: #000;
+        color: #fff;
+      }
 
-<head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/maze.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Shoot or run</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background: #000;
-      color: #fff;
+      #app {
+        position: absolute;
+        width: 100vw;
+        min-width: 1024px;
+        min-height: 768px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      #ui {
+        position: absolute;
+        z-index: 2;
+      }
+
+      #minimap {
+        position: absolute;
+        right: 20px;
+        z-index: 3;
+      }
+
+      #weapon {
+        position: absolute;
+        z-index: 4;
+      }
+
+      #ui, 
+      #camera,
+      #weapon {
+        min-width: 50%;
+      }
+
+      .music {
+        position: absolute;
+        top: 5%;
+        right: 26%;
     }
 
-    #app {
-      position: absolute;
-      width: 100vw;
-      min-width: 1024px;
-      min-height: 768px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    #ui {
-      position: absolute;
-      z-index: 2;
-    }
-
-    #minimap {
-      position: absolute;
-      right: 20px;
-      z-index: 3;
-    }
-
-    #weapon {
-      position: absolute;
-      z-index: 4;
-    }
-
-    #ui,
-    #camera,
-    #weapon {
-      min-width: 50%;
-    }
-
-    .music {
-      position: absolute;
-      top: 5%;
-      right: 26%;
-    }
-  </style>
-</head>
-
-<body>
-  <div id="app">Loading..</div>
-  <script type="module" src="/src/main.ts"></script>
-</body>
-
+    </style>
+  </head>
+  <body>
+    <div id="app">Loading..</div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
 </html>
