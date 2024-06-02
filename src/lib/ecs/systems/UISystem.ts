@@ -4,19 +4,21 @@ import Canvas from "src/lib/Canvas/DefaultCanvas";
 import HealthComponent from "src/lib/ecs/components/HealthComponent";
 import CameraComponent from "src/lib/ecs/components/CameraComponent";
 import WeaponComponent from "src/lib/ecs/components/WeaponComponent";
+import SoundManager from "src/managers/SoundManager";
 
 export default class UISystem extends System {
   public readonly componentsRequired = new Set([HealthComponent]);
 
   protected readonly width: number = 640;
   protected readonly height: number = 480;
-  protected soundControlState: boolean = true;
+  public isMusicMuted: boolean = true;
 
   protected readonly canvas: Canvas;
   protected readonly container: HTMLElement;
-  protected readonly soundControl: HTMLElement;
+  protected readonly musicControl: HTMLElement;
+  protected readonly soundManager: SoundManager;
 
-  constructor(ecs: ECS, container: HTMLElement) {
+  constructor(ecs: ECS, container: HTMLElement, soundManager: SoundManager) {
     super(ecs);
 
     this.container = container;
@@ -27,32 +29,39 @@ export default class UISystem extends System {
       width: this.width,
     });
 
-    this.soundControl = document.createElement("div");
+    this.musicControl = document.createElement("div");
+    this.soundManager = soundManager;
   }
 
   start() {
     this.container.appendChild(this.canvas.element);
     this.canvas.element.requestPointerLock();
-    this.initSoundControl();
+    this.initMusicControl();
     this.createListeners();
   }
 
-  initSoundControl() {
-    this.soundControl.textContent = "Sound Off";
-    this.soundControl.classList.add("sound");
-    this.container.appendChild(this.soundControl);
+  initMusicControl() {
+    this.musicControl.textContent = "Music On";
+    this.musicControl.classList.add("music");
+    this.container.appendChild(this.musicControl);
   }
 
-  updateSoundControl() {
-    this.soundControlState = !this.soundControlState;
-    this.soundControl.textContent = this.soundControlState
-      ? "Sound Off"
-      : "Sound On";
+  updatemusicControl() {
+    if (this.isMusicMuted) {
+      this.soundManager.pauseBackground(this.soundManager.currentMusic);
+    } else {
+      this.soundManager.playBackground(this.soundManager.currentMusic); 
+    }
+    this.isMusicMuted = !this.isMusicMuted;
+    this.musicControl.textContent = this.isMusicMuted
+      ? "Music On"
+      : "Music Off";
+    
   }
 
   handleDocumentPressM = (e: KeyboardEvent) => {
     if (e.code === "KeyM") {
-      this.updateSoundControl();
+      this.updatemusicControl();
     }
   };
 
@@ -100,7 +109,7 @@ export default class UISystem extends System {
 
   destroy(): void {
     this.canvas.element.remove();
-    this.soundControl.remove();
+    this.musicControl.remove();
     this.destroyListeners();
   }
 }
