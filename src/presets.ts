@@ -278,10 +278,10 @@ export const sounds: SoundPreset[] = [
     volume: 1,
   })),
   ...[
-    'dead-lift-yeti',
+    //'dead-lift-yeti',
     'heavy-duty-zoo',
-    'on-the-edge-reakt',
-    'scorcher-abbynoise',
+    //'on-the-edge-reakt',
+    //'scorcher-abbynoise',
     'shocking-red-abbynoise',
     'zombie-world-alex-besss',
   ].map(id => ({
