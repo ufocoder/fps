@@ -1,8 +1,8 @@
 import ECS from "src/lib/ecs/ExtendedECS";
 import System from "src/lib/ecs/System";
 import Canvas from "src/lib/Canvas/DefaultCanvas";
+import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
 import HealthComponent from "src/lib/ecs/components/HealthComponent";
-import CameraComponent from "src/lib/ecs/components/CameraComponent";
 import WeaponComponent from "src/lib/ecs/components/WeaponComponent";
 import SoundManager from "src/managers/SoundManager";
 
@@ -74,7 +74,7 @@ export default class UISystem extends System {
   }
 
   update() {
-    const [player] = this.ecs.query([CameraComponent, HealthComponent]);
+    const [player] = this.ecs.query([PlayerComponent]);
     const playerContainer = this.ecs.getComponents(player);
 
     if (!playerContainer) {
@@ -100,10 +100,10 @@ export default class UISystem extends System {
       this.canvas.drawText({
         x: 20,
         y: 60,
-        text: weapon.bullets.toString(),
-        color: "red",
-        font: "24px serif",
-      });
+        text: weapon.bulletTotal.toString(),
+        color: 'red',
+        font: '24px serif',
+     });
     }
   }
 

@@ -5,6 +5,15 @@ interface Color {
     a: number;
 }
 
+interface Item {
+    x: number;
+    y: number;
+    type: "health_pack" | "ammo";
+    radius: number;
+    value: number;
+}
+
+
 interface Сharacter {
     x: number;
     y: number;
@@ -26,9 +35,10 @@ interface Level {
     map: LevelMap;
     textures: Record<number, string>;
     player: Сharacter;
-    music: string;
+    music?: string;
     enemies?: Enemy[];
-    exit: {
+    items?: Item[];
+    exit?: {
         x: number;
         y: number;
     };

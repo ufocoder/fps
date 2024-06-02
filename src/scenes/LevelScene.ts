@@ -6,7 +6,6 @@ import SoundManager from "src/managers/SoundManager";
 import AISystem from "src/lib/ecs/systems/AISystem";
 import AnimationManager from "src/managers/AnimationManager";
 import AnimationSystem from "src/lib/ecs/systems/AnimationSystem";
-import CameraComponent from "src/lib/ecs/components/CameraComponent";
 import ControlSystem from "src/lib/ecs/systems/ControlSystem";
 import HealthComponent from "src/lib/ecs/components/HealthComponent";
 import MinimapSystem from "src/lib/ecs/systems/MinimapSystem";
@@ -17,8 +16,12 @@ import RotateSystem from "src/lib/ecs/systems/RotateSystem";
 import TextureManager from "src/managers/TextureManager";
 import UISystem from "src/lib/ecs/systems/UISystem";
 import WeaponSystem from "src/lib/ecs/systems/WeaponSystem";
+import MapItemSystem from "src/lib/ecs/systems/MapItemSystem";
 import MapPolarSystem from "src/lib/ecs/systems/MapPolarSystem";
 import MapTextureSystem from "src/lib/ecs/systems/MapTextureSystem";
+import EnemyComponent from "src/lib/ecs/components/EnemyComponent";
+import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
+
 
 interface LevelSceneProps {
   container: HTMLElement;
@@ -29,7 +32,6 @@ interface LevelSceneProps {
 }
 
 export default class LevelScene implements BaseScene {
-
   protected onCompleteCallback?: () => void;
   protected onFailedCallback?: () => void;
 
@@ -53,43 +55,68 @@ export default class LevelScene implements BaseScene {
 
     ecs.addSystem(new MapTextureSystem(ecs, level));
     ecs.addSystem(new MapPolarSystem(ecs));
+    ecs.addSystem(new MapItemSystem(ecs, soundManager));
     ecs.addSystem(new ControlSystem(ecs, container));
-    ecs.addSystem(new WeaponSystem(ecs, soundManager));
+    ecs.addSystem(new AnimationSystem(ecs));
     ecs.addSystem(new AISystem(ecs, soundManager));
+    ecs.addSystem(new WeaponSystem(ecs, container, animationManager, soundManager));
     ecs.addSystem(new MoveSystem(ecs));
     ecs.addSystem(new RotateSystem(ecs));
-    ecs.addSystem(new AnimationSystem(ecs));
     ecs.addSystem(new RenderSystem(ecs, container, level, textureManager));
-    ecs.addSystem(new UISystem(ecs, container, soundManager));
     ecs.addSystem(new MinimapSystem(ecs, container, level));
+    ecs.addSystem(new UISystem(ecs, container, soundManager));
 
     this.ecs = ecs;
     this.loop = createLoop(this.onTick);
   }
 
-  onTick = (dt: number) => {
-    this.ecs.update(dt);
-
-    const [player] = this.ecs.query([CameraComponent]);
+  shouldLevelBeCompleted() {
+    const [player] = this.ecs.query([PlayerComponent, PositionComponent]);
     const playerContainer = this.ecs.getComponents(player);
 
     if (!playerContainer) {
       return;
     }
 
-    if (
-      this.onCompleteCallback &&
-      Math.floor(playerContainer.get(PositionComponent).x) ===
-        this.level.exit.x &&
-      Math.floor(playerContainer.get(PositionComponent).y) === this.level.exit.y
-    ) {
+    if (this.level.exit) {
+      return (
+        Math.floor(playerContainer.get(PositionComponent).x) ===
+          this.level.exit.x &&
+        Math.floor(playerContainer.get(PositionComponent).y) ===
+          this.level.exit.y
+      );
+    }
+
+    const enemies = this.ecs.query([EnemyComponent, HealthComponent]);
+
+    for (const enemy of enemies) {
+      if (this.ecs.getComponents(enemy).get(HealthComponent).current > 0) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  shouldLevelBeFailed() {
+    const [player] = this.ecs.query([PlayerComponent, HealthComponent]);
+    const playerContainer = this.ecs.getComponents(player);
+
+    if (!playerContainer) {
+      return;
+    }
+
+    return playerContainer.get(HealthComponent).current <= 0;
+  }
+
+  onTick = (dt: number) => {
+    this.ecs.update(dt);
+
+    if (this.onCompleteCallback && this.shouldLevelBeCompleted()) {
       window.requestAnimationFrame(this.onCompleteCallback);
     }
 
-    if (
-      this.onFailedCallback &&
-      playerContainer.get(HealthComponent).current <= 0
-    ) {
+    if (this.onFailedCallback && this.shouldLevelBeFailed()) {
       window.requestAnimationFrame(this.onFailedCallback);
     }
   };

@@ -1,4 +1,4 @@
-import { generateSoldier, generateZombies } from "./generators";
+import { generateAmmo, generateSoldier, generateSoldiers, generateZombies } from "./generators";
 
 const level: Level = {
   world: {
@@ -7,7 +7,7 @@ const level: Level = {
       bottom: { r: 84, g: 98, b: 92, a: 255 },
     },
   },
-  music: 'dead-lift-yeti',
+  music: 'shocking-red-abbynoise',
   map: [
     [1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -30,11 +30,21 @@ const level: Level = {
     angle: 0,
     health: 100,
   },
+  items: [
+    generateAmmo(3.5, 1.6, 15),
+    generateAmmo(3.5, 1.8, 15),
+    generateAmmo(3.5, 2, 15),
+    generateAmmo(3.5, 2.2, 15),
+    generateAmmo(3.5, 2.4, 15),
+    generateAmmo(16, 5, 15),
+  ],
   enemies: [
     generateSoldier(18, 1.75, 4),
     generateSoldier(18, 3.25, 4),
-    ...generateZombies(6, 6, 2.5, 0.75, 0.75, 2),
-    ...generateZombies(6, 9.5, 4.5, 1, 0.75, 2),
+    ...generateSoldiers(4, 17, 4, 1, 1, 4),
+    ...generateZombies(10, 6, 2.5, 0.75, 0.75, 2),
+    ...generateZombies(10, 9.5, 4.5, 1, 0.75, 2),
+    ...generateZombies(10, 13, 2.5, 0.75, 0.75, 2),
   ],
   exit: {
     x: 18,

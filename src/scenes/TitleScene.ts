@@ -6,9 +6,9 @@ export default class TitleScene implements BaseScene {
     protected readonly container: HTMLElement;
     protected onCompleteCallback?: () => void;
 
-    constructor(container: HTMLElement, title: string, subtitle?: string) {
+    constructor(container: HTMLElement, title: string, subtitle?: string[]) {
         this.container = container;
-        this.view = new TextContent(subtitle ? [title, subtitle] : [title]);
+        this.view = new TextContent(title, subtitle);
         this.createListeners();
     }
 

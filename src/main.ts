@@ -14,7 +14,7 @@ window.onload = async () => {
   try {
     await Promise.all([
       await soundManager.load(presets.sounds),
-      await textureManager.load(presets.textures),
+      await textureManager.load([...presets.textures, ...presets.sprites]),
       await animationManager.load(presets.animation),
     ]);
 

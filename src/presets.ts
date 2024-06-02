@@ -41,7 +41,34 @@ export const textures: TexturePreset[] = [
   }
 ];
 
+export const sprites: SpritePreset[] = [
+  {
+    id: 'health_pack',
+    url: './assets/items/health_pack.png'
+  },
+  {
+    id: 'ammo',
+    url: './assets/items/ammo.png'
+  },
+];
+
 export const animation: AnimationSpritePreset[] = [
+  {
+    id: "pistolIdle",
+    frames: [
+      "./assets/weapons/pistol_1.png",
+    ],
+  },
+  {
+    id: "pistolAttack",
+    frames: [
+      "./assets/weapons/pistol_1.png",
+      "./assets/weapons/pistol_2.png",
+      "./assets/weapons/pistol_3.png",
+      "./assets/weapons/pistol_4.png",
+      "./assets/weapons/pistol_5.png",
+    ],
+  },
   {
     id: "zombieIdle",
     frames: [
@@ -78,6 +105,45 @@ export const animation: AnimationSpritePreset[] = [
     frames: [
       "./assets/characters/ZombieAttack1.png",
       "./assets/characters/ZombieAttack2.png",
+    ],
+  },
+  // flyguy
+  {
+    id: "flyguyIdle",
+    frames: [
+      "./assets/characters/FlyguyIdle.png",
+    ],
+  },
+  {
+    id: "flyguyWalk",
+    frames: [
+      "./assets/characters/FlyguyWalk1.png",
+      "./assets/characters/FlyguyWalk2.png",
+      "./assets/characters/FlyguyWalk3.png",
+      "./assets/characters/FlyguyWalk4.png",
+    ],
+  },
+  {
+    id: "flyguyDamage",
+    frames: [
+      "./assets/characters/FlyguyDamage1.png",
+      "./assets/characters/FlyguyDamage2.png",
+    ],
+  },
+  {
+    id: "flyguyDeath",
+    frames: [
+      "./assets/characters/FlyguyDeath1.png",
+      "./assets/characters/FlyguyDeath2.png",
+      "./assets/characters/FlyguyDeath3.png",
+      "./assets/characters/FlyguyDeath4.png",
+    ],
+  },
+  {
+    id: "flyguyAttack",
+    frames: [
+      "./assets/characters/FlyguyAttack1.png",
+      "./assets/characters/FlyguyAttack2.png",
     ],
   },
   // soldier
@@ -202,6 +268,7 @@ export const animation: AnimationSpritePreset[] = [
 export const sounds: SoundPreset[] = [
   ...[
     'hurt',
+    'pick',
     'gun-shot',
     'lazer-shot',
     'zombie-attack'

@@ -16,6 +16,10 @@ import RotateComponent from "src/lib/ecs/components/RotateComponent";
 import TextureComponent from "src/lib/ecs/components/TextureComponent";
 import TextureManager from "src/managers/TextureManager";
 import WeaponComponent from "./ecs/components/WeaponComponent";
+import CollisionComponent from "./ecs/components/CollisionComponent";
+import SpriteComponent from "./ecs/components/SpriteComponent";
+import PlayerComponent from "./ecs/components/PlayerComponent";
+import ItemComponent from "./ecs/components/ItemComponent";
 
 export function createEntities(
   ecs: ECS,
@@ -26,9 +30,10 @@ export function createEntities(
   // player
   const player = ecs.addEntity();
 
+  ecs.addComponent(player, new PlayerComponent());
   ecs.addComponent(player, new ControlComponent());
   ecs.addComponent(player, new CircleComponent(0.4));
-  ecs.addComponent(player, new WeaponComponent(30, 10, 1_000));
+  ecs.addComponent(player, new WeaponComponent(30, 100, 1_000));
   ecs.addComponent(
     player,
     new PositionComponent(level.player.x, level.player.y)
@@ -39,16 +44,51 @@ export function createEntities(
   );
   ecs.addComponent(player, new AngleComponent(level.player.angle));
   ecs.addComponent(player, new MoveComponent(3));
-  ecs.addComponent(player, new RotateComponent(360 / 20));
+  ecs.addComponent(player, new CollisionComponent());
+  ecs.addComponent(player, new RotateComponent(360 / 30));
   ecs.addComponent(player, new CameraComponent(60));
   ecs.addComponent(player, new MinimapComponent("black"));
+
+  // enemies
+  level.items?.forEach((item) => {
+    const entity = ecs.addEntity();
+
+    ecs.addComponent(entity, new PositionComponent(item.x, item.y));
+    ecs.addComponent(entity, new PositionComponent(item.x, item.y));
+    ecs.addComponent(entity, new CircleComponent(item.radius));
+    ecs.addComponent(entity, new MinimapComponent("orange"));
+
+    switch (item.type) {
+      case "health_pack":
+        ecs.addComponent(entity, new ItemComponent('health_pack', item.value));
+        ecs.addComponent(
+          entity,
+          new SpriteComponent(textureManager.get("health_pack"))
+        );
+        break;
+      case "ammo":
+        ecs.addComponent(entity, new ItemComponent('ammo', item.value));
+        ecs.addComponent(
+          entity,
+          new SpriteComponent(textureManager.get("ammo"))
+        );
+        break;
+    }
+  });
 
   // enemies
   level.enemies?.forEach((enemy) => {
     const entity = ecs.addEntity();
 
     ecs.addComponent(entity, new MoveComponent(1));
+    ecs.addComponent(entity, new CollisionComponent());
     ecs.addComponent(entity, new EnemyComponent());
+    ecs.addComponent(entity, new CircleComponent(enemy.radius));
+    ecs.addComponent(entity, new PositionComponent(enemy.x, enemy.y));
+    ecs.addComponent(entity, new HealthComponent(enemy.health, enemy.health));
+    ecs.addComponent(entity, new AngleComponent(enemy.angle));
+    ecs.addComponent(entity, new RotateComponent());
+    ecs.addComponent(entity, new MinimapComponent("red"));
 
     if (enemy.ai) {
       ecs.addComponent(entity, new AIComponent(enemy.ai, enemy.attack, 500));
@@ -68,10 +108,7 @@ export function createEntities(
         );
         break;
       case "soldier":
-        ecs.addComponent(
-          entity, 
-          new WeaponComponent(Infinity, enemy.attack)
-        );
+        ecs.addComponent(entity, new WeaponComponent(Infinity, enemy.attack));
         ecs.addComponent(
           entity,
           new AnimatedSpriteComponent("idle", {
@@ -108,10 +145,7 @@ export function createEntities(
         );
         break;
       case "commando":
-        ecs.addComponent(
-          entity, 
-          new WeaponComponent(Infinity, enemy.attack)
-        );
+        ecs.addComponent(entity, new WeaponComponent(Infinity, enemy.attack));
         ecs.addComponent(
           entity,
           new AnimatedSpriteComponent("idle", {
@@ -124,10 +158,7 @@ export function createEntities(
         );
         break;
       case "tank":
-        ecs.addComponent(
-          entity, 
-          new WeaponComponent(Infinity, enemy.attack)
-        );
+        ecs.addComponent(entity, new WeaponComponent(Infinity, enemy.attack));
         ecs.addComponent(
           entity,
           new AnimatedSpriteComponent("idle", {
@@ -140,21 +171,17 @@ export function createEntities(
         );
         break;
     }
-
-    ecs.addComponent(entity, new CircleComponent(enemy.radius));
-    ecs.addComponent(entity, new PositionComponent(enemy.x, enemy.y));
-    ecs.addComponent(entity, new HealthComponent(enemy.health, enemy.health));
-    ecs.addComponent(entity, new AngleComponent(enemy.angle));
-    ecs.addComponent(entity, new RotateComponent());
-    ecs.addComponent(entity, new MinimapComponent("red"));
   });
 
   // exit
-  const exit = ecs.addEntity();
 
-  ecs.addComponent(exit, new BoxComponent(1));
-  ecs.addComponent(exit, new PositionComponent(level.exit.x, level.exit.y));
-  ecs.addComponent(exit, new MinimapComponent("yellow"));
+  if (level.exit) {
+    const exit = ecs.addEntity();
+
+    ecs.addComponent(exit, new BoxComponent(1));
+    ecs.addComponent(exit, new PositionComponent(level.exit.x, level.exit.y));
+    ecs.addComponent(exit, new MinimapComponent("yellow"));
+  }
 
   // walls
   level.map.forEach((row, y) => {

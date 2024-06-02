@@ -22,7 +22,7 @@ export function createScenario({
   let levelIndex = 0;
 
   const showFinalScene = () => {
-    const scene = new TitleScene(container, "You win");
+    const scene = new TitleScene(container, "Congratulation!", ["You saved the world from zombies"]);
     scene.start();
   };
 
@@ -50,24 +50,29 @@ export function createScenario({
     });
 
     scene.onComplete(() => {
-      soundManager.pauseBackground(level.music);
+      if (level.music) {
+        soundManager.pauseBackground(level.music);
+      }
       scene.destroy();
       switchToLevelNextScene();
     });
 
     scene.onFailed(() => {
-      soundManager.pauseBackground(level.music);
+      if (level.music) {
+        soundManager.pauseBackground(level.music);
+      }
       scene.destroy();
       showFailedScene();
     });
 
     scene.start();
-    soundManager.playBackground(level.music);
-    soundManager.setCurrentMusic(level.music);
+    if (level.music) {
+      soundManager.playBackground(level.music);
+      soundManager.setCurrentMusic(level.music);
+    }
   };
 
-
-  const startScene = new TitleScene(container, "Demo", "Press any key");
+  const startScene = new TitleScene(container, "Shoot or run", ["Use WASD and mouse to play", "Press any key to start"]);
 
   startScene.onComplete(() => {
     startScene.destroy();
