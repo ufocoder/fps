@@ -51,7 +51,7 @@ export function createScenario({
 
     scene.onComplete(() => {
       if (level.music) {
-        soundManager.pauseBackground(level.music);
+        soundManager.pauseBackground();
       }
       scene.destroy();
       switchToLevelNextScene();
@@ -59,20 +59,26 @@ export function createScenario({
 
     scene.onFailed(() => {
       if (level.music) {
-        soundManager.pauseBackground(level.music);
+        soundManager.pauseBackground();
       }
       scene.destroy();
       showFailedScene();
     });
 
     scene.start();
+
     if (level.music) {
       soundManager.playBackground(level.music);
-      soundManager.setCurrentMusic(level.music);
     }
   };
 
-  const startScene = new TitleScene(container, "Shoot or run", ["Use WASD and mouse to play", "Press any key to start"]);
+  const startScene = new TitleScene(container, "Shoot or run", 
+    [
+      "Use WASD and mouse to play", 
+      "Use M to mute", 
+      "",
+      "Press any key to start"
+    ]);
 
   startScene.onComplete(() => {
     startScene.destroy();

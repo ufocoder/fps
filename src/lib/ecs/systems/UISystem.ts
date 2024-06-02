@@ -6,16 +6,17 @@ import HealthComponent from "src/lib/ecs/components/HealthComponent";
 import WeaponComponent from "src/lib/ecs/components/WeaponComponent";
 import SoundManager from "src/managers/SoundManager";
 
+
+const pauseControlKey = "KeyM";
+
 export default class UISystem extends System {
   public readonly componentsRequired = new Set([HealthComponent]);
 
   protected readonly width: number = 640;
   protected readonly height: number = 480;
-  public isMusicMuted: boolean = true;
 
   protected readonly canvas: Canvas;
   protected readonly container: HTMLElement;
-  protected readonly musicControl: HTMLElement;
   protected readonly soundManager: SoundManager;
 
   constructor(ecs: ECS, container: HTMLElement, soundManager: SoundManager) {
@@ -29,48 +30,35 @@ export default class UISystem extends System {
       width: this.width,
     });
 
-    this.musicControl = document.createElement("div");
     this.soundManager = soundManager;
   }
 
   start() {
     this.container.appendChild(this.canvas.element);
     this.canvas.element.requestPointerLock();
-    this.initMusicControl();
     this.createListeners();
   }
 
-  initMusicControl() {
-    this.musicControl.textContent = "Music On";
-    this.musicControl.classList.add("music");
-    this.container.appendChild(this.musicControl);
-  }
-
-  updatemusicControl() {
-    if (this.isMusicMuted) {
-      this.soundManager.pauseBackground(this.soundManager.currentMusic);
+  toogleMusicControl() {
+    if (this.soundManager.checkMuted()) {
+      this.soundManager.unmute();
     } else {
-      this.soundManager.playBackground(this.soundManager.currentMusic); 
+      this.soundManager.mute();
     }
-    this.isMusicMuted = !this.isMusicMuted;
-    this.musicControl.textContent = this.isMusicMuted
-      ? "Music On"
-      : "Music Off";
-    
   }
 
-  handleDocumentPressM = (e: KeyboardEvent) => {
-    if (e.code === "KeyM") {
-      this.updatemusicControl();
+  handleDocumentKeypress = (e: KeyboardEvent) => {
+    if (e.code === pauseControlKey) {
+      this.toogleMusicControl();
     }
   };
 
   createListeners() {
-    document.addEventListener("keypress", this.handleDocumentPressM);
+    document.addEventListener("keypress", this.handleDocumentKeypress);
   }
 
   destroyListeners() {
-    document.removeEventListener("keypress", this.handleDocumentPressM);
+    document.removeEventListener("keypress", this.handleDocumentKeypress);
   }
 
   update() {
@@ -86,11 +74,21 @@ export default class UISystem extends System {
 
     this.canvas.clear();
 
+    this.canvas.drawText({
+      x: this.width - 10,
+      y: 30,
+      text: this.soundManager.checkMuted() ? 'Music off' : 'Music on',
+      color: 'grey',
+      align: 'right',
+      font: '18px serif',
+    });
+
     if (health) {
       this.canvas.drawText({
         x: 20,
         y: 30,
         text: health.current.toString(),
+        align: 'left',
         color: "red",
         font: "24px serif",
       });
@@ -101,6 +99,7 @@ export default class UISystem extends System {
         x: 20,
         y: 60,
         text: weapon.bulletTotal.toString(),
+        align: 'left',
         color: 'red',
         font: '24px serif',
      });
@@ -109,7 +108,6 @@ export default class UISystem extends System {
 
   destroy(): void {
     this.canvas.element.remove();
-    this.musicControl.remove();
     this.destroyListeners();
   }
 }

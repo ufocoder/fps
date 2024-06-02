@@ -1,6 +1,7 @@
 export default class SoundManager {
-    private sounds: Record<string, HTMLAudioElement> = {};
-    public currentMusic: string = ''
+    protected sounds: Record<string, HTMLAudioElement> = {};
+    protected currentBackgroundId: string = ''
+    protected isMuted: boolean = false;
 
     async load(presets: SoundPreset[]) {
         await Promise.all(presets.map(preset => new Promise((resolve, reject) => {
@@ -9,12 +10,26 @@ export default class SoundManager {
             audio.onload = () => resolve(void 0);
             audio.onabort = () => reject();
             audio.onerror = () => reject();
-
             audio.load();
+
             resolve(void 0);
 
             this.sounds[preset.id] = audio;
         })));
+    }
+
+    checkMuted() {
+        return this.isMuted;
+    }
+
+    mute() {
+        this.isMuted = true;
+        this.pauseBackground();
+    }
+
+    unmute() {
+        this.isMuted = false;
+        this.resumeBackground();
     }
 
     playSound(id: string) {
@@ -25,14 +40,19 @@ export default class SoundManager {
     }
 
     playBackground(id: string) {
+        this.currentBackgroundId = id;
         this.sounds[id].play();
     }
 
-    pauseBackground(id: string) {
-        this.sounds[id].pause();
+    resumeBackground() {
+        if (this.sounds[this.currentBackgroundId]) {
+            this.sounds[this.currentBackgroundId].play();
+        }
     }
 
-    setCurrentMusic(id: string) {
-        this.currentMusic = id;
+    pauseBackground() {
+        if (this.sounds[this.currentBackgroundId]) {
+            this.sounds[this.currentBackgroundId].pause();
+        }
     }
 }
