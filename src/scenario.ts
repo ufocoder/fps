@@ -68,6 +68,7 @@ export function createScenario({
     scene.start();
     if (level.music) {
       soundManager.playBackground(level.music);
+      soundManager.setCurrentMusic(level.music);
     }
   };
 

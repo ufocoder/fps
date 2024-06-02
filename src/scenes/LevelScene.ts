@@ -64,7 +64,7 @@ export default class LevelScene implements BaseScene {
     ecs.addSystem(new RotateSystem(ecs));
     ecs.addSystem(new RenderSystem(ecs, container, level, textureManager));
     ecs.addSystem(new MinimapSystem(ecs, container, level));
-    ecs.addSystem(new UISystem(ecs, container));
+    ecs.addSystem(new UISystem(ecs, container, soundManager));
 
     this.ecs = ecs;
     this.loop = createLoop(this.onTick);

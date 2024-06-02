@@ -1,5 +1,6 @@
 export default class SoundManager {
-    private sounds: Record<string, HTMLAudioElement> = {}; 
+    private sounds: Record<string, HTMLAudioElement> = {};
+    public currentMusic: string = ''
 
     async load(presets: SoundPreset[]) {
         await Promise.all(presets.map(preset => new Promise((resolve, reject) => {
@@ -29,5 +30,9 @@ export default class SoundManager {
 
     pauseBackground(id: string) {
         this.sounds[id].pause();
+    }
+
+    setCurrentMusic(id: string) {
+        this.currentMusic = id;
     }
 }
