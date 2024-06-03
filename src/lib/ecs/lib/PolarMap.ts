@@ -19,20 +19,26 @@ export default class PolarMap {
 
   protected polarEntities: PolarPosition[] = [];
 
-  public select(distance: number, angle: number) {
+  public select(distanceTo: number, angleFrom: number, angleTo: number) {
 
-    angle = normalizeAngle(angle);
+    angleFrom = normalizeAngle(angleFrom);
+    angleTo = normalizeAngle(angleTo);
 
     return this.polarEntities
       .filter((polarEntity) => {
-        if (distance <= polarEntity.distance) {
+        if (distanceTo <= polarEntity.distance) {
           return false
         }
 
-        const angleFrom = normalizeAngle(polarEntity.angleFrom);
-        const angleTo = normalizeAngle(polarEntity.angleTo);
+        const a1 = 0;
+        const a2 = normalizeAngle(polarEntity.angleTo - polarEntity.angleFrom);
+        const b1 = normalizeAngle(angleFrom - polarEntity.angleFrom);
+        const b2 = normalizeAngle(angleTo - polarEntity.angleFrom);
 
-        return angleFrom <= angle && angle <= angleTo;
+        return (
+          a1 <= b1 && b1 <= a2 &&
+          a1 <= b2 && b2 <= a2
+        )
       })
       .sort((pe1, pe2) => pe2.distance - pe1.distance)
   }
