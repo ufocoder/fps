@@ -121,11 +121,10 @@ export default class RenderSystem extends System {
         }
       }
 
-      distanceRay =
+      const normalizedDistanceRay =
         distanceRay * Math.cos(degreeToRadians(rayAngle - playerAngle.angle));
 
-
-      const wallHeight = Math.floor(this.height / 2 / distanceRay);
+      const wallHeight = Math.floor(this.height / 2 / normalizedDistanceRay);
    
       if (wallEntity) {
         this._drawHorizonLine(screenX, wallHeight);
