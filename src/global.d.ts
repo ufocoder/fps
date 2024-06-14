@@ -21,7 +21,7 @@ interface Сharacter {
     health: number;
 }
 
-interface Enemy extends Сharacter { 
+interface Enemy extends Сharacter {
     ai?: number;
     type: 'zombie' | 'flyguy' | 'soldier' | 'commando' | 'tank' | 'slayer';
     attack: number;
@@ -85,3 +85,8 @@ interface Color {
 }
 
 type Sprite = Texture
+
+type Vector2D = {
+    x: number;
+    y: number;
+}
