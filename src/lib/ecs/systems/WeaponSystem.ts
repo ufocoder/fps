@@ -31,10 +31,10 @@ export default class WeaponSystem extends System {
   protected readonly weaponSprite?: AnimatedSpriteComponent;
   protected readonly soundManager: SoundManager;
   protected readonly animationManager: AnimationManager;
-  
+
   constructor(ecs: ECS, container: HTMLElement, animationManager: AnimationManager, soundManager: SoundManager) {
     super(ecs);
-  
+
     this.container = container;
     this.soundManager = soundManager;
     this.animationManager = animationManager;
@@ -55,7 +55,7 @@ export default class WeaponSystem extends System {
     this.container.appendChild(this.canvas.element);
     this.createListeners();
   }
-  
+
   destroy(): void {
     this.canvas.element.remove();
     this.destroyListeners();
@@ -65,12 +65,12 @@ export default class WeaponSystem extends System {
     if (this.weaponSprite) {
       const texture = this.weaponSprite.sprite;
 
-      
+
       this.canvas.clear();
       this.canvas.createBufferSnapshot();
       this.canvas.drawImage({
-        x: this.width / 2 - texture.width / 2, 
-        y: this.height - texture.height, 
+        x: this.width / 2 - texture.width / 2,
+        y: this.height - texture.height,
         texture,
       });
       this.canvas.commitBufferSnapshot();
@@ -104,7 +104,7 @@ export default class WeaponSystem extends System {
         if (health.current > 0) {
           health.current -= bullet.get(BulletComponent).damage;
         }
-        
+
         if (health.current <= 0) {
           this.ecs.removeComponent(enemy, MoveComponent);
           this.ecs.removeComponent(enemy, HealthComponent);
@@ -129,7 +129,7 @@ export default class WeaponSystem extends System {
       const enemyCircle = container.get(CircleComponent);
       const enemyPosition = container.get(PositionComponent);
       const d = distance(bulletPosition.x, bulletPosition.y, enemyPosition.x, enemyPosition.y);
-      
+
       if (d <= bulletCircle.radius + enemyCircle.radius) {
         return enemy;
       }
@@ -163,7 +163,7 @@ export default class WeaponSystem extends System {
     this.ecs.addComponent(entity, new AngleComponent(playerContainer.get(AngleComponent).angle));
     this.ecs.addComponent(entity, new CircleComponent(0.25));
     this.ecs.addComponent(entity, new MinimapComponent('yellow'));
-    this.ecs.addComponent(entity, new MoveComponent(weapon.bulletSpeed, MainDirection.Forward));
+    this.ecs.addComponent(entity, new MoveComponent(weapon.bulletSpeed, false, MainDirection.Forward));
   };
 
   createListeners() {

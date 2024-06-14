@@ -43,7 +43,7 @@ export function createEntities(
     new HealthComponent(level.player.health, level.player.health)
   );
   ecs.addComponent(player, new AngleComponent(level.player.angle));
-  ecs.addComponent(player, new MoveComponent(3));
+  ecs.addComponent(player, new MoveComponent(3, true));
   ecs.addComponent(player, new CollisionComponent());
   ecs.addComponent(player, new RotateComponent(360 / 30));
   ecs.addComponent(player, new CameraComponent(60));
@@ -80,7 +80,7 @@ export function createEntities(
   level.enemies?.forEach((enemy) => {
     const entity = ecs.addEntity();
 
-    ecs.addComponent(entity, new MoveComponent(1));
+    ecs.addComponent(entity, new MoveComponent(1, true));
     ecs.addComponent(entity, new CollisionComponent());
     ecs.addComponent(entity, new EnemyComponent());
     ecs.addComponent(entity, new CircleComponent(enemy.radius));

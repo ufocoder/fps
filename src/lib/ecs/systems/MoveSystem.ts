@@ -25,40 +25,83 @@ export default class MoveSystem extends System {
     const angleComponent = components.get(AngleComponent);
     const positionComponent = components.get(PositionComponent);
     const collisionComponent = components.get(CollisionComponent);
-    const { mainDirection, sideDirection, moveSpeed } = components.get(MoveComponent);
+    const moveCmp = components.get(MoveComponent);
 
-    const m = Number(mainDirection);
-    const s = Number(sideDirection) * (-1);
+    const m = Number(moveCmp.mainDirection);
+    const s = Number(moveCmp.sideDirection) * (-1);
 
     if (m || s) {
-
-      const textureMap = this.ecs.getSystem(MapTextureSystem)!.textureMap;
-
       const mainAngle = degreeToRadians(angleComponent.angle - 360);
       const mainCos = Math.cos(mainAngle);
       const mainSin = Math.sin(mainAngle);
+
       const sideAngle = degreeToRadians(angleComponent.angle - 90);
       const sideCos = Math.cos(sideAngle);
       const sideSin = Math.sin(sideAngle);
 
-      const newX = positionComponent.x + (m * mainCos + s * sideCos) * moveSpeed * dt;
-      const newY = positionComponent.y + (m * mainSin + s * sideSin) * moveSpeed * dt;
+      let newX = positionComponent.x + (m * mainCos + s * sideCos) * moveCmp.moveSpeed * dt;
+      let newY = positionComponent.y + (m * mainSin + s * sideSin) * moveCmp.moveSpeed * dt;
 
-      if (newX <= 0 || newX > textureMap.cols) {
-        return
-      }
+      const { collidedX, collidedY, collidedWith} = this.getCollision(positionComponent, new PositionComponent(newX, newY));
 
-      if (newY <= 0 || newY > textureMap.rows) {
-        return
-      }
 
-      if (!textureMap.has(Math.floor(newX), Math.floor(newY))) {
-        positionComponent.y = newY;
+      const hasCollision = collidedX || collidedY;
+
+      if (!hasCollision) {
         positionComponent.x = newX;
-      } else {
-        collisionComponent.collidedWith = 'texture';
-        collisionComponent.isCollided = true;
+        positionComponent.y = newY;
+        return;
+      }
+
+      if (collidedWith) {
+         collisionComponent.collidedWith = collidedWith;
+         collisionComponent.isCollided = true;
+      }
+
+      if (moveCmp.canSlide) {
+        if (!collidedX) {
+          positionComponent.x = newX;
+        } else {
+          newX = positionComponent.x;
+        }
+
+        if (!collidedY) {
+          positionComponent.y = newY;
+        } else {
+          newY = positionComponent.y;
+        }
+
+        positionComponent.x = newX;
+        positionComponent.y = newY;
       }
     }
+  }
+
+  private getCollision(currentPos: PositionComponent, nexPos: PositionComponent) {
+    const textureMap = this.ecs.getSystem(MapTextureSystem)!.textureMap;
+
+    let collidedWith = '';
+    let collidedX = false;
+    let collidedY = false;
+
+    if (nexPos.x <= 0 || nexPos.x > textureMap.cols) {
+      collidedX = true;
+    }
+    const collideWithTextureByX = textureMap.has(Math.floor(nexPos.x), Math.floor(currentPos.y));
+    if (collideWithTextureByX) {
+      collidedX = true;
+      collidedWith = 'texture';
+    }
+
+    if (nexPos.y <= 0 || nexPos.y > textureMap.rows) {
+      collidedY = true;
+    }
+    const collideWithTextureByY = textureMap.has(Math.floor(currentPos.x), Math.floor(nexPos.y));
+    if (collideWithTextureByY) {
+      collidedY = true;
+      collidedWith = 'texture';
+    }
+
+    return { collidedX, collidedY, collidedWith };
   }
 }
