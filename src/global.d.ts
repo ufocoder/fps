@@ -24,7 +24,8 @@ interface Сharacter {
 interface Enemy extends Сharacter {
     ai?: number;
     type: 'zombie' | 'flyguy' | 'soldier' | 'commando' | 'tank' | 'slayer';
-    attack: number;
+    attackDamage: number;
+    attackSpeed: number;
     sprite: string;
     radius: number;
 }

@@ -50,6 +50,14 @@ export const sprites: SpritePreset[] = [
     id: 'ammo',
     url: './assets/items/ammo.png'
   },
+  {
+    id: 'pistol_bullet',
+    url: './assets/weapons/pistol_bullet.png'
+  },
+  {
+    id: 'shotgun_bullet',
+    url: './assets/weapons/shotgun_bullet.gif'
+  },
 ];
 
 export const animation: AnimationSpritePreset[] = [

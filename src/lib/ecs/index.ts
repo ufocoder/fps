@@ -17,7 +17,7 @@ export default class ECS {
 
     public update(dt: number): void {
         for (const [system, entities] of this.systems.entries()) {
-            system.update(dt, entities)
+            system.update(dt, entities);
         }
 
         while (this.entitiesToDestroy.length > 0) {
