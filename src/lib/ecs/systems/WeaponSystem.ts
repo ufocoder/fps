@@ -33,10 +33,10 @@ export default class WeaponSystem extends System {
   protected readonly soundManager: SoundManager;
   protected readonly textureManager: TextureManager;
   protected readonly animationManager: AnimationManager;
-  
+
   constructor(ecs: ECS, container: HTMLElement, animationManager: AnimationManager, textureManager: TextureManager, soundManager: SoundManager) {
     super(ecs);
-  
+
     this.container = container;
     this.soundManager = soundManager;
     this.textureManager = textureManager;
@@ -58,7 +58,7 @@ export default class WeaponSystem extends System {
     this.container.appendChild(this.canvas.element);
     this.createListeners();
   }
-  
+
   destroy(): void {
     this.canvas.element.remove();
     this.destroyListeners();
@@ -71,8 +71,8 @@ export default class WeaponSystem extends System {
       this.canvas.clear();
       this.canvas.createBufferSnapshot();
       this.canvas.drawImage({
-        x: this.width / 2 - texture.width / 2, 
-        y: this.height - texture.height, 
+        x: this.width / 2 - texture.width / 2,
+        y: this.height - texture.height,
         texture,
       });
       this.canvas.commitBufferSnapshot();
@@ -107,7 +107,7 @@ export default class WeaponSystem extends System {
         if (entityHealth.current > 0) {
           entityHealth.current -= bulletContainer.get(BulletComponent).damage;
         }
-        
+
         if (entityHealth.current <= 0) {
           this.ecs.removeComponent(entity, MoveComponent);
           this.ecs.removeComponent(entity, HealthComponent);
@@ -126,6 +126,7 @@ export default class WeaponSystem extends System {
   findBulletCollision(bullet: ComponentContainer, entities: Set<Entity>): Entity | undefined  {
     const bulletCircle = bullet.get(CircleComponent);
     const bulletPosition = bullet.get(PositionComponent);
+
     const bulletComponent = bullet.get(BulletComponent);
 
     for (const entity of entities) {
@@ -173,7 +174,7 @@ export default class WeaponSystem extends System {
     this.ecs.addComponent(entity, new AngleComponent(playerContainer.get(AngleComponent).angle));
     this.ecs.addComponent(entity, new CircleComponent(0.25));
     this.ecs.addComponent(entity, new MinimapComponent('yellow'));
-    this.ecs.addComponent(entity, new MoveComponent(weapon.bulletSpeed, MainDirection.Forward));
+    this.ecs.addComponent(entity, new MoveComponent(weapon.bulletSpeed, false, MainDirection.Forward));
   };
 
   createListeners() {
