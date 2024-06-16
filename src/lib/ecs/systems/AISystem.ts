@@ -118,7 +118,7 @@ export default class AISystem extends System {
           this.ecs.addComponent(entity, new AngleComponent(enemyAngle.angle));
           this.ecs.addComponent(entity, new CircleComponent(0.25));
           this.ecs.addComponent(entity, new MinimapComponent('yellow'));
-          this.ecs.addComponent(entity, new MoveComponent(enemyWeapon.bulletSpeed, MainDirection.Forward));
+          this.ecs.addComponent(entity, new MoveComponent(enemyWeapon.bulletSpeed, false, MainDirection.Forward));
         } else {
           // @TODO: refactor
           enemyMove.mainDirection = MainDirection.Forward;
