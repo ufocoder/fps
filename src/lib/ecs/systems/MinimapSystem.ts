@@ -4,7 +4,6 @@ import { Entity } from "src/lib/ecs/Entity";
 import BoxComponent from "src/lib/ecs/components/BoxComponent";
 import CircleComponent from "src/lib/ecs/components/CircleComponent";
 import MinimapComponent from "src/lib/ecs/components/MinimapComponent";
-import ColorComponent from "src/lib/ecs/components/MinimapComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import ECS from "src/lib/ecs/ExtendedECS";
 
@@ -41,7 +40,7 @@ export default class MinimapSystem extends System {
     entities.forEach((entity) => {
       const components = this.ecs.getComponents(entity);
       const { x, y } = components.get(PositionComponent);
-      const { color } = components.get(ColorComponent);
+      const { color } = components.get(MinimapComponent);
 
       if (components.has(BoxComponent)) {
         const { size } = components.get(BoxComponent);

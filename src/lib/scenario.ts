@@ -33,7 +33,7 @@ export function createEntities(
   ecs.addComponent(player, new PlayerComponent());
   ecs.addComponent(player, new ControlComponent());
   ecs.addComponent(player, new CircleComponent(0.4));
-  ecs.addComponent(player, new WeaponComponent(30, 100, 1_000));
+  ecs.addComponent(player, new WeaponComponent(30, 100, 10, 1_000));
   ecs.addComponent(
     player,
     new PositionComponent(level.player.x, level.player.y)
@@ -49,7 +49,7 @@ export function createEntities(
   ecs.addComponent(player, new CameraComponent(60));
   ecs.addComponent(player, new MinimapComponent("black"));
 
-  // enemies
+  // items
   level.items?.forEach((item) => {
     const entity = ecs.addEntity();
 
@@ -91,7 +91,7 @@ export function createEntities(
     ecs.addComponent(entity, new MinimapComponent("red"));
 
     if (enemy.ai) {
-      ecs.addComponent(entity, new AIComponent(enemy.ai, enemy.attack, 500));
+      ecs.addComponent(entity, new AIComponent(enemy.ai, enemy.attackDamage, 500));
     }
 
     switch (enemy.type) {
@@ -108,7 +108,7 @@ export function createEntities(
         );
         break;
       case "soldier":
-        ecs.addComponent(entity, new WeaponComponent(Infinity, enemy.attack));
+        ecs.addComponent(entity, new WeaponComponent(Infinity, enemy.attackDamage, enemy.attackSpeed));
         ecs.addComponent(
           entity,
           new AnimatedSpriteComponent("idle", {
@@ -145,7 +145,7 @@ export function createEntities(
         );
         break;
       case "commando":
-        ecs.addComponent(entity, new WeaponComponent(Infinity, enemy.attack));
+        ecs.addComponent(entity, new WeaponComponent(Infinity, enemy.attackDamage));
         ecs.addComponent(
           entity,
           new AnimatedSpriteComponent("idle", {
@@ -158,7 +158,7 @@ export function createEntities(
         );
         break;
       case "tank":
-        ecs.addComponent(entity, new WeaponComponent(Infinity, enemy.attack));
+        ecs.addComponent(entity, new WeaponComponent(Infinity, enemy.attackDamage));
         ecs.addComponent(
           entity,
           new AnimatedSpriteComponent("idle", {

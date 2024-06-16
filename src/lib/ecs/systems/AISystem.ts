@@ -11,7 +11,13 @@ import MoveComponent, { MainDirection, SideDirection } from "src/lib/ecs/compone
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import SoundManager from "src/managers/SoundManager";
 import { normalizeAngle, radiansToDegrees } from "src/lib/utils";
-import PlayerComponent from "../components/PlayerComponent";
+import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
+import WeaponComponent from "src/lib/ecs/components/WeaponComponent";
+import BulletComponent from "src/lib/ecs/components/BulletComponent";
+import CollisionComponent from "src/lib/ecs/components/CollisionComponent";
+import MinimapComponent from "src/lib/ecs/components/MinimapComponent";
+import TextureManager from "src/managers/TextureManager";
+import SpriteComponent from "../components/SpriteComponent";
 
 export default class AISystem extends System {
   public readonly componentsRequired = new Set([
@@ -23,29 +29,35 @@ export default class AISystem extends System {
   ]);
 
   protected readonly soundManager: SoundManager;
+  protected readonly textureManager: TextureManager;
 
-  constructor(ecs: ECS, soundManager: SoundManager) {
+  constructor(ecs: ECS, textureManager: TextureManager, soundManager: SoundManager) {
     super(ecs);
     this.soundManager = soundManager;
+    this.textureManager = textureManager;
   }
 
   start(): void {}
 
-  update(dt: number, entities: Set<Entity>) {
+  update(dt: number, enemies: Set<Entity>) {
     const [player] = this.ecs.query([
       PlayerComponent,
       HealthComponent,
       CircleComponent,
     ]);
     
+    if (typeof player === "undefined") {
+      return;
+    }
+
     const playerContainer = this.ecs.getComponents(player);
 
     const playerPosition = playerContainer.get(PositionComponent);
     const playerCircle = playerContainer.get(CircleComponent);
     const playerHealth = playerContainer.get(HealthComponent);
 
-    entities.forEach((entity: Entity) => {
-      const components = this.ecs.getComponents(entity);
+    enemies.forEach((enemy: Entity) => {
+      const components = this.ecs.getComponents(enemy);
 
       const enemyAI = components.get(AIComponent);
       const enemyHealth = components.get(HealthComponent);
@@ -54,6 +66,8 @@ export default class AISystem extends System {
       const enemyCircle = components.get(CircleComponent);
       const enemyMove = components.get(MoveComponent);
       const enemyAnimation = components.get(AnimatedSpriteComponent);
+      const enemyWeapon = components.get(WeaponComponent);
+      const hasEnemyWeapon = Boolean(enemyWeapon);
 
       if (enemyHealth.current <= 0) {
         return;
@@ -63,26 +77,25 @@ export default class AISystem extends System {
       const dy = playerPosition.y - enemyPosition.y;
       const d = Math.sqrt(dx ** 2 + dy ** 2) - playerCircle.radius - enemyCircle?.radius;
 
-      const shouldEnemyMove = enemyAI.distance > d  && d > 0;
-      const shouldEnemyAttack = d <= 0;
-      const shouldEnemyDamage = enemyAI.lastAttackTime >= enemyAI.frequence / 1_000
+      const shouldEnemyBeActivated = enemyAI.distance > d  && d > 0;
 
-      if (shouldEnemyMove) {
-        let angle = radiansToDegrees(Math.atan(dy / dx));
-
-        enemyAnimation.switchState("walk", true);
-        enemyMove.mainDirection = MainDirection.Forward;
-
-        if (dx <= 0) {
-          angle += 180
-        }
-
-        enemyAngle.angle = normalizeAngle(angle);
-      } else {
+      if (!shouldEnemyBeActivated) {
         enemyMove.mainDirection = MainDirection.None;
         enemyMove.sideDirection = SideDirection.None;
         enemyAnimation.switchState("idle", true);
+        return;
       }
+
+      const angle = dx <= 0 
+        ? radiansToDegrees(Math.atan(dy / dx)) + 180
+        : radiansToDegrees(Math.atan(dy / dx));
+
+      enemyAngle.angle = normalizeAngle(angle);
+      enemyAnimation.switchState("walk", true);
+    
+
+      const shouldEnemyAttack = hasEnemyWeapon || d <= 0;
+      const shouldEnemyDamage = enemyAI.lastAttackTime >= enemyAI.frequence / 1_000;
 
       if (shouldEnemyAttack) {
         enemyAnimation.switchState("attack", true);
@@ -90,11 +103,28 @@ export default class AISystem extends System {
       } else {
         enemyAI.lastAttackTime = 0;
       }
-
+          
       if (shouldEnemyDamage) {
-        this.soundManager.playSound('hurt');
-        playerHealth.current = Math.max(0, playerHealth.current - enemyAI.damage);
         enemyAI.lastAttackTime = 0;
+        if (hasEnemyWeapon) {
+          const entity = this.ecs.addEntity();
+          // @TODO: take texture from weapon
+          const sprite = this.textureManager.get('shotgun_bullet');
+
+          this.ecs.addComponent(entity, new BulletComponent(enemy, enemyWeapon.damage));
+          this.ecs.addComponent(entity, new CollisionComponent());
+          this.ecs.addComponent(entity, new SpriteComponent(sprite));
+          this.ecs.addComponent(entity, new PositionComponent(enemyPosition.x, enemyPosition.y));
+          this.ecs.addComponent(entity, new AngleComponent(enemyAngle.angle));
+          this.ecs.addComponent(entity, new CircleComponent(0.25));
+          this.ecs.addComponent(entity, new MinimapComponent('yellow'));
+          this.ecs.addComponent(entity, new MoveComponent(enemyWeapon.bulletSpeed, MainDirection.Forward));
+        } else {
+          // @TODO: refactor
+          enemyMove.mainDirection = MainDirection.Forward;
+          this.soundManager.playSound('hurt');
+          playerHealth.current = Math.max(0, playerHealth.current - enemyAI.damage);
+        }
       }
     });
   }

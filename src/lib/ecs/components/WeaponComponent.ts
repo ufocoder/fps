@@ -9,10 +9,10 @@ export default class WeaponComponent implements Component {
     frequency: number = 1_000;
     lastActionAt: number = +new Date();
 
-    constructor(bullets: number = 30, damage: number = 15, frequency: number = 1_000) {
+    constructor(bullets: number = 30, damage: number = 15, speed: number = 5, frequency: number = 1_000) {
         this.bulletTotal = bullets;
-        this.bulletSpeed = 10;
+        this.bulletSpeed = speed;
         this.damage = damage;
-        this.frequency = frequency
+        this.frequency = frequency;
     }
 }

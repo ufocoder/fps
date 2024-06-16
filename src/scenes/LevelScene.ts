@@ -57,10 +57,10 @@ export default class LevelScene implements BaseScene {
     ecs.addSystem(new MapPolarSystem(ecs));
     ecs.addSystem(new MapItemSystem(ecs, soundManager));
     ecs.addSystem(new ControlSystem(ecs, container));
-    ecs.addSystem(new AnimationSystem(ecs));
-    ecs.addSystem(new AISystem(ecs, soundManager));
-    ecs.addSystem(new WeaponSystem(ecs, container, animationManager, soundManager));
     ecs.addSystem(new MoveSystem(ecs));
+    ecs.addSystem(new AnimationSystem(ecs));
+    ecs.addSystem(new AISystem(ecs, textureManager, soundManager));
+    ecs.addSystem(new WeaponSystem(ecs, container, animationManager, textureManager, soundManager));
     ecs.addSystem(new RotateSystem(ecs));
     ecs.addSystem(new RenderSystem(ecs, container, level, textureManager));
     ecs.addSystem(new MinimapSystem(ecs, container, level));
@@ -72,6 +72,11 @@ export default class LevelScene implements BaseScene {
 
   shouldLevelBeCompleted() {
     const [player] = this.ecs.query([PlayerComponent, PositionComponent]);
+
+    if (typeof player === "undefined") {
+      return false; 
+    }
+
     const playerContainer = this.ecs.getComponents(player);
 
     if (!playerContainer) {
@@ -100,10 +105,15 @@ export default class LevelScene implements BaseScene {
 
   shouldLevelBeFailed() {
     const [player] = this.ecs.query([PlayerComponent, HealthComponent]);
+
+    if (typeof player === "undefined") {
+      return true;
+    }
+
     const playerContainer = this.ecs.getComponents(player);
 
     if (!playerContainer) {
-      return;
+      return true;
     }
 
     return playerContainer.get(HealthComponent).current <= 0;
