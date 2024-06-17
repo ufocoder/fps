@@ -21,6 +21,9 @@ import MapPolarSystem from "src/lib/ecs/systems/MapPolarSystem";
 import MapTextureSystem from "src/lib/ecs/systems/MapTextureSystem";
 import EnemyComponent from "src/lib/ecs/components/EnemyComponent";
 import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
+import TimersSystem from "src/lib/ecs/systems/TimersSystem.ts";
+import LevelComponent from "src/lib/ecs/components/LevelComponent.ts";
+import TimerComponent from "src/lib/ecs/components/TimerComponent.ts";
 
 
 interface LevelSceneProps {
@@ -53,6 +56,7 @@ export default class LevelScene implements BaseScene {
 
     createEntities(ecs, level, textureManager, animationManager);
 
+    ecs.addSystem(new TimersSystem(ecs));
     ecs.addSystem(new MapTextureSystem(ecs, level));
     ecs.addSystem(new MapPolarSystem(ecs));
     ecs.addSystem(new MapItemSystem(ecs, soundManager));
@@ -74,7 +78,7 @@ export default class LevelScene implements BaseScene {
     const [player] = this.ecs.query([PlayerComponent, PositionComponent]);
 
     if (typeof player === "undefined") {
-      return false; 
+      return false;
     }
 
     const playerContainer = this.ecs.getComponents(player);
@@ -105,18 +109,25 @@ export default class LevelScene implements BaseScene {
 
   shouldLevelBeFailed() {
     const [player] = this.ecs.query([PlayerComponent, HealthComponent]);
-
     if (typeof player === "undefined") {
       return true;
     }
 
     const playerContainer = this.ecs.getComponents(player);
-
     if (!playerContainer) {
       return true;
     }
+    if (playerContainer.get(HealthComponent).current <= 0) {
+        return true;
+    }
 
-    return playerContainer.get(HealthComponent).current <= 0;
+    const [levelEntity] = this.ecs.query([LevelComponent, TimerComponent]);
+    if (levelEntity !== undefined) {
+      const timerCmp = this.ecs.getComponents(levelEntity).get(TimerComponent);
+      if (timerCmp && timerCmp.timeLeft <= 0) {
+        return true;
+      }
+    }
   }
 
   onTick = (dt: number) => {

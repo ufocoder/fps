@@ -6,6 +6,8 @@ import HealthComponent from "src/lib/ecs/components/HealthComponent";
 import WeaponComponent from "src/lib/ecs/components/WeaponComponent";
 import { lerp, minmax } from "src/lib/utils.ts";
 import SoundManager from "src/managers/SoundManager";
+import LevelComponent from "src/lib/ecs/components/LevelComponent.ts";
+import TimerComponent from "src/lib/ecs/components/TimerComponent.ts";
 
 const pauseControlKey = "KeyM";
 
@@ -19,7 +21,7 @@ export default class UISystem extends System {
   protected readonly container: HTMLElement;
   protected readonly soundManager: SoundManager;
 
-  private readonly icons = ['health', 'bullets'];
+  private readonly icons = ['health', 'bullets', 'timer'];
   private iconsImages: Record<string, HTMLImageElement> = {};
 
   constructor(ecs: ECS, container: HTMLElement, soundManager: SoundManager) {
@@ -94,6 +96,12 @@ export default class UISystem extends System {
 
     const weapon = playerContainer.get(WeaponComponent);
     if (weapon) this.drawAmmo(weapon.bulletTotal, { x: 10, y: 40 });
+
+    const [levelEntity] = this.ecs.query([LevelComponent]);
+    const levelContainer = this.ecs.getComponents(levelEntity);
+    const timerComponent = levelContainer.get(TimerComponent);
+
+    if (timerComponent) this.drawTimer(timerComponent.timeLeft, { x: this.canvas.width / 2 - 50, y: 10 });
   }
 
   drawHealth(healthValue: number, position: Vector2D) {
@@ -118,6 +126,18 @@ export default class UISystem extends System {
       x: position.x +30,
       y: position.y + 20,
       text: bulletTotal.toString(),
+      align: 'left',
+      color: 'white',
+      font: '24px serif',
+    });
+  }
+
+  drawTimer(time: number, position: Vector2D) {
+    this.drawIcon('timer', { x: position.x, y: position.y, width: 24, height: 24 });
+    this.canvas.drawText({
+      x: position.x + 30,
+      y: position.y + 20,
+      text: time.toFixed(2),
       align: 'left',
       color: 'white',
       font: '24px serif',

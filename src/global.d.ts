@@ -49,6 +49,7 @@ interface Level {
         x: number;
         y: number;
     };
+    timer?: number;
     world: {
         colors: {
             top: Color;

@@ -75,7 +75,7 @@ export default class RenderSystem extends System {
     const incrementAngle = playerFov.fov / this.width;
 
     let rayAngle = normalizeAngle(playerAngle.angle - playerFov.fov / 2);
-    
+
     for (let screenX = 0; screenX < this.width; screenX++) {
 
       const incrementRayX =
@@ -125,7 +125,7 @@ export default class RenderSystem extends System {
         distanceRay * Math.cos(degreeToRadians(rayAngle - playerAngle.angle));
 
       const wallHeight = Math.floor(this.height / 2 / normalizedDistanceRay);
-   
+
       if (wallEntity) {
         this._drawHorizonLine(screenX, wallHeight);
         this._drawFloorLine(screenX, wallHeight, rayAngle, player);
@@ -199,18 +199,18 @@ export default class RenderSystem extends System {
     const a1 = normalizeAngle(rayAngle - polarEntity.angleFrom);
     const a2 = normalizeAngle(polarEntity.angleTo - polarEntity.angleFrom);
     const xTexture = Math.floor(a1 / a2 * sprite.width)
-    
+
     const yIncrementer = (projectionHeight * 2) / sprite.height;
 
     let y = this.height / 2 - projectionHeight;
-    
+
     for (let i = 0; i < sprite.height; i++) {
       if (y > -yIncrementer && y < this.height) {
         this.canvas.drawVerticalLine({
           x: screenX,
           y1: y,
           y2: Math.floor(y + yIncrementer),
-          color: sprite.colors[i][xTexture], 
+          color: sprite.colors[i][xTexture],
         });
       }
       y += yIncrementer;
@@ -222,7 +222,7 @@ export default class RenderSystem extends System {
     wallHeight: number,
     rayAngle: number,
     player: ComponentContainer,
-  ) {    
+  ) {
     const playerPosition = player.get(PositionComponent);
     const playerAngle = player.get(AngleComponent);
     const texture = this.textureManager.get('floor');
@@ -235,7 +235,7 @@ export default class RenderSystem extends System {
 
     for (let y = start; y < this.height; y++) {
       let distance = this.height / (2 * y - this.height);
-      
+
       distance = distance / Math.cos(degreeToRadians(playerAngle.angle) - degreeToRadians(rayAngle));
 
       let tileX = distance * directionCos;
