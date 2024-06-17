@@ -25,10 +25,10 @@ export default class MoveSystem extends System {
     const angleComponent = components.get(AngleComponent);
     const positionComponent = components.get(PositionComponent);
     const collisionComponent = components.get(CollisionComponent);
-    const moveCmp = components.get(MoveComponent);
+    const moveComponent = components.get(MoveComponent);
 
-    const m = Number(moveCmp.mainDirection);
-    const s = Number(moveCmp.sideDirection) * (-1);
+    const m = Number(moveComponent.mainDirection);
+    const s = Number(moveComponent.sideDirection) * (-1);
 
     if (m || s) {
       const mainAngle = degreeToRadians(angleComponent.angle - 360);
@@ -39,11 +39,10 @@ export default class MoveSystem extends System {
       const sideCos = Math.cos(sideAngle);
       const sideSin = Math.sin(sideAngle);
 
-      let newX = positionComponent.x + (m * mainCos + s * sideCos) * moveCmp.moveSpeed * dt;
-      let newY = positionComponent.y + (m * mainSin + s * sideSin) * moveCmp.moveSpeed * dt;
+      let newX = positionComponent.x + (m * mainCos + s * sideCos) * moveComponent.moveSpeed * dt;
+      let newY = positionComponent.y + (m * mainSin + s * sideSin) * moveComponent.moveSpeed * dt;
 
       const { collidedX, collidedY, collidedWith} = this.getCollision(positionComponent, new PositionComponent(newX, newY));
-
 
       const hasCollision = collidedX || collidedY;
 
@@ -58,7 +57,7 @@ export default class MoveSystem extends System {
          collisionComponent.isCollided = true;
       }
 
-      if (moveCmp.canSlide) {
+      if (moveComponent.canSlide) {
         if (!collidedX) {
           positionComponent.x = newX;
         } else {
@@ -87,7 +86,9 @@ export default class MoveSystem extends System {
     if (nexPos.x <= 0 || nexPos.x > textureMap.cols) {
       collidedX = true;
     }
+
     const collideWithTextureByX = textureMap.has(Math.floor(nexPos.x), Math.floor(currentPos.y));
+
     if (collideWithTextureByX) {
       collidedX = true;
       collidedWith = 'texture';
@@ -96,7 +97,9 @@ export default class MoveSystem extends System {
     if (nexPos.y <= 0 || nexPos.y > textureMap.rows) {
       collidedY = true;
     }
+    
     const collideWithTextureByY = textureMap.has(Math.floor(currentPos.x), Math.floor(nexPos.y));
+
     if (collideWithTextureByY) {
       collidedY = true;
       collidedWith = 'texture';

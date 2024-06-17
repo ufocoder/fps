@@ -2,17 +2,22 @@ import { Component } from "src/lib/ecs/Component";
 
 export default class WeaponComponent implements Component {
 
-    bulletTotal: number = 0
-    bulletSpeed: number = 0;
-    damage: number = 5;
+    bulletSpriteId: string;
+    bulletTotal: number;
+    bulletSpeed: number;
+    bulletDamage: number;
 
-    frequency: number = 1_000;
-    lastActionAt: number = +new Date();
+    attackDistance: number;
+    attackFrequency: number;
+    attackLastTimeAt: number = +new Date();
 
-    constructor(bullets: number = 30, damage: number = 15, speed: number = 5, frequency: number = 1_000) {
-        this.bulletTotal = bullets;
-        this.bulletSpeed = speed;
-        this.damage = damage;
-        this.frequency = frequency;
+    constructor(bulletSpriteId: string = '', bulletTotal: number = 30, bulletDamage: number = 15, bulletSpeed: number = 5, attackDistance: number, attackFrequency: number = 1_000) {
+        this.bulletSpriteId = bulletSpriteId;
+        this.bulletTotal = bulletTotal;
+        this.bulletDamage = bulletDamage;
+        this.bulletSpeed = bulletSpeed;
+
+        this.attackDistance = attackDistance;
+        this.attackFrequency = attackFrequency;
     }
 }

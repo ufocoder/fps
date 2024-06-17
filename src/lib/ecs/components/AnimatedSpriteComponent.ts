@@ -33,6 +33,7 @@ export default class AnimatedSpriteComponent implements Component {
     }
 
     switchState(stateName: string, loop: boolean) {
+        console.log(stateName);
         if (this.currentState === stateName && loop == true) {
             return
         }

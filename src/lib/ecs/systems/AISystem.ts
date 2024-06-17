@@ -51,10 +51,8 @@ export default class AISystem extends System {
     }
 
     const playerContainer = this.ecs.getComponents(player);
-
     const playerPosition = playerContainer.get(PositionComponent);
     const playerCircle = playerContainer.get(CircleComponent);
-    const playerHealth = playerContainer.get(HealthComponent);
 
     enemies.forEach((enemy: Entity) => {
       const components = this.ecs.getComponents(enemy);
@@ -76,13 +74,13 @@ export default class AISystem extends System {
       const dx = playerPosition.x - enemyPosition.x;
       const dy = playerPosition.y - enemyPosition.y;
       const d = Math.sqrt(dx ** 2 + dy ** 2) - playerCircle.radius - enemyCircle?.radius;
-
-      const shouldEnemyBeActivated = enemyAI.distance > d  && d > 0;
+      const shouldEnemyBeActivated = enemyAI.activateDistance > d;
+      const shouldEnemyBeMoved = enemyWeapon.attackDistance < d && d > 0
 
       if (!shouldEnemyBeActivated) {
+        enemyAnimation.switchState("idle", true);
         enemyMove.mainDirection = MainDirection.None;
         enemyMove.sideDirection = SideDirection.None;
-        enemyAnimation.switchState("idle", true);
         return;
       }
 
@@ -91,39 +89,50 @@ export default class AISystem extends System {
         : radiansToDegrees(Math.atan(dy / dx));
 
       enemyAngle.angle = normalizeAngle(angle);
-      enemyAnimation.switchState("walk", true);
-    
+      
+      if (shouldEnemyBeMoved) {
+        enemyAnimation.switchState("walk", true);
+        enemyMove.mainDirection = MainDirection.Forward;
+      } else {
+        enemyMove.mainDirection = MainDirection.None;
+        enemyMove.sideDirection = SideDirection.None;
+      }
 
-      const shouldEnemyAttack = hasEnemyWeapon || d <= 0;
-      const shouldEnemyDamage = enemyAI.lastAttackTime >= enemyAI.frequence / 1_000;
+      if (!hasEnemyWeapon) {
+        return;
+      }
+
+      const shouldEnemyAttack =  enemyWeapon.attackDistance >= d;
+      const shouldEnemyDamage = enemyAI.actionPassedTime >= enemyWeapon.attackFrequency / 1_000;
 
       if (shouldEnemyAttack) {
         enemyAnimation.switchState("attack", true);
-        enemyAI.lastAttackTime += dt;
+        enemyAI.actionPassedTime += dt;
       } else {
-        enemyAI.lastAttackTime = 0;
+        enemyAI.actionPassedTime = 0;
       }
-          
+  
       if (shouldEnemyDamage) {
-        enemyAI.lastAttackTime = 0;
-        if (hasEnemyWeapon) {
-          const entity = this.ecs.addEntity();
-          // @TODO: take texture from weapon
-          const sprite = this.textureManager.get('shotgun_bullet');
+        enemyAI.actionPassedTime = 0;
 
-          this.ecs.addComponent(entity, new BulletComponent(enemy, enemyWeapon.damage));
-          this.ecs.addComponent(entity, new CollisionComponent());
+        const entity = this.ecs.addEntity();
+        const sprite = this.textureManager.get(enemyWeapon.bulletSpriteId);
+        const radius = enemyWeapon.attackDistance === 0 ? enemyCircle.radius : 0.25;
+
+        this.ecs.addComponent(entity, new CollisionComponent());
+        if (sprite) {
           this.ecs.addComponent(entity, new SpriteComponent(sprite));
-          this.ecs.addComponent(entity, new PositionComponent(enemyPosition.x, enemyPosition.y));
-          this.ecs.addComponent(entity, new AngleComponent(enemyAngle.angle));
-          this.ecs.addComponent(entity, new CircleComponent(0.25));
-          this.ecs.addComponent(entity, new MinimapComponent('yellow'));
-          this.ecs.addComponent(entity, new MoveComponent(enemyWeapon.bulletSpeed, false, MainDirection.Forward));
-        } else {
-          // @TODO: refactor
-          enemyMove.mainDirection = MainDirection.Forward;
-          this.soundManager.playSound('hurt');
-          playerHealth.current = Math.max(0, playerHealth.current - enemyAI.damage);
+        }
+        this.ecs.addComponent(entity, new BulletComponent(enemy, enemyWeapon.bulletDamage));
+        this.ecs.addComponent(entity, new PositionComponent(enemyPosition.x, enemyPosition.y));
+        this.ecs.addComponent(entity, new AngleComponent(enemyAngle.angle));
+        this.ecs.addComponent(entity, new CircleComponent(radius));
+        this.ecs.addComponent(entity, new MinimapComponent('yellow'));
+        this.ecs.addComponent(entity, new MoveComponent(enemyWeapon.bulletSpeed, false, MainDirection.Forward));
+
+        // one frame live entity
+        if (enemyWeapon.attackDistance === 0) {
+          this.ecs.removeEntity(entity);
         }
       }
     });

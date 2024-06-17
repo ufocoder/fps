@@ -49,65 +49,90 @@ export const generateCircle = (x: number, y: number, radius: number, total: numb
   
 }
 
-export const generateZombie = (x: number, y: number, ai: number = 0) =>
+export const generateZombie = (x: number, y: number, aiDistance: number = 0) =>
   ({
-    type: "zombie",
-    attackDamage: 5,
-    attackSpeed: 1_500,
-    health: 100,
-    radius: 0.4,
-    ai,
     x,
     y,
+    aiDistance,
+    type: "zombie",
+    health: 100,
+    radius: 0.4,
+    weapon: {
+      bulletDamage: 5,
+      bulletSpeed: 0,
+      attackDistance: 0,
+      attackFrequency: 1_000,
+    },
   }) as Enemy;
 
 
-export const generateFlyguy = (x: number, y: number, ai: number = 0) =>
+export const generateFlyguy = (x: number, y: number, aiDistance: number = 0) =>
   ({
+    x,
+    y,
+    aiDistance,
     type: "flyguy",
     health: 150,
     radius: 0.4,
-    attackDamage: 5,
-    attackSpeed: 1_000,
-    ai,
-    x,
-    y,
+    weapon: {
+      bulletSpriteId: 'pistol_bullet',
+      bulletDamage: 5,
+      bulletSpeed: 8,
+      attackDistance: 2,
+      attackFrequency: 1_000,
+    },
   }) as Enemy;
 
-export const generateSoldier = (x: number, y: number, ai: number = 0) =>
+export const generateSoldier = (x: number, y: number, aiDistance: number = 0) =>
   ({
+    x,
+    y,
+    aiDistance,
     type: "soldier",
     health: 200,
     radius: 0.4,
-    attackDamage: 10,
-    attackSpeed: 2_000,
-    ai,
-    x,
-    y,
+    weapon: {
+      bulletSpriteId: 'shotgun_bullet',
+      bulletDamage: 10,
+      bulletSpeed: 6,
+      attackDistance: 2,
+      attackFrequency: 1_500,
+    },
   }) as Enemy;
 
-export const generateCommando = (x: number, y: number, ai: number = 0) =>
+export const generateCommando = (x: number, y: number, aiDistance: number = 0) =>
   ({
+    x,
+    y,
+    aiDistance,
     type: "commando",
     health: 500,
-    attackDamage: 15,
-    attackSpeed: 3_000,
     radius: 0.6,
-    ai,
-    x,
-    y,
+    weapon: {
+      bulletSpriteId: 'shotgun_bullet',
+      bulletDamage: 15,
+      bulletSpeed: 7,
+      attackDistance: 3,
+      attackFrequency: 1_500,
+    },
   }) as Enemy;
 
-export const generateTank = (x: number, y: number, ai: number = 0) =>
+export const generateTank = (x: number, y: number, aiDistance: number = 0) =>
   ({
-    type: "tank",
-    health: 2000,
-    attackDamage: 25,
-    attackSpeed: 4_000,
-    radius: 0.4,
-    ai,
     x,
     y,
+    aiDistance,
+    type: "tank",
+    health: 2000,
+    radius: 0.4,
+    weapon: {
+      bulletSpriteId: 'shotgun_bullet',
+      bulletDamage: 25,
+      bulletSpeed: 5,
+      attackDistance: 3,
+      attackFrequency: 750,
+    },
+    
   }) as Enemy;
 
 export const generateZombies = generateEntities(generateZombie);

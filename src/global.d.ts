@@ -22,12 +22,18 @@ interface Сharacter {
 }
 
 interface Enemy extends Сharacter {
-    ai?: number;
     type: 'zombie' | 'flyguy' | 'soldier' | 'commando' | 'tank' | 'slayer';
-    attackDamage: number;
-    attackSpeed: number;
     sprite: string;
     radius: number;
+    aiDistance?: number;
+    weapon?: {
+        bulletSpriteId: string;
+        bulletTotal: number;
+        bulletSpeed: number;
+        bulletDamage: number;
+        attackDistance: number;
+        attackFrequency: number;
+    }
 }
 
 type LevelMap = number[][];
