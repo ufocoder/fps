@@ -8,7 +8,6 @@ const level: Level = {
     },
   },
   music: 'heavy-duty-zoo',
-  timer: 120,
   map: [
     [1, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 4],
@@ -84,9 +83,12 @@ const level: Level = {
     ...generateZombies(15, 16, 8, 1, 1, 2),
     ...generateZombies(50, 17, 2, 1, 1, 2),
   ],
-  exit: {
-    x: 22,
-    y: 1,
+  endingScenario: {
+    name:'exitPosition',
+    position: {
+      x: 22,
+      y: 1,
+    }
   },
 };
 

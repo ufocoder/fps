@@ -54,6 +54,9 @@ const level: Level = {
     generateTank(8, 2, 6),
     generateTank(8, 8, 6),
   ],
+  endingScenario: {
+    name: 'killAllEnemy',
+  },
 };
 
 export default level;

@@ -82,29 +82,37 @@ export default class LevelScene implements BaseScene {
     }
 
     const playerContainer = this.ecs.getComponents(player);
-
-    if (!playerContainer) {
-      return;
-    }
-
-    if (this.level.exit) {
-      return (
-        Math.floor(playerContainer.get(PositionComponent).x) ===
-          this.level.exit.x &&
-        Math.floor(playerContainer.get(PositionComponent).y) ===
-          this.level.exit.y
-      );
-    }
+    if (!playerContainer) return;
 
     const enemies = this.ecs.query([EnemyComponent, HealthComponent]);
+    const [levelEntity] = this.ecs.query([LevelComponent, TimerComponent]);
 
-    for (const enemy of enemies) {
-      if (this.ecs.getComponents(enemy).get(HealthComponent).current > 0) {
+
+    const ending = this.level.endingScenario
+    switch (ending.name) {
+      case "exitPosition":
+        return (
+            Math.floor(playerContainer.get(PositionComponent).x) ===
+            ending.position.x &&
+            Math.floor(playerContainer.get(PositionComponent).y) ===
+            ending.position.y
+        );
+      case "killAllEnemy":
+        for (const enemy of enemies) {
+          if (this.ecs.getComponents(enemy).get(HealthComponent).current > 0) {
+            return false;
+          }
+        }
+        return true;
+      case "surviveInTime":
+        if (levelEntity !== undefined) {
+          const timerCmp = this.ecs.getComponents(levelEntity).get(TimerComponent);
+          return timerCmp && timerCmp.timeLeft <= 0;
+        }
         return false;
-      }
+      default:
+        throw new Error('Unknown ending scenario');
     }
-
-    return true;
   }
 
   shouldLevelBeFailed() {
@@ -114,20 +122,9 @@ export default class LevelScene implements BaseScene {
     }
 
     const playerContainer = this.ecs.getComponents(player);
-    if (!playerContainer) {
-      return true;
-    }
-    if (playerContainer.get(HealthComponent).current <= 0) {
-        return true;
-    }
+    if (!playerContainer) return true;
 
-    const [levelEntity] = this.ecs.query([LevelComponent, TimerComponent]);
-    if (levelEntity !== undefined) {
-      const timerCmp = this.ecs.getComponents(levelEntity).get(TimerComponent);
-      if (timerCmp && timerCmp.timeLeft <= 0) {
-        return true;
-      }
-    }
+    return playerContainer.get(HealthComponent).current <= 0;
   }
 
   onTick = (dt: number) => {

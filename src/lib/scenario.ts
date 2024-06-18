@@ -32,8 +32,8 @@ export function createEntities(
   const levelEntity = ecs.addEntity();
 
   ecs.addComponent(levelEntity, new LevelComponent());
-  if (level.timer !== undefined && level.timer > 0) {
-    ecs.addComponent(levelEntity, new TimerComponent(level.timer, true));
+  if (level.endingScenario.name === 'surviveInTime') {
+    ecs.addComponent(levelEntity, new TimerComponent(level.endingScenario.timer, true));
   }
 
   // player
@@ -192,11 +192,11 @@ export function createEntities(
 
   // exit
 
-  if (level.exit) {
+  if (level.endingScenario.name === 'exitPosition') {
     const exit = ecs.addEntity();
 
     ecs.addComponent(exit, new BoxComponent(1));
-    ecs.addComponent(exit, new PositionComponent(level.exit.x, level.exit.y));
+    ecs.addComponent(exit, new PositionComponent(level.endingScenario.position.x, level.endingScenario.position.y));
     ecs.addComponent(exit, new MinimapComponent("yellow"));
   }
 
