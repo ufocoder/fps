@@ -42,9 +42,12 @@ const level: Level = {
     ...generateZombies(20, 8, 3, 1, 1, 5),
     ...generateSoldiers(20, 8, 8, 1, 1, 5),
   ],
-  exit: {
-    x: 18,
-    y: 2,
+  endingScenario: {
+    name:'exitPosition',
+    position: {
+      x: 18,
+      y: 2,
+    }
   },
 };
 

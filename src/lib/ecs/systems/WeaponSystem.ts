@@ -110,6 +110,7 @@ export default class WeaponSystem extends System {
       }
 
       const entityHealth = entityContainer.get(HealthComponent);
+      if (!entityHealth) return;
       const entityAnimation = entityContainer.get(AnimatedSpriteComponent);
 
       if (entityHealth.current > 0) {
@@ -142,7 +143,7 @@ export default class WeaponSystem extends System {
     for (const entity of entities) {
       if (bulletComponent.fromEntity === entity) {
         continue;
-      } 
+      }
       const container = this.ecs.getComponents(entity);
       const entityCircle = container.get(CircleComponent);
       const entityPosition = container.get(PositionComponent);

@@ -97,8 +97,8 @@ export function createEntities(
     if (enemy.weapon) {
       ecs.addComponent(entity, new WeaponComponent(
         enemy.weapon.bulletSpriteId,
-        Infinity, 
-        enemy.weapon.bulletDamage, 
+        Infinity,
+        enemy.weapon.bulletDamage,
         enemy.weapon.bulletSpeed,
         enemy.weapon.attackDistance,
         enemy.weapon.attackFrequency
@@ -183,11 +183,11 @@ export function createEntities(
 
   // exit
 
-  if (level.exit) {
+  if (level.endingScenario.name === 'exitPosition') {
     const exit = ecs.addEntity();
 
     ecs.addComponent(exit, new BoxComponent(1));
-    ecs.addComponent(exit, new PositionComponent(level.exit.x, level.exit.y));
+    ecs.addComponent(exit, new PositionComponent(level.endingScenario.position.x, level.endingScenario.position.y));
     ecs.addComponent(exit, new MinimapComponent("yellow"));
   }
 
