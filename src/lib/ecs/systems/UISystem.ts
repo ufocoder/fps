@@ -5,9 +5,8 @@ import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
 import HealthComponent from "src/lib/ecs/components/HealthComponent";
 import WeaponComponent from "src/lib/ecs/components/WeaponComponent";
 import { lerp, minmax } from "src/lib/utils.ts";
+import { LevelState } from "src/scenes/LevelScene";
 import SoundManager from "src/managers/SoundManager";
-import LevelComponent from "src/lib/ecs/components/LevelComponent.ts";
-import TimerComponent from "src/lib/ecs/components/TimerComponent.ts";
 
 const pauseControlKey = "KeyM";
 
@@ -20,13 +19,20 @@ export default class UISystem extends System {
   protected readonly canvas: Canvas;
   protected readonly container: HTMLElement;
   protected readonly soundManager: SoundManager;
+  protected readonly levelState: LevelState;
 
   private readonly icons = ['health', 'bullets', 'timer'];
   private iconsImages: Record<string, HTMLImageElement> = {};
 
-  constructor(ecs: ECS, container: HTMLElement, soundManager: SoundManager) {
+  constructor(
+      ecs: ECS,
+      container: HTMLElement,
+      soundManager: SoundManager,
+      levelState: LevelState
+  ) {
     super(ecs);
 
+    this.levelState = levelState;
     this.container = container;
 
     this.canvas = new Canvas({
@@ -97,11 +103,9 @@ export default class UISystem extends System {
     const weapon = playerContainer.get(WeaponComponent);
     if (weapon) this.drawAmmo(weapon.bulletTotal, { x: 10, y: 40 });
 
-    const [levelEntity] = this.ecs.query([LevelComponent]);
-    const levelContainer = this.ecs.getComponents(levelEntity);
-    const timerComponent = levelContainer.get(TimerComponent);
-
-    if (timerComponent) this.drawTimer(timerComponent.timeLeft, { x: this.canvas.width / 2 - 50, y: 10 });
+    if (this.levelState.timerTimeLeft !== undefined) {
+      this.drawTimer(this.levelState.timerTimeLeft, { x: this.canvas.width / 2 - 50, y: 10 });
+    }
   }
 
   drawHealth(healthValue: number, position: Vector2D) {

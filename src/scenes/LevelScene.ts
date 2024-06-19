@@ -21,10 +21,11 @@ import MapPolarSystem from "src/lib/ecs/systems/MapPolarSystem";
 import MapTextureSystem from "src/lib/ecs/systems/MapTextureSystem";
 import EnemyComponent from "src/lib/ecs/components/EnemyComponent";
 import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
-import TimersSystem from "src/lib/ecs/systems/TimersSystem.ts";
-import LevelComponent from "src/lib/ecs/components/LevelComponent.ts";
-import TimerComponent from "src/lib/ecs/components/TimerComponent.ts";
 
+export type LevelState = {
+  player: { health: number; };
+  timerTimeLeft?: number;
+};
 
 interface LevelSceneProps {
   container: HTMLElement;
@@ -43,6 +44,8 @@ export default class LevelScene implements BaseScene {
   protected readonly ecs: ECS;
   protected startedAt: number = +new Date();
 
+  private state: LevelState;
+
   constructor({
     container,
     level,
@@ -51,12 +54,15 @@ export default class LevelScene implements BaseScene {
     animationManager,
   }: LevelSceneProps) {
     this.level = level;
+    this.state = {
+      player: { health: level.player.health },
+      timerTimeLeft: level.endingScenario.name === "surviveInTime" ? level.endingScenario?.timer : undefined,
+    }
 
     const ecs = new ECS();
 
     createEntities(ecs, level, textureManager, animationManager);
 
-    ecs.addSystem(new TimersSystem(ecs));
     ecs.addSystem(new MapTextureSystem(ecs, level));
     ecs.addSystem(new MapPolarSystem(ecs));
     ecs.addSystem(new MapItemSystem(ecs, soundManager));
@@ -68,7 +74,7 @@ export default class LevelScene implements BaseScene {
     ecs.addSystem(new RotateSystem(ecs));
     ecs.addSystem(new RenderSystem(ecs, container, level, textureManager));
     ecs.addSystem(new MinimapSystem(ecs, container, level));
-    ecs.addSystem(new UISystem(ecs, container, soundManager));
+    ecs.addSystem(new UISystem(ecs, container, soundManager, this.state));
 
     this.ecs = ecs;
     this.loop = createLoop(this.onTick);
@@ -85,8 +91,6 @@ export default class LevelScene implements BaseScene {
     if (!playerContainer) return;
 
     const enemies = this.ecs.query([EnemyComponent, HealthComponent]);
-    const [levelEntity] = this.ecs.query([LevelComponent, TimerComponent]);
-
 
     const ending = this.level.endingScenario
     switch (ending.name) {
@@ -105,9 +109,8 @@ export default class LevelScene implements BaseScene {
         }
         return true;
       case "surviveInTime":
-        if (levelEntity !== undefined) {
-          const timerCmp = this.ecs.getComponents(levelEntity).get(TimerComponent);
-          return timerCmp && timerCmp.timeLeft <= 0;
+        if (this.state.timerTimeLeft !== undefined) {
+          return this.state.timerTimeLeft <= 0;
         }
         return false;
       default:
@@ -128,6 +131,7 @@ export default class LevelScene implements BaseScene {
   }
 
   onTick = (dt: number) => {
+    this.updateState(dt);
     this.ecs.update(dt);
 
     if (this.onCompleteCallback && this.shouldLevelBeCompleted()) {
@@ -138,6 +142,12 @@ export default class LevelScene implements BaseScene {
       window.requestAnimationFrame(this.onFailedCallback);
     }
   };
+
+  updateState(dt: number) {
+    if (this.state.timerTimeLeft !== undefined) {
+      this.state.timerTimeLeft = Math.max(0, this.state.timerTimeLeft - dt);
+    }
+  }
 
   onComplete = (cb: () => void) => {
     this.onCompleteCallback = cb;

@@ -20,8 +20,6 @@ import CollisionComponent from "./ecs/components/CollisionComponent";
 import SpriteComponent from "./ecs/components/SpriteComponent";
 import PlayerComponent from "./ecs/components/PlayerComponent";
 import ItemComponent from "./ecs/components/ItemComponent";
-import LevelComponent from "./ecs/components/LevelComponent";
-import TimerComponent from "./ecs/components/TimerComponent.ts";
 
 export function createEntities(
   ecs: ECS,
@@ -29,13 +27,6 @@ export function createEntities(
   textureManager: TextureManager,
   animationManager: AnimationManager
 ) {
-  const levelEntity = ecs.addEntity();
-
-  ecs.addComponent(levelEntity, new LevelComponent());
-  if (level.endingScenario.name === 'surviveInTime') {
-    ecs.addComponent(levelEntity, new TimerComponent(level.endingScenario.timer, true));
-  }
-
   // player
   const player = ecs.addEntity();
 
