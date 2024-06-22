@@ -22,7 +22,7 @@ export function createScenario({
   let levelIndex = 0;
 
   const showFinalScene = () => {
-    const scene = new TitleScene(container, "Congratulation!", ["You saved the world from zombies"]);
+    const scene = new TitleScene(container, "Congratulation!", ["You survived a zombie invasion"]);
     scene.start();
   };
 

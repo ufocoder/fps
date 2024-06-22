@@ -54,11 +54,11 @@ const level: Level = {
   enemies: [
     generateZombie(1.5, 9.5, 2),
     generateSoldier(6, 1, 3),
-    generateZombie(4.5, 6.5, 2),
-    generateZombie(4.5, 7.5, 2),
-    generateZombie(4.5, 8.5, 2),
-    generateZombie(4.5, 9.5, 2),
-    generateZombie(4.5, 10.5, 2),
+    generateSoldier(4.5, 6.5, 4),
+    generateSoldier(4.5, 7.5, 4),
+    generateSoldier(4.5, 8.5, 4),
+    generateSoldier(4.5, 9.5, 4),
+    generateSoldier(4.5, 10.5, 4),
 
     ...generateZombies(15, 4.5, 4.5, 1, 1, 1),
     generateZombie(7, 3.5, 2),
