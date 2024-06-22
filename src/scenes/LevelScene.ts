@@ -25,13 +25,6 @@ import LevelPlayerView from "src/views/LevelPlayerView";
 
 const KEY_CONTROL_PAUSE = "KeyM";
 
-export type PlayerState = {
-  ammo?: number; 
-  health: number;
-  soundMuted: boolean;
-  timeLeft?: number;
-};
-
 interface LevelSceneProps {
   container: HTMLElement;
   level: Level;

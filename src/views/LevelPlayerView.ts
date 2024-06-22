@@ -1,6 +1,5 @@
 import Canvas from "src/lib/Canvas/DefaultCanvas";
 import { lerp, minmax } from "src/lib/utils.ts";
-import { PlayerState } from "src/scenes/LevelScene";
 
 export default class LevelPlayerView { // Component not
   protected readonly width: number = 640;

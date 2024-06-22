@@ -111,3 +111,10 @@ type Vector2D = {
     x: number;
     y: number;
 }
+
+type PlayerState = {
+    ammo?: number; 
+    health: number;
+    soundMuted: boolean;
+    timeLeft?: number;
+  };
