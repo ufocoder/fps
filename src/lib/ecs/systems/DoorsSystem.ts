@@ -33,38 +33,26 @@ export default class DoorsSystem extends System {
             if (remainingAnimationTime !== undefined) {
                 if (remainingAnimationTime <= 0) {
                     this.doorsAnimations.delete(entity);
-
-                    if (door.isOpening) {
-                        door.isOpening = false;
-                        door.isOpened = true;
-                        return;
-                    }
-                    if (door.isClosing) {
-                        door.isClosing = false;
-                        door.isOpened = false;
-                        return;
-                    }
+                    door.isOpened = !door.isOpened;
                     return;
                 }
 
                 const offset = dt / door.animationTime * doorBox.size;
                 this.doorsAnimations.set(entity, remainingAnimationTime - dt);
 
+                const axisOffset = door.isOpened ? -offset : offset;
                 if (door.isVertical) {
-                    doorPosition.y += door.isOpened ? offset : -offset;
+                    doorPosition.y += axisOffset;
                 } else {
-                    doorPosition.x += door.isOpened ? offset : -offset;
+                    doorPosition.x += axisOffset;
                 }
             } else {
                 const toPlayerDistance = distance(playerPosition.x, playerPosition.y, doorPosition.x, doorPosition.y);
 
                 if (!door.isOpened && toPlayerDistance < 1.5) {
-                    door.isOpening = true;
                     this.doorsAnimations.set(entity, door.animationTime);
                 }
-
                 if (door.isOpened && toPlayerDistance > 2.5) {
-                    door.isClosing = true;
                     this.doorsAnimations.set(entity, door.animationTime);
                 }
             }

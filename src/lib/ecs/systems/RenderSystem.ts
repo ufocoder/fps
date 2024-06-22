@@ -110,12 +110,16 @@ export default class RenderSystem extends System {
         if (wallEntity) {
           if (doorCmp) {
             const position = wallEntity.get(PositionComponent);
-            if (doorCmp.isVertical) {
-              isPropagating = rayX < Math.floor(rayX) + 0.5 - this.doorWidth / 2 || rayX > Math.floor(rayX) + 0.5 + this.doorWidth / 2;
-            } else {
-              isPropagating = rayY < Math.floor(rayY) + 0.5 - this.doorWidth / 2 || rayY > Math.floor(rayY) + 0.5 + this.doorWidth / 2;
-            }
+            const mainRayCoordinate = doorCmp.isVertical ? rayX : rayY;
+            const isAdjacentWall =
+                mainRayCoordinate < Math.floor(mainRayCoordinate) + 0.5 - this.doorWidth / 2 ||
+                mainRayCoordinate > Math.floor(mainRayCoordinate) + 0.5 + this.doorWidth / 2;
 
+            if (!isAdjacentWall) {
+              isPropagating =  doorCmp.isVertical
+                  ? rayY < position.y || rayY > position.y + 1
+                  : rayX < position.x || rayX > position.x + 1;
+            }
             if (!isPropagating) {
               wallTextureOffset = doorCmp.isVertical
                   ? Vec2D.from(rayX - position.x,Math.floor(rayY) - position.y)

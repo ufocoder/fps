@@ -6,6 +6,8 @@ import MoveComponent from "src/lib/ecs/components/MoveComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import CollisionComponent from "src/lib/ecs/components/CollisionComponent";
 import MapTextureSystem from "./MapTextureSystem";
+import { ComponentContainer } from "src/lib/ecs/Component.ts";
+import DoorComponent from "src/lib/ecs/components/DoorComponent.ts";
 
 export default class MoveSystem extends System {
   public readonly componentsRequired = new Set([PositionComponent, AngleComponent, MoveComponent, CollisionComponent]);
@@ -53,7 +55,7 @@ export default class MoveSystem extends System {
       }
 
       if (collidedWith) {
-         collisionComponent.collidedWith = collidedWith;
+         collisionComponent.collidedEntity = collidedWith;
          collisionComponent.isCollided = true;
       }
 
@@ -79,7 +81,7 @@ export default class MoveSystem extends System {
   private getCollision(currentPos: PositionComponent, nexPos: PositionComponent) {
     const textureMap = this.ecs.getSystem(MapTextureSystem)!.textureMap;
 
-    let collidedWith = '';
+    let collidedWith: ComponentContainer | undefined = undefined;
     let collidedX = false;
     let collidedY = false;
 
@@ -87,24 +89,29 @@ export default class MoveSystem extends System {
       collidedX = true;
     }
 
-    const collideWithTextureByX = textureMap.has(Math.floor(nexPos.x), Math.floor(currentPos.y));
+    const collideWithTextureByX = textureMap.get(Math.floor(nexPos.x), Math.floor(currentPos.y));
 
-    if (collideWithTextureByX) {
+    if (collideWithTextureByX && this.isCollidedEntity(collideWithTextureByX)) {
       collidedX = true;
-      collidedWith = 'texture';
+      collidedWith = collideWithTextureByX;
     }
 
     if (nexPos.y <= 0 || nexPos.y > textureMap.rows) {
       collidedY = true;
     }
-    
-    const collideWithTextureByY = textureMap.has(Math.floor(currentPos.x), Math.floor(nexPos.y));
 
-    if (collideWithTextureByY) {
+    const collideWithTextureByY = textureMap.get(Math.floor(currentPos.x), Math.floor(nexPos.y));
+    if (collideWithTextureByY && this.isCollidedEntity(collideWithTextureByY)) {
       collidedY = true;
-      collidedWith = 'texture';
+      collidedWith = collideWithTextureByY;
     }
 
     return { collidedX, collidedY, collidedWith };
+  }
+
+  private isCollidedEntity(entityContainer: ComponentContainer): boolean {
+    const doorCmp = entityContainer.get(DoorComponent);
+    if (doorCmp) return !doorCmp.isOpened;
+    return true;
   }
 }
