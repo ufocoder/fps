@@ -40,7 +40,10 @@ type LevelMap = number[][];
 
 interface Level {
     map: LevelMap;
-    textures: Record<number, string>;
+    mapEntities: Record<number, {
+        type: 'wall' | 'door',
+        texture: string
+    }>;
     player: Сharacter;
     music?: string;
     enemies?: Enemy[];

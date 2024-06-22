@@ -20,6 +20,7 @@ import CollisionComponent from "./ecs/components/CollisionComponent";
 import SpriteComponent from "./ecs/components/SpriteComponent";
 import PlayerComponent from "./ecs/components/PlayerComponent";
 import ItemComponent from "./ecs/components/ItemComponent";
+import DoorComponent from "src/lib/ecs/components/DoorComponent.ts";
 
 export function createEntities(
   ecs: ECS,
@@ -97,8 +98,8 @@ export function createEntities(
     if (enemy.weapon) {
       ecs.addComponent(entity, new WeaponComponent(
         enemy.weapon.bulletSpriteId,
-        Infinity, 
-        enemy.weapon.bulletDamage, 
+        Infinity,
+        enemy.weapon.bulletDamage,
         enemy.weapon.bulletSpeed,
         enemy.weapon.attackDistance,
         enemy.weapon.attackFrequency
@@ -197,15 +198,24 @@ export function createEntities(
       if (col === 0) {
         return;
       }
-      const wall = ecs.addEntity();
+      const mapItemEntity = ecs.addEntity();
+      const mapItem = level.mapEntities[col];
+      const texture = textureManager.get(mapItem.texture);
 
-      const textureName = level.textures[col];
-      const texture = textureManager.get(textureName);
+      ecs.addComponent(mapItemEntity, new BoxComponent(1));
+      ecs.addComponent(mapItemEntity, new PositionComponent(x, y));
+      ecs.addComponent(mapItemEntity, new TextureComponent(texture));
 
-      ecs.addComponent(wall, new BoxComponent(1));
-      ecs.addComponent(wall, new PositionComponent(x, y));
-      ecs.addComponent(wall, new TextureComponent(texture));
-      ecs.addComponent(wall, new MinimapComponent("grey"));
+
+      if (mapItem.type === 'wall') {
+        ecs.addComponent(mapItemEntity, new MinimapComponent("grey"));
+      } else if (mapItem.type === 'door') {
+        const [aboveBloc, underBloc] = [level.map[y + 1][x], level.map[y - 1][x]];
+        const isVerticalDoor =  level.mapEntities[aboveBloc]?.type === 'wall' && level.mapEntities[underBloc]?.type === 'wall';
+        ecs.addComponent(mapItemEntity, new DoorComponent(false, isVerticalDoor));
+
+        ecs.addComponent(mapItemEntity, new MinimapComponent("blue"));
+      }
     });
   });
 }

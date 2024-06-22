@@ -14,7 +14,8 @@ import SpriteComponent from "src/lib/ecs/components/SpriteComponent";
 import TextureComponent from "src/lib/ecs/components/TextureComponent";
 import Canvas from "src/lib/Canvas/BufferCanvas";
 import TextureManager from "src/managers/TextureManager";
-import { degreeToRadians, distance, normalizeAngle } from "src/lib/utils";
+import { degreeToRadians, distance, normalizeAngle, Vec2D } from "src/lib/utils";
+import DoorComponent from "src/lib/ecs/components/DoorComponent.ts";
 
 export default class RenderSystem extends System {
   public readonly componentsRequired = new Set([PositionComponent]);
@@ -23,6 +24,7 @@ export default class RenderSystem extends System {
   protected readonly height: number = 480;
   protected readonly rayMaxDistanceRay = 20;
   protected readonly rayPrecision = 128;
+  protected readonly doorWidth = 0.05;
 
   protected readonly level: Level;
   protected readonly canvas: Canvas;
@@ -70,12 +72,9 @@ export default class RenderSystem extends System {
     const playerAngle = player.get(AngleComponent);
     const playerPosition = player.get(PositionComponent);
     const textureMap = this.ecs.getSystem(MapTextureSystem)!.textureMap;
-    const polarMap = this.ecs.getSystem(MapPolarSystem)!.polarMap;
-
-    const incrementAngle = playerFov.fov / this.width;
 
     let rayAngle = normalizeAngle(playerAngle.angle - playerFov.fov / 2);
-    
+
     for (let screenX = 0; screenX < this.width; screenX++) {
 
       const incrementRayX =
@@ -86,27 +85,45 @@ export default class RenderSystem extends System {
       let rayX = playerPosition.x;
       let rayY = playerPosition.y;
 
+      let wallTextureOffset = Vec2D.zeros();
+
       let distanceRay = 0;
       let wallEntity: ComponentContainer | undefined;
-      let isPropogating = true;
-      while (isPropogating) {
+      let isPropagating = true;
+      while (isPropagating) {
         rayX += incrementRayX;
         rayY += incrementRayY;
 
         if (rayX < 0 || rayX > textureMap.cols) {
-          isPropogating = false;
+          isPropagating = false;
           continue;
         }
 
         if (rayY < 0 || rayY > textureMap.rows) {
-          isPropogating = false;
+          isPropagating = false;
           continue;
         }
 
         wallEntity = textureMap.get(Math.floor(rayX), Math.floor(rayY));
+        const doorCmp = wallEntity?.get(DoorComponent);
 
         if (wallEntity) {
-          isPropogating = false;
+          if (doorCmp) {
+            const position = wallEntity.get(PositionComponent);
+            if (doorCmp.isVertical) {
+              isPropagating = rayX < Math.floor(rayX) + 0.5 - this.doorWidth / 2 || rayX > Math.floor(rayX) + 0.5 + this.doorWidth / 2;
+            } else {
+              isPropagating = rayY < Math.floor(rayY) + 0.5 - this.doorWidth / 2 || rayY > Math.floor(rayY) + 0.5 + this.doorWidth / 2;
+            }
+
+            if (!isPropagating) {
+              wallTextureOffset = doorCmp.isVertical
+                  ? Vec2D.from(rayX - position.x,Math.floor(rayY) - position.y)
+                  : Vec2D.from(Math.floor(rayX) - position.x, rayY - position.y);
+            }
+          } else {
+           isPropagating = false;
+          }
         }
 
         distanceRay = distance(
@@ -117,7 +134,7 @@ export default class RenderSystem extends System {
         );
 
         if (distanceRay >= this.rayMaxDistanceRay) {
-          isPropogating = false;
+          isPropagating = false;
         }
       }
 
@@ -125,15 +142,18 @@ export default class RenderSystem extends System {
         distanceRay * Math.cos(degreeToRadians(rayAngle - playerAngle.angle));
 
       const wallHeight = Math.floor(this.height / 2 / normalizedDistanceRay);
-   
+
       if (wallEntity) {
         this._drawHorizonLine(screenX, wallHeight);
+        this._drawWallLine(screenX, rayX + wallTextureOffset.x, rayY + wallTextureOffset.y, wallEntity, wallHeight);
         this._drawFloorLine(screenX, wallHeight, rayAngle, player);
-        this._drawWallLine(screenX, rayX, rayY, wallEntity, wallHeight);
       } else {
         this._drawHorizonLine(screenX, 0);
         this._drawFloorLine(screenX, 0, rayAngle, player);
       }
+
+      const incrementAngle = playerFov.fov / this.width;
+      const polarMap = this.ecs.getSystem(MapPolarSystem)!.polarMap;
 
       polarMap
         .select(distanceRay, rayAngle, rayAngle + incrementAngle)
@@ -199,18 +219,18 @@ export default class RenderSystem extends System {
     const a1 = normalizeAngle(rayAngle - polarEntity.angleFrom);
     const a2 = normalizeAngle(polarEntity.angleTo - polarEntity.angleFrom);
     const xTexture = Math.floor(a1 / a2 * sprite.width)
-    
+
     const yIncrementer = (projectionHeight * 2) / sprite.height;
 
     let y = this.height / 2 - projectionHeight;
-    
+
     for (let i = 0; i < sprite.height; i++) {
       if (y > -yIncrementer && y < this.height) {
         this.canvas.drawVerticalLine({
           x: screenX,
           y1: y,
           y2: Math.floor(y + yIncrementer),
-          color: sprite.colors[i][xTexture], 
+          color: sprite.colors[i][xTexture],
         });
       }
       y += yIncrementer;
@@ -222,7 +242,7 @@ export default class RenderSystem extends System {
     wallHeight: number,
     rayAngle: number,
     player: ComponentContainer,
-  ) {    
+  ) {
     const playerPosition = player.get(PositionComponent);
     const playerAngle = player.get(AngleComponent);
     const texture = this.textureManager.get('floor');
@@ -235,7 +255,7 @@ export default class RenderSystem extends System {
 
     for (let y = start; y < this.height; y++) {
       let distance = this.height / (2 * y - this.height);
-      
+
       distance = distance / Math.cos(degreeToRadians(playerAngle.angle) - degreeToRadians(rayAngle));
 
       let tileX = distance * directionCos;

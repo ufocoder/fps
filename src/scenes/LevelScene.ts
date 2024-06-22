@@ -21,6 +21,7 @@ import MapPolarSystem from "src/lib/ecs/systems/MapPolarSystem";
 import MapTextureSystem from "src/lib/ecs/systems/MapTextureSystem";
 import EnemyComponent from "src/lib/ecs/components/EnemyComponent";
 import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
+import DoorsSystem from "src/lib/ecs/systems/DoorsSystem.ts";
 
 
 interface LevelSceneProps {
@@ -62,6 +63,7 @@ export default class LevelScene implements BaseScene {
     ecs.addSystem(new AISystem(ecs, textureManager, soundManager));
     ecs.addSystem(new WeaponSystem(ecs, container, animationManager, textureManager, soundManager));
     ecs.addSystem(new RotateSystem(ecs));
+    ecs.addSystem(new DoorsSystem(ecs));
     ecs.addSystem(new RenderSystem(ecs, container, level, textureManager));
     ecs.addSystem(new MinimapSystem(ecs, container, level));
     ecs.addSystem(new UISystem(ecs, container, soundManager));
@@ -72,9 +74,8 @@ export default class LevelScene implements BaseScene {
 
   shouldLevelBeCompleted() {
     const [player] = this.ecs.query([PlayerComponent, PositionComponent]);
-
     if (typeof player === "undefined") {
-      return false; 
+      return false;
     }
 
     const playerContainer = this.ecs.getComponents(player);
