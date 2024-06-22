@@ -55,7 +55,7 @@ const level: Level = {
     generateTank(8, 8, 6),
   ],
   endingScenario: {
-    name: 'killAllEnemy',
+    name: 'enemy',
   },
 };
 

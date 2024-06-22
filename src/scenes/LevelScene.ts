@@ -1,7 +1,7 @@
 import BaseScene from "./BaseScene";
 import ECS from "src/lib/ecs/ExtendedECS";
 import createLoop, { Loop } from "src/lib/loop.ts";
-import { createEntities } from "src/lib/scenario";
+import { createLevelEntities } from "src/lib/scenario";
 import SoundManager from "src/managers/SoundManager";
 import AISystem from "src/lib/ecs/systems/AISystem";
 import AnimationManager from "src/managers/AnimationManager";
@@ -14,17 +14,22 @@ import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import RenderSystem from "src/lib/ecs/systems/RenderSystem";
 import RotateSystem from "src/lib/ecs/systems/RotateSystem";
 import TextureManager from "src/managers/TextureManager";
-import UISystem from "src/lib/ecs/systems/UISystem";
 import WeaponSystem from "src/lib/ecs/systems/WeaponSystem";
 import MapItemSystem from "src/lib/ecs/systems/MapItemSystem";
 import MapPolarSystem from "src/lib/ecs/systems/MapPolarSystem";
 import MapTextureSystem from "src/lib/ecs/systems/MapTextureSystem";
 import EnemyComponent from "src/lib/ecs/components/EnemyComponent";
 import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
+import WeaponComponent from "src/lib/ecs/components/WeaponComponent";
+import LevelPlayerView from "src/views/LevelPlayerView";
 
-export type LevelState = {
-  player: { health: number; };
-  timerTimeLeft?: number;
+const KEY_CONTROL_PAUSE = "KeyM";
+
+export type PlayerState = {
+  ammo?: number; 
+  health: number;
+  soundMuted: boolean;
+  timeLeft?: number;
 };
 
 interface LevelSceneProps {
@@ -44,7 +49,9 @@ export default class LevelScene implements BaseScene {
   protected readonly ecs: ECS;
   protected startedAt: number = +new Date();
 
-  private state: LevelState;
+  private playerState: PlayerState;
+  private levelPlayerView: LevelPlayerView;
+  private soundManager: SoundManager;
 
   constructor({
     container,
@@ -54,14 +61,20 @@ export default class LevelScene implements BaseScene {
     animationManager,
   }: LevelSceneProps) {
     this.level = level;
-    this.state = {
-      player: { health: level.player.health },
-      timerTimeLeft: level.endingScenario.name === "surviveInTime" ? level.endingScenario?.timer : undefined,
+
+    this.playerState = {
+      health: level.player.health,
+      ammo: undefined,
+      timeLeft: level.endingScenario.name === "survive" ? level.endingScenario?.timer : undefined,
+      soundMuted: soundManager.checkMuted(),
     }
+
+    this.soundManager = soundManager;
+    this.levelPlayerView = new LevelPlayerView(container);
 
     const ecs = new ECS();
 
-    createEntities(ecs, level, textureManager, animationManager);
+    createLevelEntities(ecs, level, textureManager, animationManager);
 
     ecs.addSystem(new MapTextureSystem(ecs, level));
     ecs.addSystem(new MapPolarSystem(ecs));
@@ -74,65 +87,66 @@ export default class LevelScene implements BaseScene {
     ecs.addSystem(new RotateSystem(ecs));
     ecs.addSystem(new RenderSystem(ecs, container, level, textureManager));
     ecs.addSystem(new MinimapSystem(ecs, container, level));
-    ecs.addSystem(new UISystem(ecs, container, soundManager, this.state));
 
     this.ecs = ecs;
     this.loop = createLoop(this.onTick);
   }
 
-  shouldLevelBeCompleted() {
-    const [player] = this.ecs.query([PlayerComponent, PositionComponent]);
+  getPlayerContainer() {
+    const [player] = this.ecs.query([PlayerComponent, HealthComponent]);
 
     if (typeof player === "undefined") {
+      return;
+    }
+
+    return this.ecs.getComponents(player);
+  }
+
+  shouldLevelBeCompleted() {
+    const playerContainer = this.getPlayerContainer();
+
+    if (!playerContainer) {
       return false;
     }
 
-    const playerContainer = this.ecs.getComponents(player);
-    if (!playerContainer) return;
-
+    const { endingScenario } = this.level;
     const enemies = this.ecs.query([EnemyComponent, HealthComponent]);
 
-    const ending = this.level.endingScenario
-    switch (ending.name) {
-      case "exitPosition":
+    switch (endingScenario.name) {
+      case "exit":
         return (
-            Math.floor(playerContainer.get(PositionComponent).x) ===
-            ending.position.x &&
-            Math.floor(playerContainer.get(PositionComponent).y) ===
-            ending.position.y
+            Math.floor(playerContainer.get(PositionComponent).x) === endingScenario.position.x &&
+            Math.floor(playerContainer.get(PositionComponent).y) === endingScenario.position.y
         );
-      case "killAllEnemy":
+      case "enemy":
         for (const enemy of enemies) {
           if (this.ecs.getComponents(enemy).get(HealthComponent).current > 0) {
             return false;
           }
         }
         return true;
-      case "surviveInTime":
-        if (this.state.timerTimeLeft !== undefined) {
-          return this.state.timerTimeLeft <= 0;
+      case "survive":
+        if (this.playerState.timeLeft !== undefined) {
+          return this.playerState.timeLeft <= 0;
         }
         return false;
-      default:
-        throw new Error('Unknown ending scenario');
     }
   }
 
   shouldLevelBeFailed() {
-    const [player] = this.ecs.query([PlayerComponent, HealthComponent]);
-    if (typeof player === "undefined") {
+    const playerContainer = this.getPlayerContainer();
+
+    if (!playerContainer) {
       return true;
     }
-
-    const playerContainer = this.ecs.getComponents(player);
-    if (!playerContainer) return true;
-
+    
     return playerContainer.get(HealthComponent).current <= 0;
   }
 
   onTick = (dt: number) => {
-    this.updateState(dt);
     this.ecs.update(dt);
+
+    this.updatePlayerView(dt);
 
     if (this.onCompleteCallback && this.shouldLevelBeCompleted()) {
       window.requestAnimationFrame(this.onCompleteCallback);
@@ -143,9 +157,41 @@ export default class LevelScene implements BaseScene {
     }
   };
 
-  updateState(dt: number) {
-    if (this.state.timerTimeLeft !== undefined) {
-      this.state.timerTimeLeft = Math.max(0, this.state.timerTimeLeft - dt);
+  updatePlayerView(dt: number) {
+    const playerContainer = this.getPlayerContainer();
+
+    if (!playerContainer) {
+      return;
+    }
+
+    const newHealth = playerContainer.get(HealthComponent).current;
+    const newAmmo = playerContainer.get(WeaponComponent).bulletTotal;
+    const newSoundMuted = this.soundManager.checkMuted();
+
+    let shouldRenderView = false;
+  
+    if (this.playerState.timeLeft) {
+      shouldRenderView = true;
+      this.playerState.timeLeft = Math.max(0, this.playerState.timeLeft - dt);
+    }
+
+    if (this.playerState.soundMuted !== newSoundMuted) {
+      shouldRenderView = true;
+      this.playerState.soundMuted = newSoundMuted;
+    }
+
+    if (this.playerState.health !== newHealth) {
+      shouldRenderView = true;
+      this.playerState.health = newHealth;
+    }
+
+    if (this.playerState.ammo !== newAmmo) {
+      shouldRenderView = true;
+      this.playerState.ammo = newAmmo;
+    }
+
+    if (shouldRenderView) {
+      this.levelPlayerView.render(this.playerState);
     }
   }
 
@@ -157,14 +203,40 @@ export default class LevelScene implements BaseScene {
     this.onFailedCallback = cb;
   };
 
+  toogleMusicControl() {
+    if (this.soundManager.checkMuted()) {
+      this.soundManager.unmute();
+    } else {
+      this.soundManager.mute();
+    }
+  }
+
+  handleDocumentKeypress = (e: KeyboardEvent) => {
+    if (e.code === KEY_CONTROL_PAUSE) {
+      this.toogleMusicControl();
+    }
+  };
+
+  createListeners() {
+    document.addEventListener("keypress", this.handleDocumentKeypress);
+  }
+
+  destroyListeners() {
+    document.removeEventListener("keypress", this.handleDocumentKeypress);
+  }
+
   start() {
     this.startedAt = +new Date();
     this.ecs.start();
     this.loop.play();
+    this.levelPlayerView.render(this.playerState);
+    this.createListeners();
   }
 
   destroy() {
     this.loop.pause();
     this.ecs.destroy();
+    this.levelPlayerView.destroy();
+    this.destroyListeners();
   }
 }

@@ -39,7 +39,7 @@ interface Enemy extends Character {
 type LevelMap = number[][];
 
 interface ExitEndingScenario {
-    name: 'exitPosition';
+    name: 'exit';
     position: {
         x: number;
         y: number;
@@ -47,11 +47,11 @@ interface ExitEndingScenario {
 }
 
 interface EnemyEndingScenario {
-    name: 'killAllEnemy';
+    name: 'enemy';
 }
 
 interface TimerEndingScenario {
-    name: 'surviveInTime';
+    name: 'survive';
     timer: number;
 }
 

@@ -84,7 +84,7 @@ const level: Level = {
     ...generateZombies(50, 17, 2, 1, 1, 2),
   ],
   endingScenario: {
-    name:'exitPosition',
+    name:'exit',
     position: {
       x: 22,
       y: 1,

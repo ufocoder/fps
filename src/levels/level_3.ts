@@ -43,7 +43,7 @@ const level: Level = {
     ...generateSoldiers(20, 8, 8, 1, 1, 5),
   ],
   endingScenario: {
-    name:'exitPosition',
+    name:'exit',
     position: {
       x: 18,
       y: 2,

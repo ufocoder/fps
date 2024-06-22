@@ -1,38 +1,20 @@
-import ECS from "src/lib/ecs/ExtendedECS";
-import System from "src/lib/ecs/System";
 import Canvas from "src/lib/Canvas/DefaultCanvas";
-import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
-import HealthComponent from "src/lib/ecs/components/HealthComponent";
-import WeaponComponent from "src/lib/ecs/components/WeaponComponent";
 import { lerp, minmax } from "src/lib/utils.ts";
-import { LevelState } from "src/scenes/LevelScene";
-import SoundManager from "src/managers/SoundManager";
+import { PlayerState } from "src/scenes/LevelScene";
 
-const pauseControlKey = "KeyM";
-
-export default class UISystem extends System {
-  public readonly componentsRequired = new Set([HealthComponent]);
-
+export default class LevelPlayerView { // Component not
   protected readonly width: number = 640;
   protected readonly height: number = 480;
 
   protected readonly canvas: Canvas;
   protected readonly container: HTMLElement;
-  protected readonly soundManager: SoundManager;
-  protected readonly levelState: LevelState;
 
   private readonly icons = ['health', 'bullets', 'timer'];
   private iconsImages: Record<string, HTMLImageElement> = {};
 
   constructor(
-      ecs: ECS,
       container: HTMLElement,
-      soundManager: SoundManager,
-      levelState: LevelState
   ) {
-    super(ecs);
-
-    this.levelState = levelState;
     this.container = container;
 
     this.canvas = new Canvas({
@@ -41,13 +23,8 @@ export default class UISystem extends System {
       width: this.width,
     });
 
-    this.soundManager = soundManager;
-  }
 
-  start() {
     this.container.appendChild(this.canvas.element);
-    this.canvas.element.requestPointerLock();
-    this.createListeners();
     this.loadIcons();
   }
 
@@ -59,52 +36,31 @@ export default class UISystem extends System {
     }
   }
 
-  toogleMusicControl() {
-    if (this.soundManager.checkMuted()) {
-      this.soundManager.unmute();
-    } else {
-      this.soundManager.mute();
-    }
-  }
 
-  handleDocumentKeypress = (e: KeyboardEvent) => {
-    if (e.code === pauseControlKey) {
-      this.toogleMusicControl();
-    }
-  };
-
-  createListeners() {
-    document.addEventListener("keypress", this.handleDocumentKeypress);
-  }
-
-  destroyListeners() {
-    document.removeEventListener("keypress", this.handleDocumentKeypress);
-  }
-
-  update() {
-    const [player] = this.ecs.query([PlayerComponent]);
-    const playerContainer = this.ecs.getComponents(player);
-    if (!playerContainer) return;
+  render(state: PlayerState) {
 
     this.canvas.clear();
 
     this.canvas.drawText({
       x: this.width - 10,
       y: 30,
-      text: this.soundManager.checkMuted() ? 'Music off' : 'Music on',
+      text: state.soundMuted ? 'Music off' : 'Music on',
       color: 'grey',
       align: 'right',
       font: '18px serif',
     });
 
-    const health = playerContainer.get(HealthComponent);
-    if (health) this.drawHealth(health.current, { x: 10, y: 10 });
+    
+    if (state.health) {
+      this.drawHealth(state.health, { x: 10, y: 10 });
+    }
 
-    const weapon = playerContainer.get(WeaponComponent);
-    if (weapon) this.drawAmmo(weapon.bulletTotal, { x: 10, y: 40 });
+    if (state.ammo) {
+      this.drawAmmo(state.ammo, { x: 10, y: 40 });
+    }
 
-    if (this.levelState.timerTimeLeft !== undefined) {
-      this.drawTimer(this.levelState.timerTimeLeft, { x: this.canvas.width / 2 - 50, y: 10 });
+    if (state.timeLeft !== undefined) {
+      this.drawTimer(state.timeLeft, { x: this.canvas.width / 2 - 50, y: 10 });
     }
   }
 
@@ -161,6 +117,5 @@ export default class UISystem extends System {
 
   destroy(): void {
     this.canvas.element.remove();
-    this.destroyListeners();
   }
 }

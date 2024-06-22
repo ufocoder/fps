@@ -21,7 +21,7 @@ import SpriteComponent from "./ecs/components/SpriteComponent";
 import PlayerComponent from "./ecs/components/PlayerComponent";
 import ItemComponent from "./ecs/components/ItemComponent";
 
-export function createEntities(
+export function createLevelEntities(
   ecs: ECS,
   level: Level,
   textureManager: TextureManager,
@@ -183,7 +183,7 @@ export function createEntities(
 
   // exit
 
-  if (level.endingScenario.name === 'exitPosition') {
+  if (level.endingScenario.name === 'exit') {
     const exit = ecs.addEntity();
 
     ecs.addComponent(exit, new BoxComponent(1));
