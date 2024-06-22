@@ -1,4 +1,4 @@
-import ECS from "src/lib/ecs/ExtendedECS";
+import ECS from "src/lib/ecs";
 import { Entity } from "src/lib/ecs/Entity";
 
 export default abstract class System {
