@@ -20,6 +20,7 @@ import WeaponComponent from "src/lib/ecs/components/WeaponComponent";
 import AnimationManager from "src/managers/AnimationManager";
 import TextureManager from "src/managers/TextureManager";
 import SpriteComponent from "../components/SpriteComponent";
+import EnemyComponent from "../components/EnemyComponent";
 
 export default class WeaponSystem extends System {
   public readonly componentsRequired = new Set([BulletComponent, CircleComponent]);
@@ -137,8 +138,10 @@ export default class WeaponSystem extends System {
   findBulletCollision(bullet: ComponentContainer, entities: Set<Entity>): Entity | undefined  {
     const bulletCircle = bullet.get(CircleComponent);
     const bulletPosition = bullet.get(PositionComponent);
-
     const bulletComponent = bullet.get(BulletComponent);
+
+    const entityFromComponentContainer = this.ecs.getComponents(bulletComponent.fromEntity);
+    const entityFromHasEnemy = entityFromComponentContainer.has(EnemyComponent);
 
     for (const entity of entities) {
       if (bulletComponent.fromEntity === entity) {
@@ -147,6 +150,12 @@ export default class WeaponSystem extends System {
       const container = this.ecs.getComponents(entity);
       const entityCircle = container.get(CircleComponent);
       const entityPosition = container.get(PositionComponent);
+      const hasEnemy = container.has(EnemyComponent);
+
+      if (hasEnemy && entityFromHasEnemy) {
+        continue;
+      }
+
       const d = distance(bulletPosition.x, bulletPosition.y, entityPosition.x, entityPosition.y);
 
       if (d <= bulletCircle.radius + entityCircle.radius) {
