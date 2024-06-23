@@ -1,7 +1,7 @@
 import MapTextureSystem from "../MapTextureSystem";
 import MapPolarSystem from "../MapPolarSystem";
 import { PolarPosition } from "src/lib/ecs/lib/PolarMap";
-import ECS from "src/lib/ecs/ExtendedECS";
+import ECS from "src/lib/ecs";
 import System from "src/lib/ecs/System";
 import { ComponentContainer } from "src/lib/ecs/Component";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
