@@ -210,8 +210,8 @@ export function createEntities(
       if (mapItem.type === 'wall') {
         ecs.addComponent(mapItemEntity, new MinimapComponent("grey"));
       } else if (mapItem.type === 'door') {
-        const [leftBloc, rightBloc] = [level.map[y][x - 1], level.map[y][x + 1]];
-        const isVerticalDoor =  level.mapEntities[leftBloc]?.type === 'empty' && level.mapEntities[rightBloc]?.type === 'empty' ;
+        const [aboveBloc, underBloc] = [level.map[y - 1][x], level.map[y + 1][x]];
+        const isVerticalDoor =  level.mapEntities[aboveBloc]?.type === 'wall' && level.mapEntities[underBloc]?.type === 'wall' ;
         ecs.addComponent(mapItemEntity, new DoorComponent(false, isVerticalDoor));
 
         ecs.addComponent(mapItemEntity, new MinimapComponent("blue"));
