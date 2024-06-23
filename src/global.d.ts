@@ -36,14 +36,25 @@ interface Enemy extends Сharacter {
     }
 }
 
-type LevelMap = number[][];
+type LevelMap = (number | string)[][];
+
+type Empty = {
+    type: 'empty';
+}
+type Wall = {
+    type: 'wall',
+    texture: string
+}
+type Door = {
+    type: 'door',
+    texture: string
+}
+
+type MapEntity = Empty | Wall | Door;
 
 interface Level {
     map: LevelMap;
-    mapEntities: Record<number, {
-        type: 'wall' | 'door',
-        texture: string
-    }>;
+    mapEntities: Record<number | string, MapEntity>;
     player: Сharacter;
     music?: string;
     enemies?: Enemy[];

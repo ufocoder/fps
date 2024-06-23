@@ -195,11 +195,11 @@ export function createEntities(
   // walls
   level.map.forEach((row, y) => {
     row.forEach((col, x) => {
-      if (col === 0) {
+      const mapItem = level.mapEntities[col];
+      if (mapItem.type === 'empty') {
         return;
       }
       const mapItemEntity = ecs.addEntity();
-      const mapItem = level.mapEntities[col];
       const texture = textureManager.get(mapItem.texture);
 
       ecs.addComponent(mapItemEntity, new BoxComponent(1));
@@ -210,8 +210,8 @@ export function createEntities(
       if (mapItem.type === 'wall') {
         ecs.addComponent(mapItemEntity, new MinimapComponent("grey"));
       } else if (mapItem.type === 'door') {
-        const [aboveBloc, underBloc] = [level.map[y + 1][x], level.map[y - 1][x]];
-        const isVerticalDoor =  level.mapEntities[aboveBloc]?.type === 'wall' && level.mapEntities[underBloc]?.type === 'wall';
+        const [leftBloc, rightBloc] = [level.map[y][x - 1], level.map[y][x + 1]];
+        const isVerticalDoor =  level.mapEntities[leftBloc]?.type === 'empty' && level.mapEntities[rightBloc]?.type === 'empty' ;
         ecs.addComponent(mapItemEntity, new DoorComponent(false, isVerticalDoor));
 
         ecs.addComponent(mapItemEntity, new MinimapComponent("blue"));

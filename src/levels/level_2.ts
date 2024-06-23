@@ -22,11 +22,12 @@ const level: Level = {
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1],
   ],
   mapEntities: {
-    1: {type: 'wall', texture: "TECH_1C" },
-    2: {type: 'wall', texture: "TECH_1E" },
-    3: {type: 'wall', texture: "TECH_2F" },
-    4: {type: 'wall', texture: "DOOR_1A" },
-    5: {type: 'wall', texture: "DOOR_1E" },
+    0: {type:'empty'},
+    1: {type:'wall', texture: "TECH_1C" },
+    2: {type:'wall', texture: "TECH_1E" },
+    3: {type:'wall', texture: "TECH_2F" },
+    4: {type:'wall', texture: "DOOR_1A" },
+    5: {type:'wall', texture: "DOOR_1E" },
   },
   player: {
     x: 1.5,
