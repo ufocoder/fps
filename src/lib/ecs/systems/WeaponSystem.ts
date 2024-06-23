@@ -10,7 +10,7 @@ import BulletComponent from "src/lib/ecs/components/BulletComponent";
 import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
 import CircleComponent from "src/lib/ecs/components/CircleComponent";
 import CollisionComponent from "src/lib/ecs//components/CollisionComponent";
-import ECS from "src/lib/ecs/ExtendedECS";
+import ECS from "src/lib/ecs";
 import HealthComponent from "src/lib/ecs/components/HealthComponent";
 import MinimapComponent from "src/lib/ecs/components/MinimapComponent";
 import MoveComponent, { MainDirection } from "src/lib/ecs/components/MoveComponent";

@@ -1,4 +1,4 @@
-import ECS from "src/lib/ecs/ExtendedECS";
+import ECS from "src/lib/ecs";
 import { Entity } from "src/lib/ecs/Entity";
 import System from "src/lib/ecs/System";
 import MoveComponent, {

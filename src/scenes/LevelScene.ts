@@ -1,5 +1,5 @@
 import BaseScene from "./BaseScene";
-import ECS from "src/lib/ecs/ExtendedECS";
+import ECS from "src/lib/ecs";
 import createLoop, { Loop } from "src/lib/loop.ts";
 import { createLevelEntities } from "src/lib/scenario";
 import SoundManager from "src/managers/SoundManager";
