@@ -1,4 +1,4 @@
-import { generateAmmo, generateSoldier, generateSoldiers, generateZombies } from "./generators";
+import { generateAmmo, generateSoldier, generateZombies } from "./generators";
 
 const level: Level = {
   world: {
@@ -42,14 +42,13 @@ const level: Level = {
   enemies: [
     generateSoldier(18, 1.75, 4),
     generateSoldier(18, 3.25, 4),
-    ...generateSoldiers(4, 17.5, 4, 1, 1, 4),
     ...generateZombies(10, 6, 2.5, 0.75, 0.75, 2),
     ...generateZombies(10, 9.5, 4.5, 1, 0.75, 2),
     ...generateZombies(10, 13, 2.5, 0.75, 0.75, 2),
   ],
-  exit: {
-    x: 18,
-    y: 2,
+  endingScenario: {
+    name:'exit',
+    position: { x: 18, y: 2 }
   },
 };
 

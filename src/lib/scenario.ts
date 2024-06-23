@@ -22,7 +22,7 @@ import PlayerComponent from "./ecs/components/PlayerComponent";
 import ItemComponent from "./ecs/components/ItemComponent";
 import DoorComponent from "src/lib/ecs/components/DoorComponent.ts";
 
-export function createEntities(
+export function createLevelEntities(
   ecs: ECS,
   level: Level,
   textureManager: TextureManager,
@@ -34,7 +34,7 @@ export function createEntities(
   ecs.addComponent(player, new PlayerComponent());
   ecs.addComponent(player, new ControlComponent());
   ecs.addComponent(player, new CircleComponent(0.4));
-  ecs.addComponent(player, new WeaponComponent('pistol_bullet', 30, 100, 15, 1_000));
+  ecs.addComponent(player, new WeaponComponent('pistol_bullet', 30, 100, 15, 250));
   ecs.addComponent(
     player,
     new PositionComponent(level.player.x, level.player.y)
@@ -184,11 +184,11 @@ export function createEntities(
 
   // exit
 
-  if (level.exit) {
+  if (level.endingScenario.name === 'exit') {
     const exit = ecs.addEntity();
 
     ecs.addComponent(exit, new BoxComponent(1));
-    ecs.addComponent(exit, new PositionComponent(level.exit.x, level.exit.y));
+    ecs.addComponent(exit, new PositionComponent(level.endingScenario.position.x, level.endingScenario.position.y));
     ecs.addComponent(exit, new MinimapComponent("yellow"));
   }
 

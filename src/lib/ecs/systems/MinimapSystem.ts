@@ -5,7 +5,7 @@ import BoxComponent from "src/lib/ecs/components/BoxComponent";
 import CircleComponent from "src/lib/ecs/components/CircleComponent";
 import MinimapComponent from "src/lib/ecs/components/MinimapComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
-import ECS from "src/lib/ecs/ExtendedECS";
+import ECS from "src/lib/ecs";
 
 export default class MinimapSystem extends System {
   public readonly componentsRequired = new Set([MinimapComponent, PositionComponent]);

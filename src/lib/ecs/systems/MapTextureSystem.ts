@@ -1,4 +1,4 @@
-import ECS from "src/lib/ecs/ExtendedECS";
+import ECS from "src/lib/ecs";
 import System from "src/lib/ecs/System";
 import { ComponentContainer } from "src/lib/ecs/Component";
 import PositionMap from "src/lib/ecs/lib/PositionMap";
@@ -45,7 +45,7 @@ export default class MapTextureSystem extends System {
       );
     });
 
-    this.ecs.onComponentDelete(PositionComponent, (entity) => {
+    this.ecs.onComponentRemove(PositionComponent, (entity) => {
       const container = this.ecs.getComponents(entity);
       const position = container.get(PositionComponent);
 

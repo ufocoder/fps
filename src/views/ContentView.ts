@@ -1,6 +1,6 @@
 import Canvas from "src/lib/Canvas/DefaultCanvas";
 
-export default class TextContent {
+export default class ContentView {
     readonly title: string;
     readonly subtitle: string[];
     readonly canvas: Canvas;
@@ -47,8 +47,6 @@ export default class TextContent {
         } else {
             this.renderText(this.height / 2, 40, this.title)
         }
-
-        
     }
 }
 

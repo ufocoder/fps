@@ -14,14 +14,14 @@ interface Item {
 }
 
 
-interface Сharacter {
+interface Character {
     x: number;
     y: number;
     angle: number;
     health: number;
 }
 
-interface Enemy extends Сharacter {
+interface Enemy extends Character {
     type: 'zombie' | 'flyguy' | 'soldier' | 'commando' | 'tank' | 'slayer';
     sprite: string;
     radius: number;
@@ -52,23 +52,37 @@ type Door = {
 
 type MapEntity = Empty | Wall | Door;
 
+interface ExitEndingScenario {
+    name: 'exit';
+    position: {
+        x: number;
+        y: number;
+    }
+}
+
+interface EnemyEndingScenario {
+    name: 'enemy';
+}
+
+interface TimerEndingScenario {
+    name: 'survive';
+    timer: number;
+}
+
 interface Level {
     map: LevelMap;
     mapEntities: Record<number | string, MapEntity>;
-    player: Сharacter;
+    player: Character;
     music?: string;
     enemies?: Enemy[];
     items?: Item[];
-    exit?: {
-        x: number;
-        y: number;
-    };
     world: {
         colors: {
             top: Color;
             bottom: Color;
         }
     }
+    endingScenario: ExitEndingScenario | EnemyEndingScenario | TimerEndingScenario;
 }
 
 interface TexturePreset {
@@ -111,3 +125,10 @@ type Vector2D = {
     x: number;
     y: number;
 }
+
+type PlayerState = {
+    ammo?: number;
+    health: number;
+    soundMuted: boolean;
+    timeLeft?: number;
+  };

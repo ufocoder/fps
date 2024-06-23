@@ -55,6 +55,10 @@ const level: Level = {
     generateTank(8, 2, 6),
     generateTank(8, 8, 6),
   ],
+  endingScenario: {
+    name: 'survive',
+    timer: 30,
+  },
 };
 
 export default level;

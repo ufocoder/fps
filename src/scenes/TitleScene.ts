@@ -1,14 +1,14 @@
-import TextContent from "src/views/TextContent";
+import ContentView from "src/views/ContentView";
 import BaseScene from "./BaseScene";
 
 export default class TitleScene implements BaseScene {
-    protected readonly view: TextContent;
+    protected readonly view: ContentView;
     protected readonly container: HTMLElement;
     protected onCompleteCallback?: () => void;
 
     constructor(container: HTMLElement, title: string, subtitle?: string[]) {
         this.container = container;
-        this.view = new TextContent(title, subtitle);
+        this.view = new ContentView(title, subtitle);
         this.createListeners();
     }
 

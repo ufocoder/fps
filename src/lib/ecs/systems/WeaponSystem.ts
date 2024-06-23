@@ -10,7 +10,7 @@ import BulletComponent from "src/lib/ecs/components/BulletComponent";
 import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
 import CircleComponent from "src/lib/ecs/components/CircleComponent";
 import CollisionComponent from "src/lib/ecs//components/CollisionComponent";
-import ECS from "src/lib/ecs/ExtendedECS";
+import ECS from "src/lib/ecs";
 import HealthComponent from "src/lib/ecs/components/HealthComponent";
 import MinimapComponent from "src/lib/ecs/components/MinimapComponent";
 import MoveComponent, { MainDirection } from "src/lib/ecs/components/MoveComponent";
@@ -20,6 +20,7 @@ import WeaponComponent from "src/lib/ecs/components/WeaponComponent";
 import AnimationManager from "src/managers/AnimationManager";
 import TextureManager from "src/managers/TextureManager";
 import SpriteComponent from "../components/SpriteComponent";
+import EnemyComponent from "../components/EnemyComponent";
 
 export default class WeaponSystem extends System {
   public readonly componentsRequired = new Set([BulletComponent, CircleComponent]);
@@ -110,6 +111,7 @@ export default class WeaponSystem extends System {
       }
 
       const entityHealth = entityContainer.get(HealthComponent);
+      if (!entityHealth) return;
       const entityAnimation = entityContainer.get(AnimatedSpriteComponent);
 
       if (entityHealth.current > 0) {
@@ -136,16 +138,24 @@ export default class WeaponSystem extends System {
   findBulletCollision(bullet: ComponentContainer, entities: Set<Entity>): Entity | undefined  {
     const bulletCircle = bullet.get(CircleComponent);
     const bulletPosition = bullet.get(PositionComponent);
-
     const bulletComponent = bullet.get(BulletComponent);
+
+    const entityFromComponentContainer = this.ecs.getComponents(bulletComponent.fromEntity);
+    const entityFromHasEnemy = entityFromComponentContainer.has(EnemyComponent);
 
     for (const entity of entities) {
       if (bulletComponent.fromEntity === entity) {
         continue;
-      } 
+      }
       const container = this.ecs.getComponents(entity);
       const entityCircle = container.get(CircleComponent);
       const entityPosition = container.get(PositionComponent);
+      const hasEnemy = container.has(EnemyComponent);
+
+      if (hasEnemy && entityFromHasEnemy) {
+        continue;
+      }
+
       const d = distance(bulletPosition.x, bulletPosition.y, entityPosition.x, entityPosition.y);
 
       if (d <= bulletCircle.radius + entityCircle.radius) {
