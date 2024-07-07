@@ -22,6 +22,7 @@ import EnemyComponent from "src/lib/ecs/components/EnemyComponent";
 import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
 import WeaponRangeComponent from "src/lib/ecs/components/WeaponRangeComponent";
 import LevelPlayerView from "src/views/LevelPlayerView";
+import DoorsSystem from "src/lib/ecs/systems/DoorsSystem.ts";
 
 const KEY_CONTROL_PAUSE = "KeyM";
 
@@ -78,6 +79,7 @@ export default class LevelScene implements BaseScene {
     ecs.addSystem(new AISystem(ecs, textureManager, soundManager));
     ecs.addSystem(new WeaponSystem(ecs, container, animationManager, textureManager, soundManager));
     ecs.addSystem(new RotateSystem(ecs));
+    ecs.addSystem(new DoorsSystem(ecs));
     ecs.addSystem(new RenderSystem(ecs, container, level, textureManager));
     ecs.addSystem(new MinimapSystem(ecs, container, level));
 
@@ -132,7 +134,7 @@ export default class LevelScene implements BaseScene {
     if (!playerContainer) {
       return true;
     }
-    
+
     return playerContainer.get(HealthComponent).current <= 0;
   }
 
@@ -162,7 +164,7 @@ export default class LevelScene implements BaseScene {
     const newSoundMuted = this.soundManager.checkMuted();
 
     let shouldRenderView = false;
-  
+
     if (this.playerState.timeLeft) {
       shouldRenderView = true;
       this.playerState.timeLeft = Math.max(0, this.playerState.timeLeft - dt);

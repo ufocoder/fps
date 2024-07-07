@@ -42,7 +42,21 @@ interface Enemy extends Character {
     }
 }
 
-type LevelMap = number[][];
+type LevelMap = (number | string)[][];
+
+type Empty = {
+    type: 'empty';
+}
+type Wall = {
+    type: 'wall',
+    texture: string
+}
+type Door = {
+    type: 'door',
+    texture: string
+}
+
+type MapEntity = Empty | Wall | Door;
 
 interface ExitEndingScenario {
     name: 'exit';
@@ -63,7 +77,7 @@ interface TimerEndingScenario {
 
 interface Level {
     map: LevelMap;
-    textures: Record<number, string>;
+    mapEntities: Record<number | string, MapEntity>;
     player: Character;
     music?: string;
     enemies?: Enemy[];
@@ -119,7 +133,7 @@ type Vector2D = {
 }
 
 type PlayerState = {
-    ammo?: number; 
+    ammo?: number;
     health: number;
     soundMuted: boolean;
     timeLeft?: number;

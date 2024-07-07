@@ -21,6 +21,7 @@ import CollisionComponent from "./ecs/components/CollisionComponent";
 import SpriteComponent from "./ecs/components/SpriteComponent";
 import PlayerComponent from "./ecs/components/PlayerComponent";
 import ItemComponent from "./ecs/components/ItemComponent";
+import DoorComponent from "src/lib/ecs/components/DoorComponent.ts";
 
 export function createLevelEntities(
   ecs: ECS,
@@ -195,18 +196,27 @@ export function createLevelEntities(
   // walls
   level.map.forEach((row, y) => {
     row.forEach((col, x) => {
-      if (col === 0) {
+      const mapItem = level.mapEntities[col];
+      if (mapItem.type === 'empty') {
         return;
       }
-      const wall = ecs.addEntity();
+      const mapItemEntity = ecs.addEntity();
+      const texture = textureManager.get(mapItem.texture);
 
-      const textureName = level.textures[col];
-      const texture = textureManager.get(textureName);
+      ecs.addComponent(mapItemEntity, new BoxComponent(1));
+      ecs.addComponent(mapItemEntity, new PositionComponent(x, y));
+      ecs.addComponent(mapItemEntity, new TextureComponent(texture));
 
-      ecs.addComponent(wall, new BoxComponent(1));
-      ecs.addComponent(wall, new PositionComponent(x, y));
-      ecs.addComponent(wall, new TextureComponent(texture));
-      ecs.addComponent(wall, new MinimapComponent("grey"));
+
+      if (mapItem.type === 'wall') {
+        ecs.addComponent(mapItemEntity, new MinimapComponent("grey"));
+      } else if (mapItem.type === 'door') {
+        const [aboveBloc, underBloc] = [level.map[y - 1][x], level.map[y + 1][x]];
+        const isVerticalDoor =  level.mapEntities[aboveBloc]?.type === 'wall' && level.mapEntities[underBloc]?.type === 'wall' ;
+        ecs.addComponent(mapItemEntity, new DoorComponent(false, isVerticalDoor));
+
+        ecs.addComponent(mapItemEntity, new MinimapComponent("blue"));
+      }
     });
   });
 }
