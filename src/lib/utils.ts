@@ -30,7 +30,6 @@ export function lerp(from: number, to: number, percent: number) {
     return from + (to - from) * val;
 }
 
-
 export class Vec2D implements Vector2D {
     private constructor(public x: number, public y: number) {}
 
@@ -59,9 +58,11 @@ export class Vec2D implements Vector2D {
     subtract(vec: Vector2D): Vec2D {
         return Vec2D.from(this.x - vec.x, this.y - vec.y);
     }
+
     subtractX(x: number): Vec2D {
         return Vec2D.from(this.x - x, this.y);
     }
+
     subtractY(y: number): Vec2D {
         return Vec2D.from(this.x, this.y - y);
     }

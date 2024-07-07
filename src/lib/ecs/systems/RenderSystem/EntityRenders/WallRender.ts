@@ -1,10 +1,8 @@
-import { EntityRender } from "src/lib/ecs/systems/RenderSystem/EntityRenders/IEntityRender.ts";
+import EntityRender from "src/lib/ecs/systems/RenderSystem/EntityRenders/EntityRender.ts";
 import { ComponentContainer } from "src/lib/ecs/Component.ts";
 import TextureComponent from "src/lib/ecs/components/TextureComponent.ts";
 
-import { drawTextureLine } from "./utils";
-
-export class WallRender extends EntityRender {
+export default class WallRender extends EntityRender {
     canRender(mapEntity: ComponentContainer): boolean {
         return mapEntity.has(TextureComponent);
     }
@@ -18,7 +16,8 @@ export class WallRender extends EntityRender {
         const texturePositionX = Math.floor(
             (texture.width * (rayX + rayY)) % texture.width
         );
-        drawTextureLine(
+
+        this.drawTextureLine(
             screenX,
             texturePositionX,
             texture,

@@ -2,12 +2,11 @@ import { ComponentContainer } from "src/lib/ecs/Component.ts";
 import TextureComponent from "src/lib/ecs/components/TextureComponent.ts";
 import DoorComponent from "src/lib/ecs/components/DoorComponent.ts";
 import PositionComponent from "src/lib/ecs/components/PositionComponent.ts";
-import { EntityRender } from "src/lib/ecs/systems/RenderSystem/EntityRenders/IEntityRender.ts";
+import EntityRender from "src/lib/ecs/systems/RenderSystem/EntityRenders/EntityRender.ts";
 
 import { Vec2D } from "src/lib/utils.ts";
-import { drawTextureLine } from "./utils";
 
-export class DoorRender extends EntityRender {
+export default class DoorRender extends EntityRender {
     private doorWidth = 0.05;
 
     canRender(mapEntity: ComponentContainer): boolean {
@@ -43,7 +42,7 @@ export class DoorRender extends EntityRender {
             (texture.width * (rayX + textureOffset.x + rayY + textureOffset.y)) % texture.width
         );
 
-        drawTextureLine(
+        this.drawTextureLine(
             screenX,
             texturePositionX,
             texture,

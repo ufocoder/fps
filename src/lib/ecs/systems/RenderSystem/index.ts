@@ -15,9 +15,9 @@ import TextureManager from "src/managers/TextureManager";
 
 import { degreeToRadians, distance, normalizeAngle } from "src/lib/utils";
 
-import { EntityRender } from "src/lib/ecs/systems/RenderSystem/EntityRenders/IEntityRender.ts";
-import { WallRender } from "./EntityRenders/WallRender.ts";
-import { DoorRender } from "./EntityRenders/DoorRender.ts";
+import EntityRender from "src/lib/ecs/systems/RenderSystem/EntityRenders/EntityRender.ts";
+import WallRender from "./EntityRenders/WallRender.ts";
+import DoorRender from "./EntityRenders/DoorRender.ts";
 
 export default class RenderSystem extends System {
     public readonly componentsRequired = new Set([PositionComponent]);
