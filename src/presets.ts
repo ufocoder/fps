@@ -47,6 +47,10 @@ export const sprites: SpritePreset[] = [
     url: './assets/items/health_pack.png'
   },
   {
+    id: 'pistol',
+    url: './assets/items/pistol.png'
+  },
+  {
     id: 'ammo',
     url: './assets/items/ammo.png'
   },
@@ -61,6 +65,22 @@ export const sprites: SpritePreset[] = [
 ];
 
 export const animation: AnimationSpritePreset[] = [
+  {
+    id: "knifeIdle",
+    frames: [
+      "./assets/weapons/knife_1.png",
+    ],
+  },
+  {
+    id: "knifeAttack",
+    frames: [
+      "./assets/weapons/knife_1.png",
+      "./assets/weapons/knife_2.png",
+      "./assets/weapons/knife_3.png",
+      "./assets/weapons/knife_4.png",
+      "./assets/weapons/knife_5.png",
+    ],
+  },
   {
     id: "pistolIdle",
     frames: [
@@ -279,7 +299,8 @@ export const sounds: SoundPreset[] = [
     'pick',
     'gun-shot',
     'lazer-shot',
-    'zombie-attack'
+    'attack-zombie',
+    'attack-knife',
   ].map(id => ({
     id,
     url: `./assets/sounds/${id}.mp3`,

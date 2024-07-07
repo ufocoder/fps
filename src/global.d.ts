@@ -5,10 +5,12 @@ interface Color {
     a: number;
 }
 
+type ItemType = 'health_pack' | 'pistol' | 'ammo'
+
 interface Item {
     x: number;
     y: number;
-    type: "health_pack" | "ammo";
+    type: ItemType;
     radius: number;
     value: number;
 }
@@ -26,8 +28,12 @@ interface Enemy extends Character {
     sprite: string;
     radius: number;
     aiDistance?: number;
-    weapon?: {
-        bulletSpriteId: string;
+    meleeWeapon?: {
+        damage: number;
+        frequency: number;
+    }
+    rangeWeapon?: {
+        bulletSprite: string;
         bulletTotal: number;
         bulletSpeed: number;
         bulletDamage: number;

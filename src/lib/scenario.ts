@@ -15,7 +15,8 @@ import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import RotateComponent from "src/lib/ecs/components/RotateComponent";
 import TextureComponent from "src/lib/ecs/components/TextureComponent";
 import TextureManager from "src/managers/TextureManager";
-import WeaponComponent from "./ecs/components/WeaponComponent";
+import WeaponMeleeComponent from "./ecs/components/WeaponMeleeComponent";
+import WeaponRangeComponent from "./ecs/components/WeaponRangeComponent";
 import CollisionComponent from "./ecs/components/CollisionComponent";
 import SpriteComponent from "./ecs/components/SpriteComponent";
 import PlayerComponent from "./ecs/components/PlayerComponent";
@@ -33,7 +34,14 @@ export function createLevelEntities(
   ecs.addComponent(player, new PlayerComponent());
   ecs.addComponent(player, new ControlComponent());
   ecs.addComponent(player, new CircleComponent(0.4));
-  ecs.addComponent(player, new WeaponComponent('pistol_bullet', 30, 100, 15, 250));
+  ecs.addComponent(player, new WeaponMeleeComponent({
+    sprite: new AnimatedSpriteComponent('idle', {
+      attack: animationManager.get("knifeAttack"),
+      idle: animationManager.get("knifeIdle"),
+    }),
+    attackDamage: 30, 
+    attackFrequency: 500,
+  }));
   ecs.addComponent(
     player,
     new PositionComponent(level.player.x, level.player.y)
@@ -58,22 +66,8 @@ export function createLevelEntities(
     ecs.addComponent(entity, new CircleComponent(item.radius));
     ecs.addComponent(entity, new MinimapComponent("orange"));
 
-    switch (item.type) {
-      case "health_pack":
-        ecs.addComponent(entity, new ItemComponent('health_pack', item.value));
-        ecs.addComponent(
-          entity,
-          new SpriteComponent(textureManager.get("health_pack"))
-        );
-        break;
-      case "ammo":
-        ecs.addComponent(entity, new ItemComponent('ammo', item.value));
-        ecs.addComponent(
-          entity,
-          new SpriteComponent(textureManager.get("ammo"))
-        );
-        break;
-    }
+    ecs.addComponent(entity, new SpriteComponent(textureManager.get(item.type)));
+    ecs.addComponent(entity, new ItemComponent(item.type, item.value));
   });
 
   // enemies
@@ -94,15 +88,22 @@ export function createLevelEntities(
       ecs.addComponent(entity, new AIComponent(enemy.aiDistance));
     }
 
-    if (enemy.weapon) {
-      ecs.addComponent(entity, new WeaponComponent(
-        enemy.weapon.bulletSpriteId,
-        Infinity,
-        enemy.weapon.bulletDamage,
-        enemy.weapon.bulletSpeed,
-        enemy.weapon.attackDistance,
-        enemy.weapon.attackFrequency
-      ));
+    if (enemy.rangeWeapon) {
+      ecs.addComponent(entity, new WeaponRangeComponent({
+        bulletSprite: enemy.rangeWeapon.bulletSprite,
+        bulletTotal: Infinity,
+        bulletDamage: enemy.rangeWeapon.bulletDamage,
+        bulletSpeed: enemy.rangeWeapon.bulletSpeed,
+        attackDistance: enemy.rangeWeapon.attackDistance,
+        attackFrequency: enemy.rangeWeapon.attackFrequency,
+      }));
+    }
+
+    if (enemy.meleeWeapon) {
+      ecs.addComponent(entity, new WeaponMeleeComponent({
+        attackDamage: enemy.meleeWeapon.damage,
+        attackFrequency: enemy.meleeWeapon.frequency,
+      }));
     }
 
     switch (enemy.type) {

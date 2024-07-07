@@ -20,7 +20,7 @@ import MapPolarSystem from "src/lib/ecs/systems/MapPolarSystem";
 import MapTextureSystem from "src/lib/ecs/systems/MapTextureSystem";
 import EnemyComponent from "src/lib/ecs/components/EnemyComponent";
 import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
-import WeaponComponent from "src/lib/ecs/components/WeaponComponent";
+import WeaponRangeComponent from "src/lib/ecs/components/WeaponRangeComponent";
 import LevelPlayerView from "src/views/LevelPlayerView";
 
 const KEY_CONTROL_PAUSE = "KeyM";
@@ -71,7 +71,7 @@ export default class LevelScene implements BaseScene {
 
     ecs.addSystem(new MapTextureSystem(ecs, level));
     ecs.addSystem(new MapPolarSystem(ecs));
-    ecs.addSystem(new MapItemSystem(ecs, soundManager));
+    ecs.addSystem(new MapItemSystem(ecs, animationManager, soundManager));
     ecs.addSystem(new ControlSystem(ecs, container));
     ecs.addSystem(new MoveSystem(ecs));
     ecs.addSystem(new AnimationSystem(ecs));
@@ -158,7 +158,7 @@ export default class LevelScene implements BaseScene {
     }
 
     const newHealth = playerContainer.get(HealthComponent).current;
-    const newAmmo = playerContainer.get(WeaponComponent).bulletTotal;
+    const newAmmo = playerContainer.get(WeaponRangeComponent)?.bulletTotal || 0;
     const newSoundMuted = this.soundManager.checkMuted();
 
     let shouldRenderView = false;

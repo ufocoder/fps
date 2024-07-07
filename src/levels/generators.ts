@@ -4,6 +4,15 @@ const random = (from: number, to: number) => {
   return from + Math.random() * (to - from);
 };
 
+export const generatePistol = (x: number, y: number, value: number) =>
+  ({ 
+    type: 'pistol',
+    radius: 0.3,
+    x,
+    y,
+    value,
+  }) as Item;
+
 export const generateAmmo = (x: number, y: number, value: number) =>
   ({ 
     type: 'ammo',
@@ -57,11 +66,9 @@ export const generateZombie = (x: number, y: number, aiDistance: number = 0) =>
     type: "zombie",
     health: 100,
     radius: 0.4,
-    weapon: {
-      bulletDamage: 5,
-      bulletSpeed: 0,
-      attackDistance: 0,
-      attackFrequency: 1_000,
+    meleeWeapon: {
+      damage: 5,
+      frequency: 1_000,
     },
   }) as Enemy;
 
@@ -74,8 +81,8 @@ export const generateFlyguy = (x: number, y: number, aiDistance: number = 0) =>
     type: "flyguy",
     health: 150,
     radius: 0.4,
-    weapon: {
-      bulletSpriteId: 'pistol_bullet',
+    rangeWeapon: {
+      bulletSprite: 'pistol_bullet',
       bulletDamage: 5,
       bulletSpeed: 8,
       attackDistance: 2,
@@ -91,8 +98,8 @@ export const generateSoldier = (x: number, y: number, aiDistance: number = 0) =>
     type: "soldier",
     health: 200,
     radius: 0.4,
-    weapon: {
-      bulletSpriteId: 'shotgun_bullet',
+    rangeWeapon: {
+      bulletSprite: 'shotgun_bullet',
       bulletDamage: 10,
       bulletSpeed: 6,
       attackDistance: 2,
@@ -108,8 +115,8 @@ export const generateCommando = (x: number, y: number, aiDistance: number = 0) =
     type: "commando",
     health: 500,
     radius: 0.6,
-    weapon: {
-      bulletSpriteId: 'shotgun_bullet',
+    rangeWeapon: {
+      bulletSprite: 'shotgun_bullet',
       bulletDamage: 15,
       bulletSpeed: 7,
       attackDistance: 3,
@@ -125,8 +132,8 @@ export const generateTank = (x: number, y: number, aiDistance: number = 0) =>
     type: "tank",
     health: 2000,
     radius: 0.4,
-    weapon: {
-      bulletSpriteId: 'shotgun_bullet',
+    rangeWeapon: {
+      bulletSprite: 'shotgun_bullet',
       bulletDamage: 25,
       bulletSpeed: 5,
       attackDistance: 3,
