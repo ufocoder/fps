@@ -37,7 +37,7 @@ export class Vec2D implements Vector2D {
     static from(x: number, y: number) {
         return new Vec2D(x, y);
     }
-    static fromObj(cords: Vec2D) {
+    static fromObj(cords: Vector2D) {
         return new Vec2D(cords.x, cords.y);
     }
 
@@ -76,6 +76,11 @@ export class Vec2D implements Vector2D {
 
     magnitude(): number {
         return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
+    }
+
+    unit() {
+        const mag = this.magnitude();
+        return Vec2D.from(this.x / mag, this.y / mag);
     }
 
     isEqual(vec: Vector2D) {

@@ -6,11 +6,13 @@ import CircleComponent from "src/lib/ecs/components/CircleComponent";
 import MinimapComponent from "src/lib/ecs/components/MinimapComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import ECS from "src/lib/ecs";
+import LightComponent from "src/lib/ecs/components/LightComponent.ts";
+import LightSystem from "src/lib/ecs/systems/LightSystem.ts";
 
 export default class MinimapSystem extends System {
   public readonly componentsRequired = new Set([MinimapComponent, PositionComponent]);
 
-  protected readonly scale: number = 10;
+  protected readonly scale: number = 20;
   protected readonly canvas: Canvas;
   protected readonly container: HTMLElement;
 
@@ -26,7 +28,7 @@ export default class MinimapSystem extends System {
       id: 'minimap',
       height: rows * this.scale,
       width: cols * this.scale,
-    }); 
+    });
   }
 
   start() {
@@ -41,6 +43,31 @@ export default class MinimapSystem extends System {
       const components = this.ecs.getComponents(entity);
       const { x, y } = components.get(PositionComponent);
       const { color } = components.get(MinimapComponent);
+
+      const listOfLightnings = this.ecs.getSystem(LightSystem)?.listOfLightnings;
+
+      if (components.has(LightComponent) && listOfLightnings) {
+        const lightInfo = listOfLightnings.find(el => el.entity === entity);
+        if (!lightInfo) return;
+
+        // const scale = lightInfo.lightCasting.lightMap.scale;
+        const scale = 2;
+        const distance = lightInfo.cmp.distance;
+
+        for (let i = -distance; i < distance; i = i + 1/scale) {
+          for (let j = -distance; j < distance; j = j + 1/scale) {
+            const px = ( i + distance ) /(  distance * 2 );
+            const py = ( j + distance ) / ( distance * 2 );
+            const lightPower = lightInfo.lightCasting.lightMap.getInPercents(px, py);
+            this.drawSquare(
+                lightInfo.lightCasting.emitterPosition.x + i,
+                lightInfo.lightCasting.emitterPosition.y + j,
+                1/scale,
+                `rgba(255, 255, 255, ${lightPower})`
+            );
+          }
+        }
+      }
 
       if (components.has(BoxComponent)) {
         const { size } = components.get(BoxComponent);

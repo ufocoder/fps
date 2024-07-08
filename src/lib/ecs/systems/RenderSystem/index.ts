@@ -18,6 +18,8 @@ import { degreeToRadians, distance, normalizeAngle } from "src/lib/utils";
 import { EntityRender } from "src/lib/ecs/systems/RenderSystem/EntityRenders/IEntityRender.ts";
 import { WallRender } from "./EntityRenders/WallRender.ts";
 import { DoorRender } from "./EntityRenders/DoorRender.ts";
+import { applyLight } from "src/lib/ecs/systems/RenderSystem/light.ts";
+import LightSystem from "src/lib/ecs/systems/LightSystem.ts";
 
 export default class RenderSystem extends System {
     public readonly componentsRequired = new Set([PositionComponent]);
@@ -26,6 +28,10 @@ export default class RenderSystem extends System {
     protected readonly height: number = 480;
     protected readonly rayMaxDistanceRay = 20;
     protected readonly rayPrecision = 128;
+    protected player = {
+        pos: {x: 0, y: 0},
+        angle: 0
+    };
 
     protected readonly level: Level;
     protected readonly canvas: Canvas;
@@ -33,6 +39,8 @@ export default class RenderSystem extends System {
     protected readonly textureManager: TextureManager;
 
     private mapEntityRenders: EntityRender[] = [];
+    // private levelLights: { position: Vector2D, cmp: LightComponent }[] = [];
+    private lightSystem?: LightSystem;
 
     constructor(ecs: ECS, container: HTMLElement, level: Level, textureManager: TextureManager) {
         super(ecs);
@@ -51,6 +59,7 @@ export default class RenderSystem extends System {
 
     start() {
         this.container.appendChild(this.canvas.element);
+        this.lightSystem = this.ecs.getSystem(LightSystem);
 
         this.mapEntityRenders = [
             new DoorRender(this.height, this.canvas),
@@ -62,8 +71,13 @@ export default class RenderSystem extends System {
         const [player] = this.ecs.query([PlayerComponent]);
         const playerContainer = this.ecs.getComponents(player);
 
-        if (!playerContainer) {
-            return;
+        if (!playerContainer) return;
+
+        const posCmp = playerContainer.get(PositionComponent);
+        const angleCmp = playerContainer.get(AngleComponent);
+        this.player = {
+            pos: posCmp,
+            angle: angleCmp.angle
         }
 
         this.canvas.createBufferSnapshot();
@@ -77,11 +91,9 @@ export default class RenderSystem extends System {
 
     render(player: ComponentContainer) {
         const playerFov = player.get(CameraComponent);
-        const playerAngle = player.get(AngleComponent);
-        const playerPosition = player.get(PositionComponent);
         const textureMap = this.ecs.getSystem(MapTextureSystem)!.textureMap;
 
-        let rayAngle = normalizeAngle(playerAngle.angle - playerFov.fov / 2);
+        let rayAngle = normalizeAngle(this.player.angle - playerFov.fov / 2);
 
         for (let screenX = 0; screenX < this.width; screenX++) {
 
@@ -90,8 +102,8 @@ export default class RenderSystem extends System {
             const incrementRayY =
                 Math.sin(degreeToRadians(rayAngle)) / this.rayPrecision;
 
-            let rayX = playerPosition.x;
-            let rayY = playerPosition.y;
+            let rayX = this.player.pos.x;
+            let rayY = this.player.pos.y;
 
             let distanceRay = 0;
             let mapEntity: ComponentContainer | undefined;
@@ -120,8 +132,8 @@ export default class RenderSystem extends System {
                 }
 
                 distanceRay = distance(
-                    playerPosition.x,
-                    playerPosition.y,
+                    this.player.pos.x,
+                    this.player.pos.y,
                     rayX,
                     rayY,
                 );
@@ -132,17 +144,16 @@ export default class RenderSystem extends System {
             }
 
             const normalizedDistanceRay =
-                distanceRay * Math.cos(degreeToRadians(rayAngle - playerAngle.angle));
+                distanceRay * Math.cos(degreeToRadians(rayAngle - this.player.angle));
 
             const wallHeight = Math.floor(this.height / 2 / normalizedDistanceRay);
 
             if (mapEntity && renderer) {
-                this._drawHorizonLine(screenX, wallHeight);
-                renderer.render(screenX, mapEntity, rayX, rayY, wallHeight);
-                this._drawFloorLine(screenX, wallHeight, rayAngle, player);
+                const lightLevel = this._getLightPower(rayX, rayY);
+                renderer.render(screenX, mapEntity, rayX, rayY, wallHeight, lightLevel);
+                this._drawFloorLine(screenX, wallHeight, rayAngle);
             } else {
-                this._drawHorizonLine(screenX, 0);
-                this._drawFloorLine(screenX, 0, rayAngle, player);
+                this._drawFloorLine(screenX, 0, rayAngle);
             }
 
             const incrementAngle = playerFov.fov / this.width;
@@ -156,6 +167,10 @@ export default class RenderSystem extends System {
 
             rayAngle += normalizeAngle(incrementAngle);
         }
+    }
+
+    _getLightPower(rayX: number, rayY: number) {
+        return this.lightSystem?.getLightingLevelForPoint(rayX, rayY) ?? 1;
     }
 
     _drawHorizonLine(x: number, wallHeight: number) {
@@ -177,6 +192,7 @@ export default class RenderSystem extends System {
     _drawSpriteLine(screenX: number, rayAngle: number, polarEntity: PolarPosition) {
         const animateSprite = polarEntity.container.get(AnimatedSpriteComponent)?.sprite;
         const staticSprite = polarEntity.container.get(SpriteComponent)?.sprite;
+        const spritePosition = polarEntity.container.get(PositionComponent);
         const projectionHeight = Math.floor(this.height / 2 / polarEntity.distance);
         const sprite = animateSprite || staticSprite;
 
@@ -188,13 +204,15 @@ export default class RenderSystem extends System {
 
         let y = this.height / 2 - projectionHeight;
 
+        const lightLevel = this._getLightPower(spritePosition!.x, spritePosition!.y);
+
         for (let i = 0; i < sprite.height; i++) {
             if (y > -yIncrementer && y < this.height) {
                 this.canvas.drawVerticalLine({
                     x: screenX,
                     y1: y,
                     y2: Math.floor(y + yIncrementer),
-                    color: sprite.colors[i][xTexture],
+                    color: applyLight(sprite.colors[i][xTexture], lightLevel),
                 });
             }
             y += yIncrementer;
@@ -205,31 +223,29 @@ export default class RenderSystem extends System {
         x: number,
         wallHeight: number,
         rayAngle: number,
-        player: ComponentContainer,
     ) {
-        const playerPosition = player.get(PositionComponent);
-        const playerAngle = player.get(AngleComponent);
         const texture = this.textureManager.get('floor');
 
         const halfHeight = this.height / 2;
         const start = halfHeight + wallHeight + 1;
 
-        const directionCos = Math.cos(degreeToRadians(rayAngle));
-        const directionSin = Math.sin(degreeToRadians(rayAngle));
+        const rayAngleRad = degreeToRadians(rayAngle);
+        const directionCos = Math.cos(rayAngleRad);
+        const directionSin = Math.sin(rayAngleRad);
 
         for (let y = start; y < this.height; y++) {
             let distance = this.height / (2 * y - this.height);
 
-            distance = distance / Math.cos(degreeToRadians(playerAngle.angle) - degreeToRadians(rayAngle));
+            distance = distance / Math.cos(degreeToRadians(this.player.angle) - rayAngleRad);
 
-            let tileX = distance * directionCos;
-            let tileY = distance * directionSin;
-            tileX += playerPosition.x;
-            tileY += playerPosition.y;
+            const tileX = distance * directionCos + this.player.pos.x;
+            const tileY = distance * directionSin + this.player.pos.y;
+
+            const lightLevel = this._getLightPower(tileX, tileY);
 
             const textureX = Math.abs(Math.floor(tileX * texture.width)) % texture.width;
             const textureY = Math.abs(Math.floor(tileY * texture.height)) % texture.height;
-            const color = texture.colors[textureX][textureY];
+            const color = applyLight(texture.colors[textureX][textureY], lightLevel);
 
             this.canvas.drawPixel({x, y, color});
         }

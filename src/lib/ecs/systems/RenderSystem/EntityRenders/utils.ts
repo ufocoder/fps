@@ -1,4 +1,5 @@
 import Canvas from "src/lib/Canvas/BufferCanvas";
+import { applyLight } from "src/lib/ecs/systems/RenderSystem/light.ts";
 
 export function drawTextureLine(
     screenX: number,
@@ -7,6 +8,7 @@ export function drawTextureLine(
     entityHeight: number,
     screenHeight: number,
     canvas: Canvas,
+    lightLevel?: number
 ) {
     const yIncrementer = (entityHeight * 2) / texture.height;
     let y = screenHeight / 2 - entityHeight;
@@ -17,7 +19,7 @@ export function drawTextureLine(
                 x: screenX,
                 y1: y,
                 y2: Math.floor(y + yIncrementer),
-                color: texture.colors[i][texturePositionX],
+                color: applyLight(texture.colors[i][texturePositionX], lightLevel),
             });
         }
         y += yIncrementer;

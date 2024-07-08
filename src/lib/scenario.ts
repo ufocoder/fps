@@ -22,6 +22,7 @@ import SpriteComponent from "./ecs/components/SpriteComponent";
 import PlayerComponent from "./ecs/components/PlayerComponent";
 import ItemComponent from "./ecs/components/ItemComponent";
 import DoorComponent from "src/lib/ecs/components/DoorComponent.ts";
+import LightComponent from "src/lib/ecs/components/LightComponent.ts";
 
 export function createLevelEntities(
   ecs: ECS,
@@ -33,6 +34,7 @@ export function createLevelEntities(
   const player = ecs.addEntity();
 
   ecs.addComponent(player, new PlayerComponent());
+  ecs.addComponent(player, new LightComponent(6, 0.8));
   ecs.addComponent(player, new ControlComponent());
   ecs.addComponent(player, new CircleComponent(0.4));
   ecs.addComponent(player, new WeaponMeleeComponent({
@@ -198,6 +200,15 @@ export function createLevelEntities(
     row.forEach((col, x) => {
       const mapItem = level.mapEntities[col];
       if (mapItem.type === 'empty') {
+        return;
+      }
+
+      if (mapItem.type === 'light') {
+        const light = ecs.addEntity();
+        ecs.addComponent(light, new LightComponent(4, 1));
+        ecs.addComponent(light, new PositionComponent(x + 0.5, y + 0.5));
+        ecs.addComponent(light, new MinimapComponent("white"));
+        ecs.addComponent(light, new CircleComponent(0.1));
         return;
       }
       const mapItemEntity = ecs.addEntity();

@@ -30,7 +30,7 @@ export class DoorRender extends EntityRender {
             : rayX > doorPosition.x && rayX < doorPosition.x + 1;
     }
 
-    render(screenX: number, mapEntity: ComponentContainer, rayX: number, rayY: number, wallHeight: number) {
+    render(screenX: number, mapEntity: ComponentContainer, rayX: number, rayY: number, wallHeight: number, lightLevel?: number) {
         const doorCmp = mapEntity.get(DoorComponent);
         const doorPosition = mapEntity.get(PositionComponent);
 
@@ -49,7 +49,8 @@ export class DoorRender extends EntityRender {
             texture,
             wallHeight,
             this.screenHeight,
-            this.canvas
+            this.canvas,
+            lightLevel
         );
     }
 }

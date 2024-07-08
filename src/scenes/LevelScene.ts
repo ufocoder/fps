@@ -23,6 +23,7 @@ import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
 import WeaponRangeComponent from "src/lib/ecs/components/WeaponRangeComponent";
 import LevelPlayerView from "src/views/LevelPlayerView";
 import DoorsSystem from "src/lib/ecs/systems/DoorsSystem.ts";
+import LightSystem from "src/lib/ecs/systems/LightSystem.ts";
 
 const KEY_CONTROL_PAUSE = "KeyM";
 
@@ -80,6 +81,7 @@ export default class LevelScene implements BaseScene {
     ecs.addSystem(new WeaponSystem(ecs, container, animationManager, textureManager, soundManager));
     ecs.addSystem(new RotateSystem(ecs));
     ecs.addSystem(new DoorsSystem(ecs));
+    ecs.addSystem(new LightSystem(ecs));
     ecs.addSystem(new RenderSystem(ecs, container, level, textureManager));
     ecs.addSystem(new MinimapSystem(ecs, container, level));
 

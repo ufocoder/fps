@@ -12,5 +12,5 @@ export abstract class EntityRender {
 
     abstract canRender(mapEntity: ComponentContainer): boolean;
     abstract isRayHit(mapEntity: ComponentContainer, rayX: number, rayY: number): boolean;
-    abstract render(screenX: number, mapEntity: ComponentContainer, rayX: number, rayY: number, wallHeight: number): void;
+    abstract render(screenX: number, mapEntity: ComponentContainer, rayX: number, rayY: number, wallHeight: number, lightLevel?: number): void;
 }

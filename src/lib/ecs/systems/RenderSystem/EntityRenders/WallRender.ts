@@ -13,7 +13,7 @@ export class WallRender extends EntityRender {
         return true;
     }
 
-    render(screenX: number, mapEntity: ComponentContainer, rayX: number, rayY: number, wallHeight: number) {
+    render(screenX: number, mapEntity: ComponentContainer, rayX: number, rayY: number, wallHeight: number, lightLevel?: number) {
         const texture = mapEntity.get(TextureComponent).texture;
         const texturePositionX = Math.floor(
             (texture.width * (rayX + rayY)) % texture.width
@@ -24,7 +24,8 @@ export class WallRender extends EntityRender {
             texture,
             wallHeight,
             this.screenHeight,
-            this.canvas
+            this.canvas,
+            lightLevel
         );
     }
 }
