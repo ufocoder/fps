@@ -107,9 +107,19 @@ export default class AISystem extends System {
     const enemyAI = enemyComponents.get(AIComponent);
     const enemyAnimation = enemyComponents.get(AnimatedSpriteComponent);
     const enemyWeapon = enemyComponents.get(WeaponMeleeComponent);
+    const enemyMove = enemyComponents.get(MoveComponent);
 
-    const shouldEnemyAttack =  d === 0;
+    const shouldEnemyBeMoved = d > 0;
+    const shouldEnemyAttack =  d <= 0;
     const shouldEnemyDamage = enemyAI.actionPassedTime >= enemyWeapon.attackFrequency / 1_000;
+
+    if (shouldEnemyBeMoved) {
+      enemyAnimation.switchState("walk", true);
+      enemyMove.mainDirection = MainDirection.Forward;
+    } else {
+      enemyMove.mainDirection = MainDirection.None;
+      enemyMove.sideDirection = SideDirection.None;
+    }
 
     if (shouldEnemyAttack) {
       enemyAnimation.switchState("attack", true);
