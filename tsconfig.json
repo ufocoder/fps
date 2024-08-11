@@ -18,10 +18,12 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-
     "paths": {
       "src/*": ["./src/*"]
-    }
+    },
   },
-  "include": ["src"]
+  "include": ["src"],
+  "rules": {
+    "@typescript-eslint/no-unsafe-function-type": "off"
+  }
 }
