@@ -1,7 +1,7 @@
 import { ComponentContainer } from "src/lib/ecs/Component.ts";
 import Canvas from "src/lib/Canvas/BufferCanvas.ts";
 
-export default abstract class EntityRender {
+export default abstract class BaseRender {
     readonly screenHeight: number;
     readonly canvas: Canvas;
 

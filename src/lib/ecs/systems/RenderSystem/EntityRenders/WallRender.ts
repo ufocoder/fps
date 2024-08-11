@@ -1,8 +1,8 @@
-import EntityRender from "src/lib/ecs/systems/RenderSystem/EntityRenders/EntityRender.ts";
+import BaseRender from "src/lib/ecs/systems/RenderSystem/EntityRenders/BaseRender.ts";
 import { ComponentContainer } from "src/lib/ecs/Component.ts";
 import TextureComponent from "src/lib/ecs/components/TextureComponent.ts";
 
-export default class WallRender extends EntityRender {
+export default class WallRender extends BaseRender {
     canRender(mapEntity: ComponentContainer): boolean {
         return mapEntity.has(TextureComponent);
     }

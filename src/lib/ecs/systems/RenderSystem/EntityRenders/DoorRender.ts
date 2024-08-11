@@ -2,11 +2,11 @@ import { ComponentContainer } from "src/lib/ecs/Component.ts";
 import TextureComponent from "src/lib/ecs/components/TextureComponent.ts";
 import DoorComponent from "src/lib/ecs/components/DoorComponent.ts";
 import PositionComponent from "src/lib/ecs/components/PositionComponent.ts";
-import EntityRender from "src/lib/ecs/systems/RenderSystem/EntityRenders/EntityRender.ts";
+import BaseRender from "src/lib/ecs/systems/RenderSystem/EntityRenders/BaseRender.ts";
 
 import { Vec2D } from "src/lib/utils.ts";
 
-export default class DoorRender extends EntityRender {
+export default class DoorRender extends BaseRender {
     private doorWidth = 0.05;
 
     canRender(mapEntity: ComponentContainer): boolean {
