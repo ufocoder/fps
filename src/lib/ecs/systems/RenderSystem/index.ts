@@ -10,15 +10,30 @@ import CameraComponent from "src/lib/ecs/components/CameraComponent";
 import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import SpriteComponent from "src/lib/ecs/components/SpriteComponent";
+import HighlightComponent from "src/lib/ecs/components/HighlightComponent.ts";
+import EntityRender from "src/lib/ecs/systems/RenderSystem/EntityRenders/BaseRender.ts";
 import Canvas from "src/lib/Canvas/BufferCanvas";
 import TextureManager from "src/managers/TextureManager";
-
 import { degreeToRadians, distance, normalizeAngle } from "src/lib/utils";
-
-import EntityRender from "src/lib/ecs/systems/RenderSystem/EntityRenders/BaseRender.ts";
 import WallRender from "./EntityRenders/WallRender.ts";
 import DoorRender from "./EntityRenders/DoorRender.ts";
-import HighlightComponent from "../../components/HighlightComponent.ts";
+
+function overlayColor(baseColor: Color, overlayColor: Color, coverageRatio: number): Color {
+  if (baseColor.a === 0) {
+    return baseColor;
+  }
+
+  const invCoverageRatio = 1 - coverageRatio;
+
+  const effectiveAlpha = overlayColor.a * coverageRatio;
+
+  const r = baseColor.r * invCoverageRatio + overlayColor.r * effectiveAlpha;
+  const g = baseColor.g * invCoverageRatio + overlayColor.g * effectiveAlpha;
+  const b = baseColor.b * invCoverageRatio + overlayColor.b * effectiveAlpha;
+  const a =  baseColor.a + overlayColor.a * coverageRatio * invCoverageRatio;
+
+  return { r, g, b, a };
+}
 
 export default class RenderSystem extends System {
   public readonly componentsRequired = new Set([PositionComponent]);
@@ -199,14 +214,15 @@ export default class RenderSystem extends System {
 
     let y = this.height / 2 - projectionHeight;
 
-    if (highlight) {
-      highlight.startedAt;
-    }
-
     for (let i = 0; i < sprite.height; i++) {
-      const color = sprite.colors[i][xTexture];
+      const spriteColor = sprite.colors[i][xTexture];
+      let color = spriteColor
 
-      //       console.log(color);
+      if (highlight) {
+        const percent = Math.max(0, (highlight.startedAt +  highlight.duration - Date.now()) / highlight.duration);
+
+        color = highlight ? overlayColor(spriteColor, highlight.color, percent) : spriteColor;
+      }
 
       if (y > -yIncrementer && y < this.height) {
         this.canvas.drawVerticalLine({

@@ -22,6 +22,7 @@ import AnimationManager from "src/managers/AnimationManager";
 import TextureManager from "src/managers/TextureManager";
 import SpriteComponent from "src/lib/ecs/components/SpriteComponent";
 import EnemyComponent from "src/lib/ecs/components/EnemyComponent";
+import HighlightComponent from "src/lib/ecs/components/HighlightComponent";
 
 export default class WeaponSystem extends System {
   public readonly componentsRequired = new Set([BulletComponent]);
@@ -119,6 +120,7 @@ export default class WeaponSystem extends System {
       }
 
       const entityHealth = entityContainer.get(HealthComponent);
+      const entityHighlight = entityContainer.get(HighlightComponent);
 
       if (!entityHealth) {
         return;
@@ -130,6 +132,16 @@ export default class WeaponSystem extends System {
         if (entity === player) {
           this.soundManager.playSound('hurt');
         }
+
+        const color = { r: 255, g: 0, b: 0, a: 1 };
+
+        if (entityHighlight) {
+          entityHighlight.color = color
+          entityHighlight.startedAt = Date.now();
+        } else {
+          this.ecs.addComponent(entity, new HighlightComponent(color));
+        }
+
         entityHealth.current -= bulletContainer.get(BulletComponent).damage;
       }
 
@@ -211,6 +223,7 @@ export default class WeaponSystem extends System {
       const enemyHealthComponent = enemyComponents.get(HealthComponent);
       const enemyPositionComponent = enemyComponents.get(PositionComponent);
       const enemyCircleComponent = enemyComponents.get(CircleComponent);
+      const enemyHighlightComponent = enemyComponents.get(HighlightComponent);
 
       const d = distance(enemyPositionComponent.x, enemyPositionComponent.y, playerPositionComponent.x, playerPositionComponent.y);
 
@@ -219,7 +232,16 @@ export default class WeaponSystem extends System {
 
       if (shouldPlayerAttack) {
         enemyHealthComponent.current = Math.max(0, enemyHealthComponent.current - playerWeaponComponent.attackDamage);
-        
+
+        const color = { r: 255, g: 0, b: 0, a: 1 };
+
+        if (enemyHighlightComponent) {
+          enemyHighlightComponent.color = color
+          enemyHighlightComponent.startedAt = Date.now();
+        } else {
+          this.ecs.addComponent(enemy, new HighlightComponent(color));
+        }
+
         if (enemyHealthComponent.current <= 0 && enemyAnimationComponent) {
           enemyAnimationComponent.switchState("death", false);
         }

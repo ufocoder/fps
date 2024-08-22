@@ -22,8 +22,5 @@
       "src/*": ["./src/*"]
     },
   },
-  "include": ["src"],
-  "rules": {
-    "@typescript-eslint/no-unsafe-function-type": "off"
-  }
+  "include": ["src"]
 }
