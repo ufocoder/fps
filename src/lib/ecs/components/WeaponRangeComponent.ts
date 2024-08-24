@@ -11,7 +11,6 @@ interface WeaponRangeComponentProps {
     sprite?: AnimatedSpriteComponent;
 }
 
-
 export default class WeaponRangeComponent extends WeaponComponent {
 
     bulletSprite: string;
@@ -22,8 +21,6 @@ export default class WeaponRangeComponent extends WeaponComponent {
     attackDistance: number;
     attackFrequency: number;
     attackLastTimeAt: number = +new Date();
-
-    sprite?: AnimatedSpriteComponent;
 
     constructor(props: WeaponRangeComponentProps) {
         super();

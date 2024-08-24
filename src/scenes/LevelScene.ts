@@ -14,7 +14,7 @@ import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import RenderSystem from "src/lib/ecs/systems/RenderSystem";
 import RotateSystem from "src/lib/ecs/systems/RotateSystem";
 import TextureManager from "src/managers/TextureManager";
-import WeaponSystem from "src/lib/ecs/systems/WeaponSystem";
+import WeaponSystem, { WEAPON_PISTOL_INDEX } from "src/lib/ecs/systems/WeaponSystem";
 import MapItemSystem from "src/lib/ecs/systems/MapItemSystem";
 import MapPolarSystem from "src/lib/ecs/systems/MapPolarSystem";
 import MapTextureSystem from "src/lib/ecs/systems/MapTextureSystem";
@@ -160,7 +160,7 @@ export default class LevelScene implements BaseScene {
     }
 
     const newHealth = playerContainer.get(HealthComponent).current;
-    const newAmmo = playerContainer.get(WeaponRangeComponent)?.bulletTotal || 0;
+    const newAmmo = (playerContainer.get(PlayerComponent).weapons[WEAPON_PISTOL_INDEX] as WeaponRangeComponent)?.bulletTotal || 0;
     const newSoundMuted = this.soundManager.checkMuted();
 
     let shouldRenderView = false;
@@ -206,6 +206,7 @@ export default class LevelScene implements BaseScene {
     }
   }
 
+  // @TODO: extract to another system
   handleDocumentKeypress = (e: KeyboardEvent) => {
     if (e.code === KEY_CONTROL_PAUSE) {
       this.toogleMusicControl();

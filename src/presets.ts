@@ -47,12 +47,12 @@ export const sprites: SpritePreset[] = [
     url: './assets/items/health_pack.png'
   },
   {
-    id: 'pistol',
-    url: './assets/items/pistol.png'
+    id: 'pistol_weapon',
+    url: './assets/items/pistol_weapon.png'
   },
   {
-    id: 'ammo',
-    url: './assets/items/ammo.png'
+    id: 'pistol_ammo',
+    url: './assets/items/pistol_ammo.png'
   },
   {
     id: 'pistol_bullet',

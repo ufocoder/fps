@@ -5,7 +5,7 @@ interface Color {
     a: number;
 }
 
-type ItemType = 'health_pack' | 'pistol' | 'ammo'
+type ItemType = 'health_pack' | 'pistol_weapon' | 'pistol_ammo'
 
 interface Item {
     x: number;
@@ -44,19 +44,21 @@ interface Enemy extends Character {
 
 type LevelMap = (number | string)[][];
 
-type Empty = {
+type MapEntityEmpty = {
     type: 'empty';
 }
-type Wall = {
+
+type MapEntityWall = {
     type: 'wall',
     texture: string
 }
-type Door = {
+
+type MapEntityDoor = {
     type: 'door',
     texture: string
 }
 
-type MapEntity = Empty | Wall | Door;
+type MapEntity = MapEntityEmpty | MapEntityWall | MapEntityDoor;
 
 interface ExitEndingScenario {
     name: 'exit';
@@ -137,4 +139,5 @@ type PlayerState = {
     health: number;
     soundMuted: boolean;
     timeLeft?: number;
-  };
+}
+

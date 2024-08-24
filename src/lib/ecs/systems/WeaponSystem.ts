@@ -24,6 +24,10 @@ import SpriteComponent from "src/lib/ecs/components/SpriteComponent";
 import EnemyComponent from "src/lib/ecs/components/EnemyComponent";
 import HighlightComponent from "src/lib/ecs/components/HighlightComponent";
 
+export const WEAPON_KNIFE_INDEX = 1;
+export const WEAPON_PISTOL_INDEX = 2;
+export const WEAPON_MACHINE_GUN_INDEX = 3;
+
 export default class WeaponSystem extends System {
   public readonly componentsRequired = new Set([BulletComponent]);
 
@@ -82,16 +86,9 @@ export default class WeaponSystem extends System {
     const entities = this.ecs.query([CircleComponent, HealthComponent]);
 
     const playerComponents = this.ecs.getComponents(player);
+    const playerComponent = playerComponents.get(PlayerComponent);
 
-    const weaponRangeComponent = playerComponents.get(WeaponRangeComponent);
-    const weaponMeleeComponent = playerComponents.get(WeaponMeleeComponent);
-
-    // @TODO
-    if (weaponRangeComponent) {
-      this.weaponSprite = weaponRangeComponent.sprite;
-    } else if (weaponMeleeComponent) {
-      this.weaponSprite = weaponMeleeComponent.sprite;
-    }
+    this.weaponSprite = playerComponent.currentWeapon?.sprite;
 
     if (this.weaponSprite) {
       this.weaponSprite.update(dt);
@@ -191,26 +188,28 @@ export default class WeaponSystem extends System {
   handleDocumentClick = () => {
     const [player] = this.ecs.query([PlayerComponent, AngleComponent, PositionComponent]);
     const playerContainer = this.ecs.getComponents(player);
+    const playerComponent = playerContainer.get(PlayerComponent);
 
-    if (!playerContainer) {
+    if (!playerComponent.currentWeapon) {
       return;
     }
 
-    if (playerContainer.has(WeaponRangeComponent)) {
+    if (playerComponent.currentWeapon instanceof WeaponRangeComponent) {
       this.attackWithRange(player);
       return
     }
 
-    if (playerContainer.has(WeaponMeleeComponent)) {
+    if (playerComponent.currentWeapon instanceof WeaponMeleeComponent) {
       this.attackClose(player);
     }
   }
 
   attackClose(player: Entity) {
     const playerComponents = this.ecs.getComponents(player);
-    const playerWeaponComponent = playerComponents.get(WeaponMeleeComponent);
+    const playerComponent = playerComponents.get(PlayerComponent);
     const playerPositionComponent = playerComponents.get(PositionComponent);
     const playerCircleComponent = playerComponents.get(CircleComponent);
+    const playerWeaponComponent = playerComponent.currentWeapon as WeaponMeleeComponent;
     
     this.soundManager.playSound('attack-knife');
     this.weaponSprite?.switchState('attack', false);
@@ -250,8 +249,9 @@ export default class WeaponSystem extends System {
   }
 
   attackWithRange(player: Entity) {
-    const playerContainer = this.ecs.getComponents(player);
-    const weaponRangeComponent = playerContainer.get(WeaponRangeComponent);
+    const playerComponents = this.ecs.getComponents(player);
+    const playerComponent = playerComponents.get(PlayerComponent);
+    const weaponRangeComponent = playerComponent.currentWeapon as WeaponRangeComponent;
 
     if (weaponRangeComponent.bulletTotal <= 0) {
       return
@@ -272,8 +272,8 @@ export default class WeaponSystem extends System {
     }
 
     this.ecs.addComponent(entity, new BulletComponent(player, weaponRangeComponent.bulletDamage));
-    this.ecs.addComponent(entity, new PositionComponent(playerContainer.get(PositionComponent).x, playerContainer.get(PositionComponent).y));
-    this.ecs.addComponent(entity, new AngleComponent(playerContainer.get(AngleComponent).angle));
+    this.ecs.addComponent(entity, new PositionComponent(playerComponents.get(PositionComponent).x, playerComponents.get(PositionComponent).y));
+    this.ecs.addComponent(entity, new AngleComponent(playerComponents.get(AngleComponent).angle));
     this.ecs.addComponent(entity, new CircleComponent(0.25));
     this.ecs.addComponent(entity, new MinimapComponent('yellow'));
     this.ecs.addComponent(entity, new MoveComponent(weaponRangeComponent.bulletSpeed, false, MainDirection.Forward));

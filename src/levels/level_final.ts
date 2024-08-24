@@ -1,4 +1,4 @@
-import { generateAmmo, generateCircle, generateTank, generateZombie, generateZombies } from "./generators";
+import { generatePistolAmmo, generateCircle, generateTank, generateZombie, generateZombies } from "./generators";
 
 const level: Level = {
   world: {
@@ -32,17 +32,17 @@ const level: Level = {
     5: {type:'wall', texture: "DOOR_1E" },
   },
   player: {
-    x: 6.5,
-    y: 6.5,
+    x: 5.5,
+    y: 5.5,
     angle: 90,
     health: 100,
   },
   items: [
-    generateAmmo(3.5, 3.5, 15),
-    generateAmmo(3.5, 9.5, 15),
-    generateAmmo(9.5, 3.5, 15),
-    generateAmmo(9.5, 9.5, 15),
-    ...generateCircle(6.5, 6.5, 3.5, 4).map(([x, y]) => generateAmmo(x, y, 15)),
+    generatePistolAmmo(3.5, 3.5, 15),
+    generatePistolAmmo(3.5, 9.5, 15),
+    generatePistolAmmo(9.5, 3.5, 15),
+    generatePistolAmmo(9.5, 9.5, 15),
+    ...generateCircle(6.5, 6.5, 3.5, 4).map(([x, y]) => generatePistolAmmo(x, y, 15)),
   ],
   enemies: [
     ...generateZombies(3, 4, 4, 0.5, 0.5, 8),

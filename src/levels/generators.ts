@@ -6,16 +6,16 @@ const random = (from: number, to: number) => {
 
 export const generatePistol = (x: number, y: number, value: number) =>
   ({ 
-    type: 'pistol',
+    type: 'pistol_weapon',
     radius: 0.3,
     x,
     y,
     value,
   }) as Item;
 
-export const generateAmmo = (x: number, y: number, value: number) =>
+export const generatePistolAmmo = (x: number, y: number, value: number) =>
   ({ 
-    type: 'ammo',
+    type: 'pistol_ammo',
     radius: 0.3,
     x,
     y,
@@ -54,8 +54,7 @@ export const generateCircle = (x: number, y: number, radius: number, total: numb
     ]);
   }
 
-  return coords;
-  
+  return coords; 
 }
 
 export const generateZombie = (x: number, y: number, aiDistance: number = 0) =>

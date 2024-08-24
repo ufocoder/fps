@@ -7,16 +7,24 @@ import MoveComponent, {
 } from "src/lib/ecs/components/MoveComponent";
 import RotateComponent from "src/lib/ecs/components/RotateComponent";
 import ControlComponent from "src/lib/ecs/components/ControlComponent";
+import PlayerComponent from "../components/PlayerComponent";
 
-const keyCodes: Record<string, string> = {
+const directionKeyCodes: Record<string, string> = {
   KeyW: "up",
   KeyS: "down",
   KeyA: "left",
   KeyD: "right",
 };
 
+const weaponKeyCodes: Record<string, number> = {
+  Digit1: 1,
+  Digit2: 2,
+  Digit3: 3,
+  Digit4: 4,
+};
+
 export default class ControlSystem extends System {
-  componentsRequired = new Set([ControlComponent, MoveComponent, RotateComponent]);
+  componentsRequired = new Set([ControlComponent, MoveComponent, RotateComponent, PlayerComponent]);
 
   protected readonly container: HTMLElement;
 
@@ -26,6 +34,8 @@ export default class ControlSystem extends System {
     left: false,
     right: false,
   };
+
+  lastActiveWeapon: number = 0;
 
   pointerStartX: number | undefined;
   rotationFactor = 0;
@@ -44,9 +54,10 @@ export default class ControlSystem extends System {
 
   update(_: number, entities: Set<Entity>) {
     entities.forEach((entity) => {
-      const components = this.ecs.getComponents(entity);
-      const rotateComponent = components.get(RotateComponent);
-      const moveComponent = components.get(MoveComponent);
+      const componentContainer = this.ecs.getComponents(entity);
+      const playerComponent = componentContainer.get(PlayerComponent);
+      const rotateComponent = componentContainer.get(RotateComponent);
+      const moveComponent = componentContainer.get(MoveComponent);
 
       rotateComponent.rotationFactor = this.rotationFactor;
 
@@ -65,6 +76,10 @@ export default class ControlSystem extends System {
       } else {
         moveComponent.sideDirection = SideDirection.None;
       }
+
+      if (playerComponent.weapons[this.lastActiveWeapon] && playerComponent.currentWeapon !== playerComponent.weapons[this.lastActiveWeapon]) {
+        playerComponent.currentWeapon = playerComponent.weapons[this.lastActiveWeapon];
+      }
     });
 
     this.rotationFactor = 0;
@@ -76,7 +91,7 @@ export default class ControlSystem extends System {
   }
 
   setDirection = (keyCode: string, status: boolean) => {
-    const direction = keyCodes[keyCode];
+    const direction = directionKeyCodes[keyCode];
 
     if (!direction) {
       return;
@@ -85,8 +100,19 @@ export default class ControlSystem extends System {
     this.direction[direction] = status;
   };
 
+  setWeapon = (keyCode: string) => {
+    const weaponCode = weaponKeyCodes[keyCode];
+
+    if (!weaponCode) {
+      return;
+    }
+
+    this.lastActiveWeapon = weaponCode;
+  };
+
   handleDocumentKeyDown = (e: KeyboardEvent) => {
     this.setDirection(e.code, true);
+    this.setWeapon(e.code);
   };
 
   handleDocumentKeyUp = (e: KeyboardEvent) => {

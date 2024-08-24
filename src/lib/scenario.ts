@@ -22,6 +22,7 @@ import SpriteComponent from "./ecs/components/SpriteComponent";
 import PlayerComponent from "./ecs/components/PlayerComponent";
 import ItemComponent from "./ecs/components/ItemComponent";
 import DoorComponent from "src/lib/ecs/components/DoorComponent.ts";
+import { WEAPON_KNIFE_INDEX } from "./ecs/systems/WeaponSystem";
 
 export function createLevelEntities(
   ecs: ECS,
@@ -29,20 +30,26 @@ export function createLevelEntities(
   textureManager: TextureManager,
   animationManager: AnimationManager
 ) {
-  // player
+
   const player = ecs.addEntity();
 
-  ecs.addComponent(player, new PlayerComponent());
-  ecs.addComponent(player, new ControlComponent());
-  ecs.addComponent(player, new CircleComponent(0.4));
-  ecs.addComponent(player, new WeaponMeleeComponent({
+  const playerComponent = new PlayerComponent();
+  
+  const knifeWeapon = new WeaponMeleeComponent({
     sprite: new AnimatedSpriteComponent('idle', {
       attack: animationManager.get("knifeAttack"),
       idle: animationManager.get("knifeIdle"),
     }),
     attackDamage: 30, 
     attackFrequency: 500,
-  }));
+  });
+
+  playerComponent.currentWeapon = knifeWeapon;
+  playerComponent.weapons[WEAPON_KNIFE_INDEX] = knifeWeapon;
+
+  ecs.addComponent(player, playerComponent);
+  ecs.addComponent(player, new ControlComponent());
+  ecs.addComponent(player, new CircleComponent(0.4));
   ecs.addComponent(
     player,
     new PositionComponent(level.player.x, level.player.y)

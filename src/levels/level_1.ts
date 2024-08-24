@@ -1,4 +1,4 @@
-import { generateAmmo, generatePistol, generateSoldier, generateZombies } from "./generators";
+import { generatePistolAmmo, generatePistol, generateSoldier, generateZombies } from "./generators";
 
 const level: Level = {
   world: {
@@ -33,11 +33,11 @@ const level: Level = {
   },
   items: [
     generatePistol(3.5, 1.6, 15),
-    generateAmmo(3.5, 1.8, 15),
-    generateAmmo(3.5, 2, 15),
-    generateAmmo(3.5, 2.2, 15),
-    generateAmmo(3.5, 2.4, 15),
-    generateAmmo(16, 5, 15),
+    generatePistolAmmo(3.5, 1.8, 15),
+    generatePistolAmmo(3.5, 2, 15),
+    generatePistolAmmo(3.5, 2.2, 15),
+    generatePistolAmmo(3.5, 2.4, 15),
+    generatePistolAmmo(16, 5, 15),
   ],
   enemies: [
     generateSoldier(18, 1.75, 4),

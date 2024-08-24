@@ -130,7 +130,7 @@ export default class AISystem extends System {
 
     if (shouldEnemyDamage) {
       enemyAI.actionPassedTime = 0;
-      playerHealth.current = Math.max(0, playerHealth.current - enemyWeapon.attackDamage);
+      playerHealth.current = Math.max(0, playerHealth.current - enemyWeapon.attackDamage); 
     }
   }
 
