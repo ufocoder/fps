@@ -67,7 +67,7 @@ export default class AISystem extends System {
       const enemyAnimation = components.get(AnimatedSpriteComponent);
 
       if (enemyHealth.current <= 0) {
-        return;
+        continue;
       }
 
       const dx = playerPosition.x - enemyPosition.x;
@@ -79,7 +79,7 @@ export default class AISystem extends System {
         enemyAnimation.switchState("idle", true);
         enemyMove.mainDirection = MainDirection.None;
         enemyMove.sideDirection = SideDirection.None;
-        return;
+        continue;
       }
 
       const angle = dx <= 0 
@@ -90,7 +90,7 @@ export default class AISystem extends System {
       
       if (components.has(WeaponRangeComponent)) {
         this.attackWithRange(dt, d, player, enemy);
-        return;
+        continue;
       }
 
       if (components.has(WeaponMeleeComponent)) {
