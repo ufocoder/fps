@@ -8,8 +8,8 @@ import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import HealthComponent from "src/lib/ecs/components/HealthComponent";
 import WeaponRangeComponent from "src/lib/ecs/components/WeaponRangeComponent";
-import AnimatedSpriteComponent from "src/lib/ecs/components/AnimatedSpriteComponent";
 import { WEAPON_PISTOL_INDEX } from "./WeaponSystem";
+import { generatePistolWeapon } from "src/levels/generators/components";
 
 export default class MapItemSystem extends System {
   public readonly componentsRequired = new Set([
@@ -58,18 +58,7 @@ export default class MapItemSystem extends System {
         Math.floor(playerPosition.y) === Math.floor(entityPosition.y)
       ) {
         if (!playerWeapon && entityItem.type === "pistol_weapon") {
-          const pistolWeapon = new WeaponRangeComponent({
-            bulletSprite: "pistol_bullet",
-            bulletTotal: 30,
-            bulletDamage: 100,
-            bulletSpeed: 15,
-            attackDistance: 15,
-            attackFrequency: 250,
-            sprite: new AnimatedSpriteComponent("idle", {
-              attack: this.animationManager.get("pistolAttack"),
-              idle: this.animationManager.get("pistolIdle"),
-            }),
-          });
+          const pistolWeapon = generatePistolWeapon(this.animationManager);
 
           this.soundManager.playSound("pick");
 

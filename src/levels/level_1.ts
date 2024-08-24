@@ -1,4 +1,5 @@
-import { generatePistolAmmo, generatePistol, generateSoldier, generateZombies } from "./generators";
+import { generateSoldier, generateZombies } from "./generators/characters";
+import { generatePistolAmmo, generatePistol } from "./generators/items";
 
 const level: Level = {
   world: {

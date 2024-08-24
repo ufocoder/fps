@@ -15,7 +15,6 @@ interface Item {
     value: number;
 }
 
-
 interface Character {
     x: number;
     y: number;
@@ -137,7 +136,5 @@ type Vector2D = {
 type PlayerState = {
     ammo?: number;
     health: number;
-    soundMuted: boolean;
-    timeLeft?: number;
 }
 

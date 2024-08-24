@@ -35,9 +35,7 @@ export default class LevelPlayerView { // Component not
     }
   }
 
-
-  render(state: PlayerState) {
-
+  render(state: { health: number, soundMuted: boolean, ammo?: number, timeLeft?: number }) {
     this.canvas.clear();
 
     this.canvas.drawText({
@@ -48,7 +46,6 @@ export default class LevelPlayerView { // Component not
       align: 'right',
       font: '18px serif',
     });
-
     
     if (state.health) {
       this.drawHealth(state.health, { x: 10, y: 10 });
