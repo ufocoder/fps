@@ -116,6 +116,7 @@ export default class AISystem extends System {
     if (shouldEnemyBeMoved) {
       enemyAnimation.switchState("walk", true);
       enemyMove.mainDirection = MainDirection.Forward;
+      return;
     } else {
       enemyMove.mainDirection = MainDirection.None;
       enemyMove.sideDirection = SideDirection.None;
@@ -150,12 +151,13 @@ export default class AISystem extends System {
     if (shouldEnemyBeMoved) {
       enemyAnimation.switchState("walk", true);
       enemyMove.mainDirection = MainDirection.Forward;
+      return;
     } else {
       enemyMove.mainDirection = MainDirection.None;
       enemyMove.sideDirection = SideDirection.None;
     }
 
-    const shouldEnemyAttack =  enemyWeapon.attackDistance >= d;
+    const shouldEnemyAttack = enemyWeapon.attackDistance >= d;
     const shouldEnemyDamage = enemyAI.actionPassedTime >= enemyWeapon.attackFrequency / 1_000;
 
     if (shouldEnemyAttack) {
