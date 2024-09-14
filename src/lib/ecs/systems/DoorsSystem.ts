@@ -17,7 +17,10 @@ export default class DoorsSystem extends System {
   update(dt: number, entities: Set<Entity>) {
     const [player] = this.ecs.query([PlayerComponent]);
     const playerContainer = this.ecs.getComponents(player);
-    if (!playerContainer) return;
+    
+    if (!playerContainer) {
+      return;
+    }
 
     const playerPosition = playerContainer.get(PositionComponent);
 
@@ -26,9 +29,13 @@ export default class DoorsSystem extends System {
       const door = components.get(DoorComponent);
       const doorBox = components.get(BoxComponent);
       const doorPosition = components.get(PositionComponent);
-      if (!door || !doorPosition) return;
+      
+      if (!door || !doorPosition) {
+        return;
+      }
 
       const remainingAnimationTime = this.doorsAnimations.get(entity);
+
       if (remainingAnimationTime !== undefined) {
         if (remainingAnimationTime <= 0) {
           this.doorsAnimations.delete(entity);
