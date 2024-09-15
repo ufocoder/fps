@@ -16,9 +16,9 @@ export const generatePistolWeapon = (animationManager: AnimationManager, bulletT
   bulletTotal,
   bulletSprite: "pistol_bullet",
   bulletDamage: 100,
-  bulletSpeed: 15,
+  bulletSpeed: 35,
   attackDistance: 15,
-  attackFrequency: 250,
+  attackFrequency: 500,
   sprite: new AnimatedSpriteComponent("idle", {
     attack: animationManager.get("pistolAttack"),
     idle: animationManager.get("pistolIdle"),
