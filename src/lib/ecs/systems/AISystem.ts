@@ -7,7 +7,10 @@ import AnimatedSpriteComponent from "src/lib/ecs/components/AnimatedSpriteCompon
 import CircleComponent from "src/lib/ecs/components/CircleComponent";
 import EnemyComponent from "src/lib/ecs/components/EnemyComponent";
 import HealthComponent from "src/lib/ecs/components/HealthComponent";
-import MoveComponent, { MainDirection, SideDirection } from "src/lib/ecs/components/MoveComponent";
+import MoveComponent, {
+  MainDirection,
+  SideDirection,
+} from "src/lib/ecs/components/MoveComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import SoundManager from "src/managers/SoundManager";
 import { normalizeAngle, radiansToDegrees } from "src/lib/utils";
@@ -19,6 +22,8 @@ import MinimapComponent from "src/lib/ecs/components/MinimapComponent";
 import TextureManager from "src/managers/TextureManager";
 import SpriteComponent from "src/lib/ecs/components/SpriteComponent";
 import WeaponMeleeComponent from "src/lib/ecs/components/WeaponMeleeComponent";
+import MapTextureSystem from "./MapTextureSystem";
+import DoorComponent from "../components/DoorComponent";
 
 export default class AISystem extends System {
   public readonly componentsRequired = new Set([
@@ -32,7 +37,11 @@ export default class AISystem extends System {
   protected readonly soundManager: SoundManager;
   protected readonly textureManager: TextureManager;
 
-  constructor(ecs: ECS, textureManager: TextureManager, soundManager: SoundManager) {
+  constructor(
+    ecs: ECS,
+    textureManager: TextureManager,
+    soundManager: SoundManager
+  ) {
     super(ecs);
     this.soundManager = soundManager;
     this.textureManager = textureManager;
@@ -46,7 +55,7 @@ export default class AISystem extends System {
       HealthComponent,
       CircleComponent,
     ]);
-    
+
     if (typeof player === "undefined") {
       return;
     }
@@ -72,8 +81,12 @@ export default class AISystem extends System {
 
       const dx = playerPosition.x - enemyPosition.x;
       const dy = playerPosition.y - enemyPosition.y;
-      const d = Math.sqrt(dx ** 2 + dy ** 2) - playerCircle.radius - enemyCircle?.radius;
-      const shouldEnemyBeActivated = enemyAI.activateDistance > d;
+      const d =
+        Math.sqrt(dx ** 2 + dy ** 2) -
+        playerCircle.radius -
+        enemyCircle?.radius;
+
+      const shouldEnemyBeActivated = enemyAI.activateDistance > d && !this.hasTextureBetween(playerPosition, enemyPosition);
 
       if (!shouldEnemyBeActivated) {
         enemyAnimation.switchState("idle", true);
@@ -82,12 +95,13 @@ export default class AISystem extends System {
         continue;
       }
 
-      const angle = dx <= 0 
-        ? radiansToDegrees(Math.atan(dy / dx)) + 180
-        : radiansToDegrees(Math.atan(dy / dx));
+      const angle =
+        dx <= 0
+          ? radiansToDegrees(Math.atan(dy / dx)) + 180
+          : radiansToDegrees(Math.atan(dy / dx));
 
       enemyAngle.angle = normalizeAngle(angle);
-      
+
       if (components.has(WeaponRangeComponent)) {
         this.attackWithRange(dt, d, player, enemy);
         continue;
@@ -96,10 +110,48 @@ export default class AISystem extends System {
       if (components.has(WeaponMeleeComponent)) {
         this.attackClose(dt, d, player, enemy);
       }
-    };
+    }
   }
 
-  attackClose(dt: number, d: number, player: number, enemy: number) { 
+  hasTextureBetween(
+    playerPosition: PositionComponent,
+    enemyPosition: PositionComponent
+  ) {
+    const textureMap = this.ecs.getSystem(MapTextureSystem)!.textureMap;
+
+    let startX = playerPosition.x;
+    let startY = playerPosition.y;;
+    const endX = enemyPosition.x;
+    const endY = enemyPosition.y;
+
+    const dx = startX < endX ? 0.1 : -0.1;
+    const dy = startY < endY ? 0.1 : -0.1;
+
+    while (startX < endX || startY < endY) {
+      const textureContainer = textureMap.get(Math.floor(startX), Math.floor(startY));
+
+      if (textureContainer) {
+        const doorComponent = textureContainer.get(DoorComponent);
+
+        if (doorComponent) {
+          return !doorComponent.isOpened;
+        }
+
+        return true;
+      }
+
+      if (startX < endX) {
+        startX += dx;
+      }
+      if (startY < endY) {
+        startY += dy;
+      }
+    }
+
+    return false;
+  }
+
+  attackClose(dt: number, d: number, player: number, enemy: number) {
     const playerComponents = this.ecs.getComponents(player);
     const playerHealth = playerComponents.get(HealthComponent);
 
@@ -110,8 +162,9 @@ export default class AISystem extends System {
     const enemyMove = enemyComponents.get(MoveComponent);
 
     const shouldEnemyBeMoved = d > 0;
-    const shouldEnemyAttack =  d <= 0;
-    const shouldEnemyDamage = enemyAI.actionPassedTime >= enemyWeapon.attackFrequency / 1_000;
+    const shouldEnemyAttack = d <= 0;
+    const shouldEnemyDamage =
+      enemyAI.actionPassedTime >= enemyWeapon.attackFrequency / 1_000;
 
     if (shouldEnemyBeMoved) {
       enemyAnimation.switchState("walk", true);
@@ -131,11 +184,14 @@ export default class AISystem extends System {
 
     if (shouldEnemyDamage) {
       enemyAI.actionPassedTime = 0;
-      playerHealth.current = Math.max(0, playerHealth.current - enemyWeapon.attackDamage); 
+      playerHealth.current = Math.max(
+        0,
+        playerHealth.current - enemyWeapon.attackDamage
+      );
     }
   }
 
-  attackWithRange(dt: number, d: number, _: number, enemy: number) { 
+  attackWithRange(dt: number, d: number, _: number, enemy: number) {
     const components = this.ecs.getComponents(enemy);
 
     const enemyAI = components.get(AIComponent);
@@ -146,7 +202,7 @@ export default class AISystem extends System {
     const enemyCircle = components.get(CircleComponent);
     const enemyMove = components.get(MoveComponent);
 
-    const shouldEnemyBeMoved = enemyWeapon.attackDistance < d && d > 0
+    const shouldEnemyBeMoved = enemyWeapon.attackDistance < d && d > 0;
 
     if (shouldEnemyBeMoved) {
       enemyAnimation.switchState("walk", true);
@@ -158,7 +214,8 @@ export default class AISystem extends System {
     }
 
     const shouldEnemyAttack = enemyWeapon.attackDistance >= d;
-    const shouldEnemyDamage = enemyAI.actionPassedTime >= enemyWeapon.attackFrequency / 1_000;
+    const shouldEnemyDamage =
+      enemyAI.actionPassedTime >= enemyWeapon.attackFrequency / 1_000;
 
     if (shouldEnemyAttack) {
       enemyAnimation.switchState("attack", true);
@@ -172,20 +229,30 @@ export default class AISystem extends System {
 
       const entity = this.ecs.addEntity();
       const sprite = this.textureManager.get(enemyWeapon.bulletSprite);
-      const radius = enemyWeapon.attackDistance === 0 ? enemyCircle.radius : 0.25;
+      const radius =
+        enemyWeapon.attackDistance === 0 ? enemyCircle.radius : 0.25;
 
       this.ecs.addComponent(entity, new CollisionComponent());
 
       if (sprite) {
         this.ecs.addComponent(entity, new SpriteComponent(sprite));
       }
-    
-      this.ecs.addComponent(entity, new BulletComponent(enemy, enemyWeapon.bulletDamage));
-      this.ecs.addComponent(entity, new PositionComponent(enemyPosition.x, enemyPosition.y));
+
+      this.ecs.addComponent(
+        entity,
+        new BulletComponent(enemy, enemyWeapon.bulletDamage)
+      );
+      this.ecs.addComponent(
+        entity,
+        new PositionComponent(enemyPosition.x, enemyPosition.y)
+      );
       this.ecs.addComponent(entity, new AngleComponent(enemyAngle.angle));
       this.ecs.addComponent(entity, new CircleComponent(radius));
-      this.ecs.addComponent(entity, new MinimapComponent('yellow'));
-      this.ecs.addComponent(entity, new MoveComponent(enemyWeapon.bulletSpeed, false, MainDirection.Forward));
+      this.ecs.addComponent(entity, new MinimapComponent("yellow"));
+      this.ecs.addComponent(
+        entity,
+        new MoveComponent(enemyWeapon.bulletSpeed, false, MainDirection.Forward)
+      );
 
       // one frame live entity
       if (enemyWeapon.attackDistance === 0) {
