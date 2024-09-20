@@ -148,6 +148,7 @@ export default class RenderSystem extends System {
 
             const wallHeight = Math.floor(this.height / 2 / normalizedDistanceRay);
 
+
             if (mapEntity && renderer) {
                 const lightLevel = this._getLightPower(rayX, rayY);
                 renderer.render(screenX, mapEntity, rayX, rayY, wallHeight, lightLevel);

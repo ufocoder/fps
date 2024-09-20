@@ -61,7 +61,6 @@ class Bitmap {
     return this.data[Math.round((Math.round(py * this.scaledHeight) * this.scaledWidth + px  * this.scaledWidth))] / 255;
   }
 }
-
 const NORTH = 0, SOUTH = 1, EAST = 2, WEST = 3;
 
 const squareDirections = [
@@ -84,7 +83,7 @@ class LightCasting2D {
   public worldEdges: {edge_id: number[], edge_exist: boolean[]}[];
   public lightMap: Bitmap;
   public emitterPosition: { x: number; y: number };
-  private boundingBox: { ex: number; ey: number; sx: number; sy: number };
+  private boundingBox?: { ex: number; ey: number; sx: number; sy: number };
 
   constructor(radius: number, quality = 0.12) {
     this.radius = radius;
@@ -94,6 +93,7 @@ class LightCasting2D {
     this.world = [];
     this.worldEdges = [];
     this.emitterPosition = { x: 0, y: 0 };
+    this.boundingBox = { ex: 0, ey: 0, sx: 0, sy: 0 };
   }
 
 
@@ -566,7 +566,7 @@ export default class LightSystem extends System {
     if (!lightCmp.isStaticLight || lightCastingInstance.worldEdges.length === 0) {
       const map = this.ecs.getSystem(MapTextureSystem)!.textureMap;
       const boolsMap = map.toArray().flatMap(el => el.map(el => !!el));
-      lightCastingInstance.addTileMapToPolyMap(boolsMap, 0, 0, map.cols, map.rows, 1, 0.001);
+      lightCastingInstance.addTileMapToPolyMap(boolsMap, 0, 0, map.cols, map.rows, 1);
     }
     if (!lightCmp.isStaticLight || lightCastingInstance.vecVisibilityPolygonPoints.length === 0) {
       const positionCmp = container.get(PositionComponent);
@@ -576,9 +576,11 @@ export default class LightSystem extends System {
 
   getLightingLevelForPoint(x: number, y: number) {
     return this.listOfLightnings.reduce((acc, val) => {
-      const lightPower =  val.lightCasting.getLightLevelInPointWithPercentageCloserFiltering(x, y, 0.07)
-      const lightLevel = val.cmp.brightness * val.cmp.lightFn(lightPower)
-      return acc + lightLevel;
+      // const lightPower =  val.lightCasting.getLightLevelInPointWithPercentageCloserFiltering(x, y, 0.07)
+      const lightPower =  val.lightCasting.getLightLevelInPoint(x, y);
+      return acc + lightPower;
+      // const lightLevel = val.cmp.brightness * val.cmp.lightFn(lightPower)
+      // return acc + lightLevel;
     }, 0);
   }
 

@@ -12,7 +12,7 @@ import LightSystem from "src/lib/ecs/systems/LightSystem.ts";
 export default class MinimapSystem extends System {
   public readonly componentsRequired = new Set([MinimapComponent, PositionComponent]);
 
-  protected readonly scale: number = 20;
+  protected readonly scale: number = 30;
   protected readonly canvas: Canvas;
   protected readonly container: HTMLElement;
 
@@ -51,7 +51,7 @@ export default class MinimapSystem extends System {
         if (!lightInfo) return;
 
         // const scale = lightInfo.lightCasting.lightMap.scale;
-        const scale = 2;
+        const scale = 10;
         const distance = lightInfo.cmp.distance;
 
         for (let i = -distance; i < distance; i = i + 1/scale) {
