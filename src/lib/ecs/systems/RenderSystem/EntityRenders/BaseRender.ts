@@ -1,5 +1,5 @@
 import { ComponentContainer } from "src/lib/ecs/Component.ts";
-import Canvas from "src/lib/Canvas/BufferCanvas.ts";
+import Canvas from "src/lib/Canvas/WebglCanvas";
 
 export default abstract class BaseRender {
     readonly screenHeight: number;

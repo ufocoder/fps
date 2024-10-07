@@ -12,7 +12,7 @@ import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import SpriteComponent from "src/lib/ecs/components/SpriteComponent";
 import HighlightComponent from "src/lib/ecs/components/HighlightComponent.ts";
 import EntityRender from "src/lib/ecs/systems/RenderSystem/EntityRenders/BaseRender.ts";
-import Canvas from "src/lib/Canvas/BufferCanvas";
+import Canvas from "src/lib/Canvas/WebglCanvas";
 import TextureManager from "src/managers/TextureManager";
 import { degreeToRadians, distance, normalizeAngle } from "src/lib/utils";
 import WallRender from "./EntityRenders/WallRender.ts";
