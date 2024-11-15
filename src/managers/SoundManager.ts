@@ -10,6 +10,7 @@ export default class SoundManager {
             audio.onload = () => resolve(void 0);
             audio.onabort = () => reject();
             audio.onerror = () => reject();
+            audio.loop = true;
             audio.load();
 
             resolve(void 0);
