@@ -34,7 +34,7 @@ export function createLevelEntities(
   const player = ecs.addEntity();
 
   ecs.addComponent(player, new PlayerComponent());
-  ecs.addComponent(player, new LightComponent(6, 0.8));
+  ecs.addComponent(player, new LightComponent(6, 1.5, 'easeInQuart'));
   ecs.addComponent(player, new ControlComponent());
   ecs.addComponent(player, new CircleComponent(0.4));
   ecs.addComponent(player, new WeaponMeleeComponent({
@@ -42,7 +42,7 @@ export function createLevelEntities(
       attack: animationManager.get("knifeAttack"),
       idle: animationManager.get("knifeIdle"),
     }),
-    attackDamage: 30, 
+    attackDamage: 30,
     attackFrequency: 500,
   }));
   ecs.addComponent(

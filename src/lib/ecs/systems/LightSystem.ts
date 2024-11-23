@@ -6,74 +6,71 @@ import PositionComponent from "src/lib/ecs/components/PositionComponent.ts";
 import { ComponentContainer } from "src/lib/ecs/Component.ts";
 import MapTextureSystem from "src/lib/ecs/systems/MapTextureSystem.ts";
 
-class Bitmap {
+export class Bitmap {
   public width: number;
   public height: number;
   public scale: number;
   public scaledWidth: number;
   public scaledHeight: number;
 
-  private readonly data: Uint8Array;
+  private readonly data: Float64Array;
 
   constructor(width: number, height: number, scale = 1) {
     this.width = width;
     this.height = height;
 
     this.scale = scale;
-    this.data = new Uint8Array(width * scale * height * scale);
+    this.scaledWidth = Math.round(width * scale);
+    this.scaledHeight = Math.round(height * scale);
 
-    this.scaledWidth = width * scale;
-    this.scaledHeight = height * scale;
+    this.data = new Float64Array(this.scaledWidth * this.scaledHeight);
   }
 
   clean() {
-    for (let i = 0; i < this.data.length; i++) {
-      this.data[i] = 0;
-    }
+    this.data.fill(0);
   }
 
   set(x: number, y: number, val: number) {
-    for (let sy = Math.round(y * this.scale); sy < (y + 1) * this.scale; sy++) {
-      for (let sx = Math.round(x * this.scale); sx < (x + 1) * this.scale; sx++) {
-        this.data[Math.round(sy * this.scaledWidth + sx)] = val * 255;
+    const startY = Math.floor(y * this.scale);
+    const endY = Math.ceil((y + 1) * this.scale);
+    const startX = Math.floor(x * this.scale);
+    const endX = Math.ceil((x + 1) * this.scale);
+
+    for (let sy = startY; sy < endY; sy++) {
+      for (let sx = startX; sx < endX; sx++) {
+        this.data[sy * this.scaledWidth + sx] = Math.min(1, Math.max(0, val));
       }
     }
   }
 
   setScaled(x: number, y: number, val: number) {
-    this.data[Math.round(Math.round(y) * this.scaledWidth + Math.round(x))] = val * 255;
+    const idx = Math.floor(y * this.scaledWidth + x);
+    if (idx >= 0 && idx < this.data.length) {
+      this.data[idx] = Math.min(1, Math.max(0, val));
+    }
   }
 
   getScaled(x: number, y: number) {
-    return this.data[Math.round(Math.round(y) * this.scaledWidth + Math.round(x))] / 255;
+    const idx = Math.floor(y * this.scaledWidth + x)
+    return idx >= 0 && idx < this.data.length ? this.data[idx] : 0;
   }
 
   get(x: number, y: number) {
-    return this.data[Math.round((y * this.scale * this.scaledWidth + x * this.scale))] / 255;
+    const sx = Math.floor(x * this.scale);
+    const sy = Math.floor(y * this.scale);
+    const idx = sy * this.scaledWidth + sx;
+    return idx >= 0 && idx < this.data.length ? this.data[idx] : 0;
   }
 
-  /**
-   * @param {number} px
-   * @param {number} py
-   * @return {number}
-   */
   getInPercents(px: number, py: number) {
-    return this.data[Math.round((Math.round(py * this.scaledHeight) * this.scaledWidth + px  * this.scaledWidth))] / 255;
+    const x = Math.floor(px * this.scaledWidth);
+    const y = Math.floor(py * this.scaledHeight);
+    const idx = y * this.scaledWidth + x;
+    return idx >= 0 && idx < this.data.length ? this.data[idx] : 0;
   }
 }
-const NORTH = 0, SOUTH = 1, EAST = 2, WEST = 3;
 
-const squareDirections = [
-  // [-1, -1],
-  [-1, 0],
-  // [-1, 1],
-  [0, -1],
-  [0, 0],
-  [0, 1],
-  // [1, -1],
-  [1, 0],
-  // [1, 1]
-];
+const NORTH = 0, SOUTH = 1, EAST = 2, WEST = 3;
 
 class LightCasting2D {
   public radius: number;
@@ -83,9 +80,9 @@ class LightCasting2D {
   public worldEdges: {edge_id: number[], edge_exist: boolean[]}[];
   public lightMap: Bitmap;
   public emitterPosition: { x: number; y: number };
-  private boundingBox?: { ex: number; ey: number; sx: number; sy: number };
+  private boundingBox: { ex: number; ey: number; sx: number; sy: number };
 
-  constructor(radius: number, quality = 0.12) {
+  constructor(radius: number, quality = 20) {
     this.radius = radius;
     this.vecEdges = [];
     this.vecVisibilityPolygonPoints = [];
@@ -346,7 +343,10 @@ class LightCasting2D {
       ang: this.vecVisibilityPolygonPoints[0].ang + Math.PI * 2
     });
 
+    this.fillLightMap(ox, oy);
+  }
 
+  private fillLightMap(ox: number, oy: number) {
     this.lightMap.clean();
     const mapStartX = ox - this.radius;
     const mapStartY = oy - this.radius;
@@ -366,24 +366,53 @@ class LightCasting2D {
       for (let x = minX; x <= maxX; x++) {
         for (let y = minY; y <= maxY; y++) {
           if (this.lightMap.getScaled(x, y) > 0) continue;
-          if (!is2DPointInTriangle(
+          const isPointInTriangle = is2DPointInTriangle(
               x,
               y,
               radiusInLightMap,
               radiusInLightMap,
-              (current.x - mapStartX ) * this.lightMap.scale,
+              (current.x - mapStartX) * this.lightMap.scale,
               (current.y - mapStartY) * this.lightMap.scale,
               (next.x - mapStartX) * this.lightMap.scale,
-              (next.y - mapStartY) * this.lightMap.scale,
-          )) {
-            continue;
+              (next.y - mapStartY) * this.lightMap.scale
+          );
+          if (isPointInTriangle) {
+            this.lightMap.setScaled(
+                x,
+                y,
+                1 -
+                getMagnitude(x, y, radiusInLightMap, radiusInLightMap) /
+                radiusInLightMap
+            )
           }
-          this.lightMap.setScaled(x, y, (1 - (getMagnitude(x, y, radiusInLightMap, radiusInLightMap) / radiusInLightMap)));
+
+          const isInSquare = isSquareIntersectTriangle(
+              x,
+              y,
+              1,
+              radiusInLightMap,
+              radiusInLightMap,
+              (current.x - mapStartX) * this.lightMap.scale,
+              (current.y - mapStartY) * this.lightMap.scale,
+              (next.x - mapStartX) * this.lightMap.scale,
+              (next.y - mapStartY) * this.lightMap.scale
+          );
+
+          if (isInSquare) {
+            this.lightMap.setScaled(
+                x,
+                y,
+                1 -
+                getMagnitude(x, y, radiusInLightMap, radiusInLightMap) /
+                radiusInLightMap
+            )
+          }
+
         }
       }
     }
-
   }
+
 
   castLightRay(ox: number, oy: number, ang: number, distance: number) {
     const rdx = distance * Math.cos(ang);
@@ -407,7 +436,7 @@ class LightCasting2D {
       const bothOfEdgePointsOutOfDistance = distToSegment( ox, oy, e2.sx, e2.sy, e2.ex, e2.ey) > distance;
       if (bothOfEdgePointsOutOfDistance) continue;
 
-      const intersection = intersect(e2.sx, e2.sy, e2.ex, e2.ey, ox, oy, ox + rdx, oy + rdy);
+      const intersection = isLineIntersect(e2.sx, e2.sy, e2.ex, e2.ey, ox, oy, ox + rdx, oy + rdy);
       if (!intersection) continue;
 
       const magnitude = getMagnitude(intersection.x, intersection.y, ox, oy);
@@ -429,7 +458,7 @@ class LightCasting2D {
       }
     }
 
-    const offsetPart = 0.01;
+    const offsetPart = 0.2;
     return {
       ang: closestPoint.ang,
       x: ( pointAfterClosest.x - closestPoint.x ) * offsetPart + closestPoint.x,
@@ -442,20 +471,6 @@ class LightCasting2D {
     return x < this.boundingBox.sx || x > this.boundingBox.ex || y < this.boundingBox.sy || y > this.boundingBox.ey;
   }
 
-  getLightLevelInPointWithPercentageCloserFiltering(x: number, y: number, offset: number = 0.2) {
-    let nextX;
-    let nextY;
-    let light;
-    return squareDirections.reduce((max, dir) => {
-      nextX = x + dir[0] * offset;
-      nextY = y + dir[1] * offset;
-      if (this.checkPointInBoundingBox(nextX, nextY)) return max;
-      light = this.getLightLevelInPoint(nextX, nextY);
-      if (light > max) max = light;
-      return max;
-    }, 0);
-  }
-
   getLightLevelInPoint(x: number, y: number) {
     if (this.checkPointInBoundingBox(x, y)) return 0;
     return this.lightMap.getInPercents(
@@ -463,13 +478,14 @@ class LightCasting2D {
         (y - this.boundingBox.sy) / this.lightMap.height
     );
   }
+
 }
 
 function getMagnitude(sx: number, sy: number, ex: number, ey: number) {
   return Math.sqrt(Math.pow(sx - ex, 2) + Math.pow(sy - ey, 2));
 }
 
-function intersect(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, x4: number, y4: number) {
+function isLineIntersect(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, x4: number, y4: number) {
   if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4)) return false;
   const denominator = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
   if (denominator === 0) return false;
@@ -498,18 +514,30 @@ function getDistanceFrom2DPointToLine(pointX: number, pointY: number, pointOnLin
   return Math.abs(A * pointX + B * pointY + C) / Math.sqrt(A * A + B * B);
 }
 
-function is2DPointInTriangle(
-    pointX: number, pointY: number,
-    triangleP1x: number, triangleP1y: number,
-    triangleP2x: number, triangleP2y: number,
-    triangleP3x: number, triangleP3y: number,
-) {
-  const a = (triangleP1x - pointX) * (triangleP2y - triangleP1y) - (triangleP2x - triangleP1x) * (triangleP1y - pointY);
-  const b = (triangleP2x - pointX) * (triangleP3y - triangleP2y) - (triangleP3x - triangleP2x) * (triangleP2y - pointY);
-  const c = (triangleP3x - pointX) * (triangleP1y - triangleP3y) - (triangleP1x - triangleP3x) * (triangleP3y - pointY);
-  return  (a >= 0 && b >= 0 && c >= 0) || (a <= 0 && b <= 0 && c <= 0);
+function is2DPointInTriangle(px: number, py: number, ax: number, ay: number, bx: number, by: number, cx: number, cy: number) {
+  const det = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+  const w1 = ((px - ax) * (cy - ay) - (py - ay) * (cx - ax)) / det;
+  const w2 = ((bx - ax) * (py - ay) - (by - ay) * (px - ax)) / det;
+  const w3 = 1 - w1 - w2;
+  return w1 >= 0 && w2 >= 0 && w3 >= 0;
 }
 
+function isSquareIntersectTriangle(
+    sx: number, sy: number, sSize: number,
+    t1x: number, t1y: number, t2x: number, t2y: number, t3x: number, t3y: number
+) {
+  return (
+      isLineIntersect(sx, sy, sx + sSize, sy, t1x, t1y, t2x, t2y) ||
+      isLineIntersect(sx + sSize, sy, sx + sSize, sy + sSize, t2x, t2y, t3x, t3y) ||
+      isLineIntersect(sx + sSize, sy + sSize, sx, sy + sSize, t3x, t3y, t1x, t1y) ||
+      isLineIntersect(sx, sy + sSize, sx, sy, t1x, t1y, t2x, t2y) ||
+      isLineIntersect(sx, sy, sx + sSize, sy, t2x, t2y, t3x, t3y) ||
+      isLineIntersect(sx, sy, sx + sSize, sy + sSize, t3x, t3y, t1x, t1y) ||
+      isLineIntersect(sx + sSize, sy, sx + sSize, sy + sSize, t1x, t1y, t2x, t2y) ||
+      isLineIntersect(sx + sSize, sy + sSize, sx, sy + sSize, t2x, t2y, t3x, t3y) ||
+      isLineIntersect(sx + sSize, sy + sSize, sx, sy, t3x, t3y, t1x, t1y)
+  );
+}
 
 export default class LightSystem extends System {
   public readonly componentsRequired = new Set([LightComponent]);
@@ -521,7 +549,7 @@ export default class LightSystem extends System {
   }[]  = [];
   private existedLights = new Set<Entity>();
 
-  private quality = 10;
+  private quality = 20;
 
   start(): void {
     this.ecs.onComponentAdd(LightComponent, (entity) => {
@@ -578,9 +606,8 @@ export default class LightSystem extends System {
     return this.listOfLightnings.reduce((acc, val) => {
       // const lightPower =  val.lightCasting.getLightLevelInPointWithPercentageCloserFiltering(x, y, 0.07)
       const lightPower =  val.lightCasting.getLightLevelInPoint(x, y);
-      return acc + lightPower;
-      // const lightLevel = val.cmp.brightness * val.cmp.lightFn(lightPower)
-      // return acc + lightLevel;
+      const lightLevel = val.cmp.brightness * val.cmp.lightFn(lightPower)
+      return acc + lightLevel;
     }, 0);
   }
 
