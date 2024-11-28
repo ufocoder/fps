@@ -10,7 +10,6 @@ export default class SoundManager {
             audio.onload = () => resolve(void 0);
             audio.onabort = () => reject();
             audio.onerror = () => reject();
-            audio.loop = true;
             audio.load();
 
             resolve(void 0);
@@ -38,12 +37,13 @@ export default class SoundManager {
         const copy = audio.cloneNode() as HTMLAudioElement;
         
         copy.volume = volume;
-
         copy.play();
     }
 
     playBackground(id: string) {
         this.currentBackgroundId = id;
+
+        this.sounds[id].loop = true;
         this.sounds[id].play();
     }
 
