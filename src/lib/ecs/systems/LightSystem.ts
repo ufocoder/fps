@@ -43,6 +43,13 @@ export class Bitmap {
     }
   }
 
+  get(x: number, y: number) {
+    const sx = Math.floor(x * this.scale);
+    const sy = Math.floor(y * this.scale);
+    const idx = sy * this.scaledWidth + sx;
+    return idx >= 0 && idx < this.data.length ? this.data[idx] : 0;
+  }
+
   setScaled(x: number, y: number, val: number) {
     const idx = Math.floor(y * this.scaledWidth + x);
     if (idx >= 0 && idx < this.data.length) {
@@ -55,12 +62,6 @@ export class Bitmap {
     return idx >= 0 && idx < this.data.length ? this.data[idx] : 0;
   }
 
-  get(x: number, y: number) {
-    const sx = Math.floor(x * this.scale);
-    const sy = Math.floor(y * this.scale);
-    const idx = sy * this.scaledWidth + sx;
-    return idx >= 0 && idx < this.data.length ? this.data[idx] : 0;
-  }
 
   getInPercents(px: number, py: number) {
     const x = Math.floor(px * this.scaledWidth);
@@ -71,6 +72,7 @@ export class Bitmap {
 }
 
 const NORTH = 0, SOUTH = 1, EAST = 2, WEST = 3;
+const eps = 0.0001;
 
 class LightCasting2D {
   public radius: number;
@@ -81,8 +83,9 @@ class LightCasting2D {
   public lightMap: Bitmap;
   public emitterPosition: { x: number; y: number };
   private boundingBox: { ex: number; ey: number; sx: number; sy: number };
+  private bendOffset: number;
 
-  constructor(radius: number, quality = 20) {
+  constructor(radius: number, quality = 20, bendOffset = 0.02) {
     this.radius = radius;
     this.vecEdges = [];
     this.vecVisibilityPolygonPoints = [];
@@ -91,6 +94,7 @@ class LightCasting2D {
     this.worldEdges = [];
     this.emitterPosition = { x: 0, y: 0 };
     this.boundingBox = { ex: 0, ey: 0, sx: 0, sy: 0 };
+    this.bendOffset = bendOffset;
   }
 
 
@@ -265,10 +269,12 @@ class LightCasting2D {
       ey: this.emitterPosition.y + this.radius,
     }
 
-
     this.vecVisibilityPolygonPoints = [];
 
-    const countRadialRays = 20;
+    const countRadialRays = 40;
+    const pointToLineDistance = 0.01;
+    const joinPointsDistance = 0.01;
+
     for (let i = 0; i <= countRadialRays; i++) {
       const ang = - Math.PI + i * Math.PI * 2 / countRadialRays;
       const current = this.castLightRay(ox, oy, ang, this.radius);
@@ -276,7 +282,7 @@ class LightCasting2D {
       const prev2 = this.vecVisibilityPolygonPoints[this.vecVisibilityPolygonPoints.length - 2];
       const prev = this.vecVisibilityPolygonPoints[this.vecVisibilityPolygonPoints.length - 1];
 
-      if (prev2 && prev && getDistanceFrom2DPointToLine(current.x, current.y, prev2.x, prev2.y, prev.x, prev.y) <= 0.05) {
+      if (prev2 && prev && getDistanceFrom2DPointToLine(current.x, current.y, prev2.x, prev2.y, prev.x, prev.y) <= pointToLineDistance) {
         prev.x = current.x;
         prev.y = current.y;
       } else {
@@ -309,7 +315,6 @@ class LightCasting2D {
 
     this.vecVisibilityPolygonPoints.sort((p1, p2) => p1.ang < p2.ang ? -1 : 1);
 
-    const joinDistance = 0.2;
     const uniqVecVisibilityPolygonPoints = [];
     for (let i = 0; i < this.vecVisibilityPolygonPoints.length - 1; i++) {
       const prev = this.vecVisibilityPolygonPoints[i - 1];
@@ -318,20 +323,20 @@ class LightCasting2D {
 
       uniqVecVisibilityPolygonPoints.push(current);
 
-      let isClosePoint = Math.abs(current.x - next.x) < joinDistance && Math.abs(current.y - next.y) < joinDistance;
+      let isClosePoint = Math.abs(current.x - next.x) < joinPointsDistance && Math.abs(current.y - next.y) < joinPointsDistance;
       while (next && isClosePoint) {
         i++;
         next = this.vecVisibilityPolygonPoints[i + 1];
-        isClosePoint = next && Math.abs(current.x - next.x) < joinDistance && Math.abs(current.y - next.y) < joinDistance;
+        isClosePoint = next && Math.abs(current.x - next.x) < joinPointsDistance && Math.abs(current.y - next.y) < joinPointsDistance;
       }
 
-      let nextPointOnCurrentLine = prev && current && next && getDistanceFrom2DPointToLine(next.x, next.y, prev.x, prev.y, current.x, current.y) <= 0.1;
+      let nextPointOnCurrentLine = prev && current && next && getDistanceFrom2DPointToLine(next.x, next.y, prev.x, prev.y, current.x, current.y) <= joinPointsDistance;
       while (nextPointOnCurrentLine) {
         current.x = next.x;
         current.y = next.y;
         i++;
         next = this.vecVisibilityPolygonPoints[i + 1];
-        nextPointOnCurrentLine = prev && current && next && getDistanceFrom2DPointToLine(next.x, next.y, prev.x, prev.y, current.x, current.y) <= 0.1;
+        nextPointOnCurrentLine = prev && current && next && getDistanceFrom2DPointToLine(next.x, next.y, prev.x, prev.y, current.x, current.y) <= joinPointsDistance;
       }
     }
     this.vecVisibilityPolygonPoints = uniqVecVisibilityPolygonPoints;
@@ -359,16 +364,16 @@ class LightCasting2D {
 
       const minX = Math.floor((Math.min(ox, current.x, next.x) - mapStartX) * this.lightMap.scale);
       const minY = Math.floor((Math.min(oy, current.y, next.y) - mapStartY) * this.lightMap.scale);
-      const maxX = Math.ceil((Math.max(ox, current.x, next.x) - mapStartX) * this.lightMap.scale);
-      const maxY = Math.ceil((Math.max(oy, current.y, next.y) - mapStartY) * this.lightMap.scale);
+      const maxX = Math.floor((Math.max(ox, current.x, next.x) - mapStartX) * this.lightMap.scale - eps);
+      const maxY = Math.floor((Math.max(oy, current.y, next.y) - mapStartY) * this.lightMap.scale - eps);
 
 
       for (let x = minX; x <= maxX; x++) {
         for (let y = minY; y <= maxY; y++) {
           if (this.lightMap.getScaled(x, y) > 0) continue;
           const isPointInTriangle = is2DPointInTriangle(
-              x,
-              y,
+              x + 0.5,
+              y + 0.5,
               radiusInLightMap,
               radiusInLightMap,
               (current.x - mapStartX) * this.lightMap.scale,
@@ -381,8 +386,8 @@ class LightCasting2D {
                 x,
                 y,
                 1 -
-                getMagnitude(x, y, radiusInLightMap, radiusInLightMap) /
-                radiusInLightMap
+                getMagnitude(x + 0.5, y + 0.5, radiusInLightMap, radiusInLightMap) /
+                ( radiusInLightMap + 1 )
             )
           }
 
@@ -403,15 +408,15 @@ class LightCasting2D {
                 x,
                 y,
                 1 -
-                getMagnitude(x, y, radiusInLightMap, radiusInLightMap) /
-                radiusInLightMap
+                getMagnitude(x + 0.5, y + 0.5, radiusInLightMap, radiusInLightMap) /
+                ( radiusInLightMap + 1)
             )
           }
-
         }
       }
     }
   }
+
 
 
   castLightRay(ox: number, oy: number, ang: number, distance: number) {
@@ -436,7 +441,7 @@ class LightCasting2D {
       const bothOfEdgePointsOutOfDistance = distToSegment( ox, oy, e2.sx, e2.sy, e2.ex, e2.ey) > distance;
       if (bothOfEdgePointsOutOfDistance) continue;
 
-      const intersection = isLineIntersect(e2.sx, e2.sy, e2.ex, e2.ey, ox, oy, ox + rdx, oy + rdy);
+      const intersection = getLineIntersectPoint(e2.sx, e2.sy, e2.ex, e2.ey, ox, oy, ox + rdx, oy + rdy);
       if (!intersection) continue;
 
       const magnitude = getMagnitude(intersection.x, intersection.y, ox, oy);
@@ -458,7 +463,7 @@ class LightCasting2D {
       }
     }
 
-    const offsetPart = 0.2;
+    const offsetPart = this.bendOffset;
     return {
       ang: closestPoint.ang,
       x: ( pointAfterClosest.x - closestPoint.x ) * offsetPart + closestPoint.x,
@@ -468,8 +473,12 @@ class LightCasting2D {
   }
 
   checkPointInBoundingBox(x: number, y: number) {
-    return x < this.boundingBox.sx || x > this.boundingBox.ex || y < this.boundingBox.sy || y > this.boundingBox.ey;
-  }
+    return (
+        (x - eps) < this.boundingBox.sx ||
+        (x + eps) > this.boundingBox.ex ||
+        (y - eps) < this.boundingBox.sy ||
+        (y + eps) > this.boundingBox.ey
+    )  }
 
   getLightLevelInPoint(x: number, y: number) {
     if (this.checkPointInBoundingBox(x, y)) return 0;
@@ -478,14 +487,13 @@ class LightCasting2D {
         (y - this.boundingBox.sy) / this.lightMap.height
     );
   }
-
 }
 
 function getMagnitude(sx: number, sy: number, ex: number, ey: number) {
   return Math.sqrt(Math.pow(sx - ex, 2) + Math.pow(sy - ey, 2));
 }
 
-function isLineIntersect(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, x4: number, y4: number) {
+function getLineIntersectPoint(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, x4: number, y4: number) {
   if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4)) return false;
   const denominator = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
   if (denominator === 0) return false;
@@ -493,6 +501,15 @@ function isLineIntersect(x1: number, y1: number, x2: number, y2: number, x3: num
   const ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator
   if (ua < 0 || ua > 1 || ub < 0 || ub > 1) return false;
   return { x: x1 + ua * (x2 - x1), y: y1 + ua * (y2 - y1) };
+}
+
+function isLinesHasIntersections(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, x4: number, y4: number) {
+  if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4)) return false;
+  const denominator = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
+  if (denominator === 0) return false;
+  const ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator
+  const ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator
+  return !(ua < 0 || ua > 1 || ub < 0 || ub > 1);
 }
 
 function dist2(x: number, y: number, x2: number, y2: number) {
@@ -514,12 +531,11 @@ function getDistanceFrom2DPointToLine(pointX: number, pointY: number, pointOnLin
   return Math.abs(A * pointX + B * pointY + C) / Math.sqrt(A * A + B * B);
 }
 
-function is2DPointInTriangle(px: number, py: number, ax: number, ay: number, bx: number, by: number, cx: number, cy: number) {
-  const det = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
-  const w1 = ((px - ax) * (cy - ay) - (py - ay) * (cx - ax)) / det;
-  const w2 = ((bx - ax) * (py - ay) - (by - ay) * (px - ax)) / det;
-  const w3 = 1 - w1 - w2;
-  return w1 >= 0 && w2 >= 0 && w3 >= 0;
+function is2DPointInTriangle(pointX: number, pointY: number, triangleP1x: number, triangleP1y: number, triangleP2x: number, triangleP2y: number, triangleP3x: number, triangleP3y: number) {
+  const a = (triangleP1x - pointX) * (triangleP2y - triangleP1y) - (triangleP2x - triangleP1x) * (triangleP1y - pointY);
+  const b = (triangleP2x - pointX) * (triangleP3y - triangleP2y) - (triangleP3x - triangleP2x) * (triangleP2y - pointY);
+  const c = (triangleP3x - pointX) * (triangleP1y - triangleP3y) - (triangleP1x - triangleP3x) * (triangleP3y - pointY);
+  return  (a >= 0 && b >= 0 && c >= 0) || (a <= 0 && b <= 0 && c <= 0);
 }
 
 function isSquareIntersectTriangle(
@@ -527,15 +543,15 @@ function isSquareIntersectTriangle(
     t1x: number, t1y: number, t2x: number, t2y: number, t3x: number, t3y: number
 ) {
   return (
-      isLineIntersect(sx, sy, sx + sSize, sy, t1x, t1y, t2x, t2y) ||
-      isLineIntersect(sx + sSize, sy, sx + sSize, sy + sSize, t2x, t2y, t3x, t3y) ||
-      isLineIntersect(sx + sSize, sy + sSize, sx, sy + sSize, t3x, t3y, t1x, t1y) ||
-      isLineIntersect(sx, sy + sSize, sx, sy, t1x, t1y, t2x, t2y) ||
-      isLineIntersect(sx, sy, sx + sSize, sy, t2x, t2y, t3x, t3y) ||
-      isLineIntersect(sx, sy, sx + sSize, sy + sSize, t3x, t3y, t1x, t1y) ||
-      isLineIntersect(sx + sSize, sy, sx + sSize, sy + sSize, t1x, t1y, t2x, t2y) ||
-      isLineIntersect(sx + sSize, sy + sSize, sx, sy + sSize, t2x, t2y, t3x, t3y) ||
-      isLineIntersect(sx + sSize, sy + sSize, sx, sy, t3x, t3y, t1x, t1y)
+      isLinesHasIntersections(sx, sy, sx + sSize, sy, t1x, t1y, t2x, t2y) ||
+      isLinesHasIntersections(sx + sSize, sy, sx + sSize, sy + sSize, t2x, t2y, t3x, t3y) ||
+      isLinesHasIntersections(sx + sSize, sy + sSize, sx, sy + sSize, t3x, t3y, t1x, t1y) ||
+      isLinesHasIntersections(sx, sy + sSize, sx, sy, t1x, t1y, t2x, t2y) ||
+      isLinesHasIntersections(sx, sy, sx + sSize, sy, t2x, t2y, t3x, t3y) ||
+      isLinesHasIntersections(sx, sy, sx + sSize, sy + sSize, t3x, t3y, t1x, t1y) ||
+      isLinesHasIntersections(sx + sSize, sy, sx + sSize, sy + sSize, t1x, t1y, t2x, t2y) ||
+      isLinesHasIntersections(sx + sSize, sy + sSize, sx, sy + sSize, t2x, t2y, t3x, t3y) ||
+      isLinesHasIntersections(sx + sSize, sy + sSize, sx, sy, t3x, t3y, t1x, t1y)
   );
 }
 
@@ -604,7 +620,6 @@ export default class LightSystem extends System {
 
   getLightingLevelForPoint(x: number, y: number) {
     return this.listOfLightnings.reduce((acc, val) => {
-      // const lightPower =  val.lightCasting.getLightLevelInPointWithPercentageCloserFiltering(x, y, 0.07)
       const lightPower =  val.lightCasting.getLightLevelInPoint(x, y);
       const lightLevel = val.cmp.brightness * val.cmp.lightFn(lightPower)
       return acc + lightLevel;

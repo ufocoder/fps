@@ -17,11 +17,17 @@ export default class LightComponent implements Component {
     brightness: number;
     distance: number;
     lightFn: (lightLevel: number) => number;
-    isStaticLight = false;
+    isStaticLight: boolean;
 
-    constructor(distance: number, brightness: number, lightFn: keyof typeof lightApplyFn = 'linear') {
+    constructor(
+        distance: number,
+        brightness: number,
+        isStaticLight: boolean = false,
+        lightFn: keyof typeof lightApplyFn = 'linear'
+    ) {
         this.distance = distance;
         this.brightness = brightness;
         this.lightFn = lightApplyFn[lightFn];
+        this.isStaticLight = isStaticLight;
     }
 }

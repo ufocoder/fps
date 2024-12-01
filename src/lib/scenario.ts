@@ -34,7 +34,7 @@ export function createLevelEntities(
   const player = ecs.addEntity();
 
   ecs.addComponent(player, new PlayerComponent());
-  ecs.addComponent(player, new LightComponent(6, 1.5, 'easeInQuart'));
+  ecs.addComponent(player, new LightComponent(5, 1));
   ecs.addComponent(player, new ControlComponent());
   ecs.addComponent(player, new CircleComponent(0.4));
   ecs.addComponent(player, new WeaponMeleeComponent({
@@ -205,7 +205,7 @@ export function createLevelEntities(
 
       if (mapItem.type === 'light') {
         const light = ecs.addEntity();
-        ecs.addComponent(light, new LightComponent(4, 1));
+        ecs.addComponent(light, new LightComponent(4, 1, true, 'linear'));
         ecs.addComponent(light, new PositionComponent(x + 0.5, y + 0.5));
         ecs.addComponent(light, new MinimapComponent("white"));
         ecs.addComponent(light, new CircleComponent(0.1));
