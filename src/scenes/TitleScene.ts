@@ -2,12 +2,15 @@ import ContentView from "src/views/ContentView";
 import BaseScene from "./BaseScene";
 
 export default class TitleScene implements BaseScene {
+    public playerState: PlayerState;
+
     protected readonly view: ContentView;
     protected readonly container: HTMLElement;
     protected onCompleteCallback?: () => void;
 
-    constructor(container: HTMLElement, title: string, subtitle?: string[]) {
+    constructor(container: HTMLElement, playerState: PlayerState, title: string, subtitle?: string[]) {
         this.container = container;
+        this.playerState = playerState;
         this.view = new ContentView(title, subtitle);
         this.createListeners();
     }

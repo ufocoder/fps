@@ -23,35 +23,44 @@ import PlayerComponent from "./ecs/components/PlayerComponent";
 import ItemComponent from "./ecs/components/ItemComponent";
 import DoorComponent from "src/lib/ecs/components/DoorComponent.ts";
 import LightComponent from "src/lib/ecs/components/LightComponent.ts";
+import { WEAPON_KNIFE_INDEX, WEAPON_PISTOL_INDEX } from "./ecs/systems/WeaponSystem";
+import { generateKnifeWeapon, generatePistolWeapon } from "src/levels/generators/components";
 
 export function createLevelEntities(
   ecs: ECS,
   level: Level,
+  playerState: PlayerState,
   textureManager: TextureManager,
   animationManager: AnimationManager
 ) {
-  // player
   const player = ecs.addEntity();
 
-  ecs.addComponent(player, new PlayerComponent());
+  const playerHealth = playerState.health || level.player.health;
+  const playerComponent = new PlayerComponent();
+
+  const knifeWeapon = generateKnifeWeapon(animationManager);
+
+  playerComponent.currentWeapon = knifeWeapon;
+  playerComponent.weapons[WEAPON_KNIFE_INDEX] = knifeWeapon;
+
+  if (playerState.ammo) {
+    const pistolWeapon = generatePistolWeapon(animationManager, playerState.ammo);
+
+    playerComponent.currentWeapon = pistolWeapon;
+    playerComponent.weapons[WEAPON_PISTOL_INDEX] = pistolWeapon;
+  }
+
+  ecs.addComponent(player, playerComponent);
   ecs.addComponent(player, new LightComponent(5, 1));
   ecs.addComponent(player, new ControlComponent());
   ecs.addComponent(player, new CircleComponent(0.4));
-  ecs.addComponent(player, new WeaponMeleeComponent({
-    sprite: new AnimatedSpriteComponent('idle', {
-      attack: animationManager.get("knifeAttack"),
-      idle: animationManager.get("knifeIdle"),
-    }),
-    attackDamage: 30,
-    attackFrequency: 500,
-  }));
   ecs.addComponent(
     player,
     new PositionComponent(level.player.x, level.player.y)
   );
   ecs.addComponent(
     player,
-    new HealthComponent(level.player.health, level.player.health)
+    new HealthComponent(playerHealth, playerHealth)
   );
   ecs.addComponent(player, new AngleComponent(level.player.angle));
   ecs.addComponent(player, new MoveComponent(3, true));

@@ -1,10 +1,10 @@
 import { minmax } from "src/lib/utils/math";
+import { createTextureFromBuffer, setupWebGL, WebGLContext } from "./lib/webgl";
 
 interface CanvasProps {
   id?: string;
   width: number;
   height: number;
-  scale?: number;
   style?: string;
 }
 
@@ -35,49 +35,80 @@ interface DrawImageProps {
   texture: TextureBitmap;
 }
 
-export default class BufferCanvas {
-  readonly width: number;
-  readonly height: number;
+export default class WebglCanvas {
+  width: number;
+  height: number;
 
   element: HTMLCanvasElement;
-  context: CanvasRenderingContext2D;
 
-  protected buffer: ImageData;
+  protected buffer: Uint8Array;
+  protected setup: WebGLContext;
 
-  constructor({ id, width, height, style, scale }: CanvasProps) {
+  constructor({ id, width, height, style }: CanvasProps) {
+    const canvas = document.createElement("canvas");
+    const setup = setupWebGL(canvas, width, height);
+
+    if (!setup) {
+      throw new Error("bad setup");
+    }
+
+    this.setup = setup;
+
     this.width = width;
     this.height = height;
+    this.element = canvas;
+    this.element.width = width;
+    this.element.height = height;
 
-    this.element = document.createElement("canvas");
     if (id) {
       this.element.id = id;
     }
-    this.element.width = width;
-    this.element.height = height;
 
     if (style) {
       this.element.setAttribute("style", style);
     }
 
-    this.context = this.element.getContext("2d")!;
-
-    if (scale) {
-      this.context.scale(scale, scale);
-    }
-
-    this.buffer = this.context.createImageData(this.width, this.height);
+    this.buffer = new Uint8Array(width * height * 4);
   }
 
   clear() {
-    this.context.clearRect(0, 0, this.width, this.height);
+    this.setup.gl.clear(0);
+    this.buffer.fill(0);
   }
 
-  createBufferSnapshot() {
-    this.buffer = this.context.createImageData(this.width, this.height);
-  }
+  createBufferSnapshot() {}
 
   commitBufferSnapshot() {
-    this.context.putImageData(this.buffer!, 0, 0);
+    const { gl, program, buffers } = this.setup;
+    const texture = createTextureFromBuffer(
+      gl,
+      this.width,
+      this.height,
+      this.buffer,
+    );
+
+    const vertexPosition = gl.getAttribLocation(program, "aVertexPosition");
+    const textureCoord = gl.getAttribLocation(program, "aTextureCoord");
+    const uSampler = gl.getUniformLocation(program, "uSampler");
+
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+    gl.vertexAttribPointer(vertexPosition, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vertexPosition);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoord);
+    gl.vertexAttribPointer(textureCoord, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(textureCoord);
+
+    gl.useProgram(program);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.uniform1i(uSampler, 0);
+
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
 
   drawPixel({ x, y, color }: DrawPixelProps) {
@@ -86,10 +117,10 @@ export default class BufferCanvas {
     }
     const offset = 4 * (Math.floor(x) + Math.floor(y) * this.width);
 
-    this.buffer.data[offset] = color.r;
-    this.buffer.data[offset + 1] = color.g;
-    this.buffer.data[offset + 2] = color.b;
-    this.buffer.data[offset + 3] = color.a;
+    this.buffer[offset] = color.r;
+    this.buffer[offset + 1] = color.g;
+    this.buffer[offset + 2] = color.b;
+    this.buffer[offset + 3] = color.a;
   }
 
   drawImage({ x, y, texture }: DrawImageProps) {

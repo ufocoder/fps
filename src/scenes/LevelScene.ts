@@ -14,7 +14,7 @@ import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import RenderSystem from "src/lib/ecs/systems/RenderSystem";
 import RotateSystem from "src/lib/ecs/systems/RotateSystem";
 import TextureManager from "src/managers/TextureManager";
-import WeaponSystem from "src/lib/ecs/systems/WeaponSystem";
+import WeaponSystem, { WEAPON_PISTOL_INDEX } from "src/lib/ecs/systems/WeaponSystem";
 import MapItemSystem from "src/lib/ecs/systems/MapItemSystem";
 import MapPolarSystem from "src/lib/ecs/systems/MapPolarSystem";
 import MapTextureSystem from "src/lib/ecs/systems/MapTextureSystem";
@@ -30,12 +30,15 @@ const KEY_CONTROL_PAUSE = "KeyM";
 interface LevelSceneProps {
   container: HTMLElement;
   level: Level;
+  playerState: PlayerState;
   soundManager: SoundManager;
   textureManager: TextureManager;
   animationManager: AnimationManager;
 }
 
 export default class LevelScene implements BaseScene {
+  public playerState: PlayerState;
+
   protected onCompleteCallback?: () => void;
   protected onFailedCallback?: () => void;
 
@@ -44,7 +47,7 @@ export default class LevelScene implements BaseScene {
   protected readonly ecs: ECS;
   protected startedAt: number = +new Date();
 
-  private playerState: PlayerState;
+  private timeLeft?: number;
   private levelPlayerView: LevelPlayerView;
   private soundManager: SoundManager;
 
@@ -54,22 +57,18 @@ export default class LevelScene implements BaseScene {
     soundManager,
     textureManager,
     animationManager,
+    playerState,
   }: LevelSceneProps) {
     this.level = level;
+    this.playerState = playerState;
 
-    this.playerState = {
-      health: level.player.health,
-      ammo: undefined,
-      timeLeft: level.endingScenario.name === "survive" ? level.endingScenario?.timer : undefined,
-      soundMuted: soundManager.checkMuted(),
-    }
-
+    this.timeLeft = level.endingScenario.name === "survive" ? level.endingScenario?.timer : undefined;
     this.soundManager = soundManager;
     this.levelPlayerView = new LevelPlayerView(container);
 
     const ecs = new ECS();
 
-    createLevelEntities(ecs, level, textureManager, animationManager);
+    createLevelEntities(ecs, level, playerState, textureManager, animationManager);
 
     ecs.addSystem(new MapTextureSystem(ecs, level));
     ecs.addSystem(new MapPolarSystem(ecs));
@@ -123,8 +122,8 @@ export default class LevelScene implements BaseScene {
         }
         return true;
       case "survive":
-        if (this.playerState.timeLeft !== undefined) {
-          return this.playerState.timeLeft <= 0;
+        if (this.timeLeft !== undefined) {
+          return this.timeLeft <= 0;
         }
         return false;
     }
@@ -161,35 +160,19 @@ export default class LevelScene implements BaseScene {
       return;
     }
 
-    const newHealth = playerContainer.get(HealthComponent).current;
-    const newAmmo = playerContainer.get(WeaponRangeComponent)?.bulletTotal || 0;
-    const newSoundMuted = this.soundManager.checkMuted();
-
-    let shouldRenderView = false;
-
-    if (this.playerState.timeLeft) {
-      shouldRenderView = true;
-      this.playerState.timeLeft = Math.max(0, this.playerState.timeLeft - dt);
+    if (this.timeLeft) {
+      this.timeLeft = Math.max(0, this.timeLeft - dt);
     }
 
-    if (this.playerState.soundMuted !== newSoundMuted) {
-      shouldRenderView = true;
-      this.playerState.soundMuted = newSoundMuted;
-    }
+    this.playerState.health = playerContainer.get(HealthComponent).current;
+    this.playerState.ammo = (playerContainer.get(PlayerComponent).weapons[WEAPON_PISTOL_INDEX] as WeaponRangeComponent)?.bulletTotal;
 
-    if (this.playerState.health !== newHealth) {
-      shouldRenderView = true;
-      this.playerState.health = newHealth;
-    }
-
-    if (this.playerState.ammo !== newAmmo) {
-      shouldRenderView = true;
-      this.playerState.ammo = newAmmo;
-    }
-
-    if (shouldRenderView) {
-      this.levelPlayerView.render(this.playerState);
-    }
+    this.levelPlayerView.render({
+      soundMuted: this.soundManager.checkMuted(),
+      ammo: this.playerState.ammo,
+      health: this.playerState.health,
+      timeLeft: this.timeLeft
+    });
   }
 
   onComplete = (cb: () => void) => {
@@ -208,6 +191,7 @@ export default class LevelScene implements BaseScene {
     }
   }
 
+  // @TODO: extract to another system
   handleDocumentKeypress = (e: KeyboardEvent) => {
     if (e.code === KEY_CONTROL_PAUSE) {
       this.toogleMusicControl();
@@ -226,7 +210,12 @@ export default class LevelScene implements BaseScene {
     this.startedAt = +new Date();
     this.ecs.start();
     this.loop.play();
-    this.levelPlayerView.render(this.playerState);
+    this.levelPlayerView.render({
+      soundMuted: this.soundManager.checkMuted(),
+      ammo: this.playerState.ammo,
+      health: this.playerState.health,
+      timeLeft: this.timeLeft
+    });
     this.createListeners();
   }
 

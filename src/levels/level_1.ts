@@ -1,4 +1,5 @@
-import { generateAmmo, generatePistol, generateSoldier, generateZombies } from "./generators";
+import { generateSoldier, generateZombies } from "./generators/characters";
+import { generatePistolAmmo, generatePistol } from "./generators/items";
 
 const level: Level = {
   world: {
@@ -7,7 +8,8 @@ const level: Level = {
       bottom: { r: 84, g: 98, b: 92, a: 255 },
     },
   },
-  music: 'shocking-red-abbynoise',
+  music: "shocking-red-abbynoise",
+  // prettier-ignore
   map: [
     ['#', '#', '#', '#', '&', '#', '#', '#', '#', '#', '#', '&', '#', '#', '#', '#', '#', '#', '#', '#'],
     ['#', ' ', ' ', ' ', '&', ' ', ' ', ' ', ' ', ' ', ' ', '&', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#'],
@@ -18,13 +20,13 @@ const level: Level = {
     ['#', '#', '#', '#', '#', '#', '#', '&', '#', '#', '#', '#', '#', '#', '&', '#', '#', '#', '#', '#'],
   ],
   mapEntities: {
-    ' ': { type: 'empty' },
-    '#': { type: 'wall', texture: "TECH_1C" },
-    '&': { type: 'wall', texture: "TECH_1E" },
-    '4': { type: 'wall', texture: "DOOR_1A" },
-    '5': { type: 'wall', texture: "DOOR_1E" },
-    '|': { type: 'door', texture: "DOOR_1A" },
-    '*': { type: 'light' },
+    " ": { type: "empty" },
+    "#": { type: "wall", texture: "TECH_1C" },
+    "&": { type: "wall", texture: "TECH_1E" },
+    "4": { type: "wall", texture: "DOOR_1A" },
+    "5": { type: "wall", texture: "DOOR_1E" },
+    "|": { type: "door", texture: "DOOR_1A" },
+    "*": { type: "light" },
   },
   player: {
     x: 1.5,
@@ -34,11 +36,11 @@ const level: Level = {
   },
   items: [
     generatePistol(3.5, 1.6, 15),
-    generateAmmo(3.5, 1.8, 15),
-    generateAmmo(3.5, 2, 15),
-    generateAmmo(3.5, 2.2, 15),
-    generateAmmo(3.5, 2.4, 15),
-    generateAmmo(16, 5, 15),
+    generatePistolAmmo(3.5, 1.8, 15),
+    generatePistolAmmo(3.5, 2, 15),
+    generatePistolAmmo(3.5, 2.2, 15),
+    generatePistolAmmo(3.5, 2.4, 15),
+    generatePistolAmmo(16, 5, 15),
   ],
   enemies: [
     generateSoldier(18, 1.75, 4),
@@ -48,8 +50,8 @@ const level: Level = {
     ...generateZombies(10, 13, 2.5, 0.75, 0.75, 2),
   ],
   endingScenario: {
-    name:'exit',
-    position: { x: 18, y: 2 }
+    name: "exit",
+    position: { x: 18, y: 2 },
   },
 };
 

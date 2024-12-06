@@ -21,17 +21,21 @@ export function createScenario({
 }: ScenarioProps) {
   let levelIndex = 0;
 
+  const playerState: PlayerState = {
+    health: 100,
+  };
+
   const showFinalScene = () => {
-    const scene = new TitleScene(container, "Congratulation!", ["You survived a zombie invasion"]);
+    const scene = new TitleScene(container, playerState, "Congratulation!", ["You survived a zombie invasion"]);
     scene.start();
   };
 
   const showFailedScene = () => {
-    const scene = new TitleScene(container, "You died");
+    const scene = new TitleScene(container, playerState, "You died");
     scene.start();
   };
 
-  const switchToLevelNextScene = () => {
+  const switchToLevelNextScene = (playerState: PlayerState) => {
     const level = levels[levelIndex];
 
     if (!level) {
@@ -47,6 +51,7 @@ export function createScenario({
       soundManager,
       textureManager,
       animationManager,
+      playerState,
     });
 
     scene.onComplete(() => {
@@ -54,7 +59,7 @@ export function createScenario({
         soundManager.pauseBackground();
       }
       scene.destroy();
-      switchToLevelNextScene();
+      switchToLevelNextScene(scene.playerState);
     });
 
     scene.onFailed(() => {
@@ -72,7 +77,7 @@ export function createScenario({
     }
   };
 
-  const startScene = new TitleScene(container, "Shoot or run", 
+  const startScene = new TitleScene(container, playerState, "Shoot or run", 
     [
       "Use WASD and mouse to play", 
       "Use M to mute", 
@@ -82,7 +87,7 @@ export function createScenario({
 
   startScene.onComplete(() => {
     startScene.destroy();
-    switchToLevelNextScene();
+    switchToLevelNextScene(playerState);
   });
 
   startScene.start();

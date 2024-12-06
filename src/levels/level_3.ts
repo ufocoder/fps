@@ -1,4 +1,9 @@
-import { generateAmmo, generateFlygies, generateSoldiers, generateZombies } from "./generators";
+import {
+  generateFlygies,
+  generateSoldiers,
+  generateZombies,
+} from "./generators/characters";
+import { generatePistolAmmo } from "./generators/items";
 
 const level: Level = {
   world: {
@@ -7,7 +12,8 @@ const level: Level = {
       bottom: { r: 84, g: 98, b: 92, a: 255 },
     },
   },
-  music: 'heavy-duty-zoo',
+  music: "heavy-duty-zoo",
+  // prettier-ignore
   map: [
     [1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -20,12 +26,12 @@ const level: Level = {
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1],
   ],
   mapEntities: {
-    0: {type:'empty'},
-    1: {type:'wall', texture: "TECH_1C" },
-    2: {type:'wall', texture: "TECH_1E" },
-    3: {type:'wall', texture: "TECH_2F" },
-    4: {type:'wall', texture: "DOOR_1A" },
-    5: {type:'wall', texture: "DOOR_1E" },
+    0: { type: "empty" },
+    1: { type: "wall", texture: "TECH_1C" },
+    2: { type: "wall", texture: "TECH_1E" },
+    3: { type: "wall", texture: "TECH_2F" },
+    4: { type: "wall", texture: "DOOR_1A" },
+    5: { type: "wall", texture: "DOOR_1E" },
   },
   player: {
     x: 2,
@@ -34,9 +40,9 @@ const level: Level = {
     health: 100,
   },
   items: [
-    generateAmmo(1.75, 7.5, 15),
-    generateAmmo(2, 7.5, 15),
-    generateAmmo(2.25, 7.5, 15),
+    generatePistolAmmo(1.75, 7.5, 15),
+    generatePistolAmmo(2, 7.5, 15),
+    generatePistolAmmo(2.25, 7.5, 15),
   ],
   enemies: [
     ...generateFlygies(10, 7, 2, 1, 1, 3),
@@ -44,11 +50,11 @@ const level: Level = {
     ...generateSoldiers(20, 8, 8, 1, 1, 5),
   ],
   endingScenario: {
-    name:'exit',
+    name: "exit",
     position: {
       x: 18,
       y: 2,
-    }
+    },
   },
 };
 

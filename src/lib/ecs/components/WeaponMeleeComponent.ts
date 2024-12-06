@@ -5,7 +5,7 @@ import WeaponComponent from "./WeaponComponent";
 interface WeaponMeleeComponentProps {
     attackDamage: number;
     attackFrequency: number;
-    sprite?: AnimatedSpriteComponent;
+    sprite?: AnimatedSpriteComponent
 }
 
 export default class WeaponMeleeComponent extends WeaponComponent {
@@ -13,8 +13,6 @@ export default class WeaponMeleeComponent extends WeaponComponent {
     attackDamage: number;
     attackFrequency: number;
     attackLastTimeAt: number = +new Date();
-
-    sprite?: AnimatedSpriteComponent;
 
     constructor(props: WeaponMeleeComponentProps) {
         super();

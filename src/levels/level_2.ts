@@ -1,4 +1,9 @@
-import { generateAmmo, generateHealthPack, generateSoldier, generateZombie, generateZombies } from "./generators";
+import {
+  generateSoldier,
+  generateZombie,
+  generateZombies,
+} from "./generators/characters";
+import { generatePistolAmmo, generateHealthPack } from "./generators/items";
 
 const level: Level = {
   world: {
@@ -7,7 +12,8 @@ const level: Level = {
       bottom: { r: 84, g: 98, b: 92, a: 255 },
     },
   },
-  music: 'heavy-duty-zoo',
+  music: "heavy-duty-zoo",
+  // prettier-ignore
   map: [
     [1, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 4],
@@ -22,12 +28,12 @@ const level: Level = {
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1],
   ],
   mapEntities: {
-    0: {type:'empty'},
-    1: {type:'wall', texture: "TECH_1C" },
-    2: {type:'wall', texture: "TECH_1E" },
-    3: {type:'wall', texture: "TECH_2F" },
-    4: {type:'wall', texture: "DOOR_1A" },
-    5: {type:'wall', texture: "DOOR_1E" },
+    0: { type: "empty" },
+    1: { type: "wall", texture: "TECH_1C" },
+    2: { type: "wall", texture: "TECH_1E" },
+    3: { type: "wall", texture: "TECH_2F" },
+    4: { type: "wall", texture: "DOOR_1A" },
+    5: { type: "wall", texture: "DOOR_1E" },
   },
   player: {
     x: 1.5,
@@ -36,20 +42,20 @@ const level: Level = {
     health: 100,
   },
   items: [
-    generateAmmo(1.5, 9.5, 15),
-    generateAmmo(6.5, 3.5, 15),
-    generateAmmo(6.5, 5.5, 15),
-    generateAmmo(6.5, 7.5, 15),
-    generateAmmo(6.5, 9.5, 15),
-    generateAmmo(10.5, 1, 20),
-    generateAmmo(10.5, 2, 20),
-    generateAmmo(10.5, 2.5, 20),
-    generateAmmo(10.5, 3, 20),
-    generateAmmo(10.5, 3.5, 20),
-    generateAmmo(10.5, 4, 20),
-    generateAmmo(10.5, 4.5, 20),
-    generateAmmo(10.5, 5, 20),
-    generateAmmo(10.5, 5.5, 20),
+    generatePistolAmmo(1.5, 9.5, 15),
+    generatePistolAmmo(6.5, 3.5, 15),
+    generatePistolAmmo(6.5, 5.5, 15),
+    generatePistolAmmo(6.5, 7.5, 15),
+    generatePistolAmmo(6.5, 9.5, 15),
+    generatePistolAmmo(10.5, 1, 20),
+    generatePistolAmmo(10.5, 2, 20),
+    generatePistolAmmo(10.5, 2.5, 20),
+    generatePistolAmmo(10.5, 3, 20),
+    generatePistolAmmo(10.5, 3.5, 20),
+    generatePistolAmmo(10.5, 4, 20),
+    generatePistolAmmo(10.5, 4.5, 20),
+    generatePistolAmmo(10.5, 5, 20),
+    generatePistolAmmo(10.5, 5.5, 20),
     generateHealthPack(10.5, 6, 100),
   ],
   enemies: [
@@ -85,11 +91,11 @@ const level: Level = {
     ...generateZombies(50, 17, 2, 1, 1, 2),
   ],
   endingScenario: {
-    name:'exit',
+    name: "exit",
     position: {
       x: 22,
       y: 1,
-    }
+    },
   },
 };
 
