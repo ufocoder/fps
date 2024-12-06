@@ -30,6 +30,11 @@ interface DrawRectProps {
     color: string | CanvasGradient | CanvasPattern;
 }
 
+interface DrawPolygonProps {
+    paths: number[];
+    color: string | CanvasGradient | CanvasPattern;
+}
+
 interface DrawCircleProps {
     x: number;
     y: number;
@@ -52,7 +57,7 @@ export default class Canvas {
 
     element: HTMLCanvasElement;
     context: CanvasRenderingContext2D;
-    
+
     constructor({ id, width, height, style, scale }: CanvasProps) {
         this.width = width;
         this.height = height;
@@ -69,7 +74,7 @@ export default class Canvas {
         }
 
         this.context = this.element.getContext('2d')!;
-        
+
         if (scale) {
             this.context.scale(scale, scale);
         }
@@ -106,6 +111,20 @@ export default class Canvas {
             width,
             height
         );
+    }
+
+    drawPolygon({ paths, color }: DrawPolygonProps) {
+        if (paths.length < 8) return;
+        this.context.fillStyle = color;
+        this.context.beginPath();
+
+        this.context.moveTo(paths[0], paths[1]);
+
+        for (let i = 2; i < paths.length - 1; i += 2) {
+            this.context.lineTo(paths[i], paths[i + 1]);
+        }
+        this.context.closePath();
+        this.context.fill();
     }
 
     drawCircle({ x, y, radius, color }: DrawCircleProps) {

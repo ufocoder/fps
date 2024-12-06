@@ -1,5 +1,5 @@
 export function degreeToRadians(degree: number) {
-    return degree * Math.PI / 180;
+    return (degree * Math.PI / 180) % (2 * Math.PI);
 }
 
 export function radiansToDegrees(radians: number) {
@@ -23,6 +23,10 @@ export function distance(x1: number, y1: number, x2: number, y2: number): number
 
 export function normalizeAngle(a: number) {
     return (a + 360) % 360;
+}
+
+export function normalizeAngleInRad(a: number) {
+    return (a + 2 * Math.PI) % (2 * Math.PI);
 }
 
 export function lerp(from: number, to: number, percent: number) {

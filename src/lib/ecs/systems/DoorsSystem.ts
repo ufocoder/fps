@@ -9,7 +9,7 @@ import { distance } from "src/lib/utils.ts";
 export default class DoorsSystem extends System {
   public readonly componentsRequired = new Set([DoorComponent]);
 
-  private doorsAnimations = new Map<Entity, number>();
+  private doorsAnimations = new Map<Entity, { remainingAnimationTime: number }>();
 
   start(): void {}
   destroy(): void {}
@@ -28,23 +28,20 @@ export default class DoorsSystem extends System {
       const doorPosition = components.get(PositionComponent);
       if (!door || !doorPosition) return;
 
-      const remainingAnimationTime = this.doorsAnimations.get(entity);
-      if (remainingAnimationTime !== undefined) {
-        if (remainingAnimationTime <= 0) {
+      const anim = this.doorsAnimations.get(entity);
+      if (anim) {
+        if (anim.remainingAnimationTime <= 0) {
           this.doorsAnimations.delete(entity);
           door.isOpened = !door.isOpened;
+          door.offset = door.isOpened ? doorBox.size : 0;
           return;
         }
 
         const offset = (dt / door.animationTime) * doorBox.size;
         const axisOffset = door.isOpened ? -offset : offset;
-        if (door.isVertical) {
-          doorPosition.y += axisOffset;
-        } else {
-          doorPosition.x += axisOffset;
-        }
+        door.offset += axisOffset;
 
-        this.doorsAnimations.set(entity, remainingAnimationTime - dt);
+        anim.remainingAnimationTime = anim.remainingAnimationTime - dt;
       } else {
         const toPlayerDistance = distance(
           playerPosition.x,
@@ -53,11 +50,8 @@ export default class DoorsSystem extends System {
           doorPosition.y
         );
 
-        if (!door.isOpened && toPlayerDistance < 1.5) {
-          this.doorsAnimations.set(entity, door.animationTime);
-        }
-        if (door.isOpened && toPlayerDistance > 2.5) {
-          this.doorsAnimations.set(entity, door.animationTime);
+        if ((!door.isOpened && toPlayerDistance < 1.5) || (door.isOpened && toPlayerDistance > 2.5)) {
+          this.doorsAnimations.set(entity, { remainingAnimationTime: door.animationTime });
         }
       }
     });

@@ -5,6 +5,7 @@ import LightComponent from "src/lib/ecs/components/LightComponent.ts";
 import PositionComponent from "src/lib/ecs/components/PositionComponent.ts";
 import { ComponentContainer } from "src/lib/ecs/Component.ts";
 import MapTextureSystem from "src/lib/ecs/systems/MapTextureSystem.ts";
+import RenderSystem from "src/lib/ecs/systems/RenderSystem";
 
 export class Bitmap {
   public width: number;
@@ -71,21 +72,23 @@ export class Bitmap {
   }
 }
 
-const NORTH = 0, SOUTH = 1, EAST = 2, WEST = 3;
 const eps = 0.0001;
+
+/** ArmatureEdge = [sx1, sy1, ex1, ey1, sx2, sy2, ex2, ey2...] */
+export type ArmatureEdge = number[];
 
 class LightCasting2D {
   public radius: number;
-  public vecEdges: {sx: number, sy: number, ex: number, ey: number}[];
+  public vecEdges: ArmatureEdge = [];
   public vecVisibilityPolygonPoints: {x: number, y: number, ang: number}[];
   public world: boolean[];
   public worldEdges: {edge_id: number[], edge_exist: boolean[]}[];
   public lightMap: Bitmap;
   public emitterPosition: { x: number; y: number };
   private boundingBox: { ex: number; ey: number; sx: number; sy: number };
-  private bendOffset: number;
+  private readonly bendOffset: number;
 
-  constructor(radius: number, quality = 20, bendOffset = 0.02) {
+  constructor(radius: number, quality = 20, bendOffset = 0) {
     this.radius = radius;
     this.vecEdges = [];
     this.vecVisibilityPolygonPoints = [];
@@ -95,168 +98,6 @@ class LightCasting2D {
     this.emitterPosition = { x: 0, y: 0 };
     this.boundingBox = { ex: 0, ey: 0, sx: 0, sy: 0 };
     this.bendOffset = bendOffset;
-  }
-
-
-  addTileMapToPolyMap(world: boolean[], sx: number, sy: number, width: number, height: number, fBlockWidth: number, padding = 0) {
-    this.world = world;
-    this.worldEdges = world.map(() => ({
-      edge_id: [0, 0, 0, 0],
-      edge_exist: [false, false, false, false]
-    }));
-    this.vecEdges = [];
-
-    for (let x = 0; x < width; x++) {
-      for (let y = 0; y < height; y++) {
-        for (let j = 0; j < 4; j++) {
-          this.worldEdges[(y + sy) * width + (x + sx)].edge_exist[j] = false;
-          this.worldEdges[(y + sy) * width + (x + sx)].edge_id[j] = 0;
-        }
-      }
-    }
-
-    this.vecEdges.push(
-        {sx: -padding, sy: sy - padding, ex: width * fBlockWidth + padding, ey: sy - padding}, // top
-        {sx: -padding, sy: height * fBlockWidth + padding, ex: width * fBlockWidth + padding, ey: height * fBlockWidth + padding}, // bottom
-        {sx: -padding, sy: -padding, ex: -padding, ey: height * fBlockWidth + padding}, // left
-        {sx: width * fBlockWidth + padding, sy: -padding, ex: width * fBlockWidth + padding, ey: height * fBlockWidth + padding}, // right
-    );
-
-    for (let x = 0; x < width; x++) {
-      for (let y = 0; y < height; y++) {
-        const i = (y + sy) * width + (x + sx);			// This
-        const n = (y + sy - 1) * width + (x + sx);		// Northern Neighbour
-        const s = (y + sy + 1) * width + (x + sx);		// Southern Neighbour
-        const w = (y + sy) * width + (x + sx - 1);	// Western Neighbour
-        const e = (y + sy) * width + (x + sx + 1);	// Eastern Neighbour
-
-        const ne = (y + sy - 1) * width + (x + sx + 1);	// Northern Eastern Neighbour
-        const nw = (y + sy - 1) * width + (x + sx - 1);	// Northern Western Neighbour
-        const se = (y + sy + 1) * width + (x + sx + 1);	// Southern Eastern Neighbour
-        const sw = (y + sy + 1) * width + (x + sx - 1);	// Southern Western Neighbour
-
-        if (this.world[i]) {
-          if (!this.world[w]) {
-            if (this.worldEdges[n]?.edge_exist[WEST]) {
-              this.vecEdges[this.worldEdges[n].edge_id[WEST]].ey += fBlockWidth;
-              this.worldEdges[i].edge_id[WEST] = this.worldEdges[n].edge_id[WEST];
-              this.worldEdges[i].edge_exist[WEST] = true;
-            } else {
-              const edge = {
-                sx: (sx + x) * fBlockWidth + padding,
-                sy: (sy + y) * fBlockWidth + padding,
-                ex: (sx + x) * fBlockWidth + padding,
-                ey: (sy + y) * fBlockWidth + fBlockWidth - padding
-              };
-
-              const edge_id = this.vecEdges.length;
-              this.vecEdges.push(edge);
-
-              this.worldEdges[i].edge_id[WEST] = edge_id;
-              this.worldEdges[i].edge_exist[WEST] = true;
-            }
-
-            const edge = this.vecEdges[this.worldEdges[i].edge_id[WEST]];
-            if (this.world[sw] && (this.world[s] || this.world[w])) {
-              edge.ey += padding * 2;
-            }
-            if (this.world[nw] && (this.world[n] || this.world[w])) {
-              edge.sy -= padding * 2;
-            }
-          }
-
-          if (!this.world[e]) {
-            if (this.worldEdges[n]?.edge_exist[EAST]) {
-              this.vecEdges[this.worldEdges[n].edge_id[EAST]].ey += fBlockWidth;
-              this.worldEdges[i].edge_id[EAST] = this.worldEdges[n].edge_id[EAST];
-              this.worldEdges[i].edge_exist[EAST] = true;
-            } else {
-              const edge = {
-                sx: (sx + x + 1) * fBlockWidth - padding,
-                sy: (sy + y) * fBlockWidth + padding,
-                ex: (sx + x + 1) * fBlockWidth - padding,
-                ey: (sy + y) * fBlockWidth + fBlockWidth - padding
-              };
-
-
-              const edge_id = this.vecEdges.length;
-              this.vecEdges.push(edge);
-
-              this.worldEdges[i].edge_id[EAST] = edge_id;
-              this.worldEdges[i].edge_exist[EAST] = true;
-            }
-
-            const edge = this.vecEdges[this.worldEdges[i].edge_id[EAST]];
-            if (this.world[ne] && (this.world[n] || this.world[e])) {
-              edge.sy -= padding * 2;
-            }
-            if (this.world[se] && (this.world[s] || this.world[w])) {
-              edge.ey += padding * 2;
-            }
-          }
-
-          if (!this.world[n]) {
-            if (this.worldEdges[w]?.edge_exist[NORTH]) {
-              this.vecEdges[this.worldEdges[w].edge_id[NORTH]].ex += fBlockWidth;
-              this.worldEdges[i].edge_id[NORTH] = this.worldEdges[w].edge_id[NORTH];
-              this.worldEdges[i].edge_exist[NORTH] = true;
-            } else {
-              const edge = {
-                sx: (sx + x) * fBlockWidth + padding,
-                sy: (sy + y) * fBlockWidth + padding,
-                ex: (sx + x) * fBlockWidth + fBlockWidth - padding,
-                ey: (sy + y) * fBlockWidth + padding
-              };
-
-
-              const edge_id = this.vecEdges.length;
-              this.vecEdges.push(edge);
-
-              this.worldEdges[i].edge_id[NORTH] = edge_id;
-              this.worldEdges[i].edge_exist[NORTH] = true;
-            }
-
-            const edge = this.vecEdges[this.worldEdges[i].edge_id[NORTH]];
-            if (this.world[ne] && (this.world[n] || this.world[e])) {
-              edge.ex += padding * 2;
-            }
-            if (this.world[nw] && (this.world[n] || this.world[w])) {
-              edge.sx -= padding * 2;
-            }
-          }
-
-          if (!this.world[s]) {
-            if (this.worldEdges[w]?.edge_exist[SOUTH]) {
-              this.vecEdges[this.worldEdges[w].edge_id[SOUTH]].ex += fBlockWidth;
-              this.worldEdges[i].edge_id[SOUTH] = this.worldEdges[w].edge_id[SOUTH];
-              this.worldEdges[i].edge_exist[SOUTH] = true;
-            } else {
-              const edge = {
-                sx: (sx + x) * fBlockWidth + padding,
-                sy: (sy + y + 1) * fBlockWidth - padding,
-                ex: (sx + x) * fBlockWidth + fBlockWidth - padding,
-                ey: (sy + y + 1) * fBlockWidth - padding
-              };
-
-
-              const edge_id = this.vecEdges.length;
-              this.vecEdges.push(edge);
-
-              this.worldEdges[i].edge_id[SOUTH] = edge_id;
-              this.worldEdges[i].edge_exist[SOUTH] = true;
-            }
-          }
-
-          const edge = this.vecEdges[this.worldEdges[i].edge_id[SOUTH]];
-          if (this.world[sw] && (this.world[s] || this.world[w])) {
-            edge.sx -= padding * 2;
-          }
-          if (this.world[se] && (this.world[s] || this.world[e])) {
-            edge.ex += padding * 2;
-          }
-        }
-      }
-    }
   }
 
   calculateVisibilityPolygon(ox: number, oy: number) {
@@ -290,13 +131,18 @@ class LightCasting2D {
       }
     }
 
-    for (const e1 of this.vecEdges) {
-      const bothOfEdgePointsOutOfDistance = distToSegment(ox, oy, e1.sx, e1.sy, e1.ex, e1.ey) > this.radius;
+    for (let i = 0; i < this.vecEdges.length - 1; i += 4) {
+        const sx = this.vecEdges[i];
+        const sy = this.vecEdges[i + 1];
+        const ex = this.vecEdges[i + 2];
+        const ey = this.vecEdges[i + 3];
+
+      const bothOfEdgePointsOutOfDistance = distToSegment(ox, oy, sx, sy, ex, ey) > this.radius;
       if (bothOfEdgePointsOutOfDistance) continue;
 
       for (let i = 0; i < 2; i++) {
-        const rdx = (i === 0 ? e1.sx : e1.ex) - ox;
-        const rdy = (i === 0 ? e1.sy : e1.ey) - oy;
+        const rdx = (i === 0 ? sx : ex) - ox;
+        const rdy = (i === 0 ? sy : ey) - oy;
 
         let ang = 0;
         const base_ang = Math.atan2(rdy, rdx);
@@ -311,6 +157,7 @@ class LightCasting2D {
           this.vecVisibilityPolygonPoints.push(vec);
         }
       }
+
     }
 
     this.vecVisibilityPolygonPoints.sort((p1, p2) => p1.ang < p2.ang ? -1 : 1);
@@ -417,9 +264,7 @@ class LightCasting2D {
     }
   }
 
-
-
-  castLightRay(ox: number, oy: number, ang: number, distance: number) {
+  private castLightRay(ox: number, oy: number, ang: number, distance: number) {
     const rdx = distance * Math.cos(ang);
     const rdy = distance * Math.sin(ang);
 
@@ -437,11 +282,16 @@ class LightCasting2D {
       magnitude: distance
     };
 
-    for (const e2 of this.vecEdges) {
-      const bothOfEdgePointsOutOfDistance = distToSegment( ox, oy, e2.sx, e2.sy, e2.ex, e2.ey) > distance;
+    for (let i = 0; i < this.vecEdges.length - 1; i += 4) {
+      const sx = this.vecEdges[i];
+      const sy = this.vecEdges[i + 1];
+      const ex = this.vecEdges[i + 2];
+      const ey = this.vecEdges[i + 3];
+
+      const bothOfEdgePointsOutOfDistance = distToSegment( ox, oy, sx, sy, ex, ey) > distance;
       if (bothOfEdgePointsOutOfDistance) continue;
 
-      const intersection = getLineIntersectPoint(e2.sx, e2.sy, e2.ex, e2.ey, ox, oy, ox + rdx, oy + rdy);
+      const intersection = getLineIntersectPoint(sx, sy, ex, ey, ox, oy, ox + rdx, oy + rdy);
       if (!intersection) continue;
 
       const magnitude = getMagnitude(intersection.x, intersection.y, ox, oy);
@@ -557,23 +407,28 @@ function isSquareIntersectTriangle(
 
 export default class LightSystem extends System {
   public readonly componentsRequired = new Set([LightComponent]);
-
-  public listOfLightnings: {
+  private lastUpdateTime = 0;
+  private updatePerSecond = 30;
+  private quality = 20;
+  private globalLightLevel = 0.1;
+  private lightBias = 0.01;
+  private existedLights = new Set<Entity>();
+  private listOfLightnings: {
     entity: number;
     cmp: LightComponent,
-    lightCasting: LightCasting2D
+    lightCasting: LightCasting2D,
+    pos: Vector2D,
   }[]  = [];
-  private existedLights = new Set<Entity>();
-
-  private quality = 20;
 
   start(): void {
     this.ecs.onComponentAdd(LightComponent, (entity) => {
       const light = this.ecs.getComponents(entity).get(LightComponent);
+      const pos = this.ecs.getComponents(entity).get(PositionComponent);
       this.listOfLightnings.push({
         entity,
         cmp: light,
         lightCasting: new LightCasting2D(light.distance, this.quality),
+        pos
       });
       this.existedLights.add(entity);
     })
@@ -591,16 +446,26 @@ export default class LightSystem extends System {
     for (const entity of entities) {
       if (this.existedLights.has(entity)) continue;
       const lightCmp = this.ecs.getComponents(entity).get(LightComponent);
+      const pos = this.ecs.getComponents(entity).get(PositionComponent);
       this.listOfLightnings.push({
         entity,
         cmp: lightCmp,
         lightCasting: new LightCasting2D(lightCmp.distance, this.quality),
+        pos
       });
       this.existedLights.add(entity);
     }
 
-    for (let i = 0; i < this.listOfLightnings.length; i++) {
-      this.updateLight(this.listOfLightnings[i].lightCasting, this.ecs.getComponents(this.listOfLightnings[i].entity));
+    // delete old entities
+    this.listOfLightnings = this.listOfLightnings.filter(lightCastingInstance => entities.has(lightCastingInstance.entity));
+
+    if (Date.now() - this.lastUpdateTime > 1000 / this.updatePerSecond) {
+      this.lastUpdateTime = Date.now();
+
+      for (let i = 0; i < this.listOfLightnings.length; i++) {
+        this.listOfLightnings[i].pos = this.ecs.getComponents(this.listOfLightnings[i].entity).get(PositionComponent);
+        this.updateLight(this.listOfLightnings[i].lightCasting, this.ecs.getComponents(this.listOfLightnings[i].entity));
+      }
     }
   }
 
@@ -608,9 +473,15 @@ export default class LightSystem extends System {
 
     const lightCmp = container.get(LightComponent);
     if (!lightCmp.isStaticLight || lightCastingInstance.worldEdges.length === 0) {
+      const renderSystem = this.ecs.getSystem(RenderSystem)!;
+
       const map = this.ecs.getSystem(MapTextureSystem)!.textureMap;
-      const boolsMap = map.toArray().flatMap(el => el.map(el => !!el));
-      lightCastingInstance.addTileMapToPolyMap(boolsMap, 0, 0, map.cols, map.rows, 1);
+      lightCastingInstance.vecEdges = map.toArray().flatMap(el => el.flatMap(mapEntity => {
+        if (!mapEntity) return [];
+        const renderer = renderSystem.mapEntityRenders.find(render => render.canRender(mapEntity!));
+        if (!renderer) return [];
+        return renderer.getArmature(mapEntity);
+      }));
     }
     if (!lightCmp.isStaticLight || lightCastingInstance.vecVisibilityPolygonPoints.length === 0) {
       const positionCmp = container.get(PositionComponent);
@@ -618,12 +489,18 @@ export default class LightSystem extends System {
     }
   }
 
-  getLightingLevelForPoint(x: number, y: number) {
-    return this.listOfLightnings.reduce((acc, val) => {
-      const lightPower =  val.lightCasting.getLightLevelInPoint(x, y);
-      const lightLevel = val.cmp.brightness * val.cmp.lightFn(lightPower)
-      return acc + lightLevel;
-    }, 0);
-  }
 
+  getLightingLevelForPoint(x: number, y: number) {
+    let finalLightLevel = this.globalLightLevel;
+    for (let i = 0; i < this.listOfLightnings.length; i++) {
+      const val = this.listOfLightnings[i];
+      const lightPower =  val.lightCasting.getLightLevelInPoint(
+          x + (val.pos.x - x) * this.lightBias,
+          y + (val.pos.y - y) * this.lightBias
+      );
+      const lightLevel = val.cmp.brightness * val.cmp.lightFn(lightPower)
+      finalLightLevel += lightLevel;
+    }
+    return finalLightLevel;
+  }
 }

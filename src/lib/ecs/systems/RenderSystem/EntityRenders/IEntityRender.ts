@@ -1,28 +1,27 @@
 import { ComponentContainer } from "src/lib/ecs/Component.ts";
-import Canvas from "src/lib/Canvas/BufferCanvas.ts";
-import LightSystem from "src/lib/ecs/systems/LightSystem.ts";
 
 export type RenderLineInfo = {
+    rayX: number,
+    rayY: number,
+    distance: number,
     texturePositionX: number,
     texture: TextureBitmap,
     entityHeight: number,
-    lightLevel?: number
 }
 
-export abstract class EntityRender {
-    readonly screenHeight: number;
-    readonly canvas: Canvas;
-    readonly lightSystem?: LightSystem;
+/** ArmatureEdge = [sx1, sy1, ex1, ey1, sx2, sy2, ex2, ey2...] */
+export type ArmatureEdge = number[];
 
-    public constructor(screenHeight: number, canvas: Canvas, lightSystem?: LightSystem) {
-        this.screenHeight = screenHeight;
-        this.canvas = canvas;
-        this.lightSystem = lightSystem;
-    }
+export abstract class EntityRender {
 
     abstract canRender(mapEntity: ComponentContainer): boolean;
-    abstract isRayHit(
+
+    abstract getArmature(mapEntity: ComponentContainer): ArmatureEdge;
+
+    abstract render(
         mapEntity: ComponentContainer,
+        screenHeight: number,
+        rayAngle: number,
         side: number,
         sideDistX: number,
         sideDistY: number,
@@ -35,17 +34,6 @@ export abstract class EntityRender {
         stepY: number,
         rayDirX: number,
         rayDirY: number,
-    ): boolean;
-    abstract render(
-        mapEntity: ComponentContainer,
-        side: number,
-        mapX: number,
-        mapY: number,
-        playerPos: Vector2D,
-        stepX: number,
-        stepY: number,
-        rayDirX: number,
-        rayDirY: number,
         fishEyeFixCoef: number,
-    ): RenderLineInfo;
+    ): RenderLineInfo | undefined;
 }

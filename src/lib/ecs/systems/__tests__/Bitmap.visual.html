@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitmap Visualization</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .canvas-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        canvas {
+            border: 1px solid black;
+            cursor: crosshair;
+        }
+
+        #scaledCanvas {
+            cursor: default;
+        }
+    </style>
+</head>
+<body>
+<h1>Bitmap Visualization</h1>
+<p>Click on the detailed canvas (right) to set values in the bitmap. The scaled version (left) updates automatically. Use the "Clear" button to reset.</p>
+
+<div class="canvas-container">
+    <canvas id="scaledCanvas" width="400" height="400"></canvas>
+    <canvas id="bitmapCanvas" width="400" height="400"></canvas>
+</div>
+
+<br>
+<button id="clearButton">Clear</button>
+
+<script type="module">
+    export class Bitmap {
+        constructor(width, height, scale = 1) {
+            this.width = width
+            this.height = height
+
+            this.scale = scale
+            this.scaledWidth = Math.round(width * scale)
+            this.scaledHeight = Math.round(height * scale)
+
+            this.data = new Float64Array(this.scaledWidth * this.scaledHeight)
+        }
+
+        clean() {
+            this.data.fill(0)
+        }
+
+        set(x, y, val) {
+            const startY = Math.floor(y * this.scale)
+            const endY = Math.ceil((y + 1) * this.scale)
+            const startX = Math.floor(x * this.scale)
+            const endX = Math.ceil((x + 1) * this.scale)
+
+            for (let sy = startY; sy < endY; sy++) {
+                for (let sx = startX; sx < endX; sx++) {
+                    this.data[sy * this.scaledWidth + sx] = Math.min(1, Math.max(0, val))
+                }
+            }
+        }
+
+        setScaled(x, y, val) {
+            const idx = Math.round(y) * this.scaledWidth + Math.round(x)
+            if (idx >= 0 && idx < this.data.length) {
+                this.data[idx] = Math.min(1, Math.max(0, val))
+            }
+        }
+
+        getScaled(x, y) {
+            const idx = Math.round(y) * this.scaledWidth + Math.round(x)
+            return idx >= 0 && idx < this.data.length ? this.data[idx] : 0
+        }
+
+        get(x, y) {
+            const sx = Math.floor(x * this.scale)
+            const sy = Math.floor(y * this.scale)
+            const idx = sy * this.scaledWidth + sx
+            return idx >= 0 && idx < this.data.length ? this.data[idx] : 0
+        }
+
+        getInPercents(px, py) {
+            const x = Math.floor(px * this.scaledWidth)
+            const y = Math.floor(py * this.scaledHeight)
+            const idx = y * this.scaledWidth + x
+            return idx >= 0 && idx < this.data.length ? this.data[idx] : 0
+        }
+    }
+
+
+    // Initialize Canvases and Bitmap
+
+    /** @type {HTMLCanvasElement} */
+    const scaledCanvas = document.getElementById("scaledCanvas");
+    /** @type {HTMLCanvasElement} */
+    const detailedCanvas = document.getElementById("bitmapCanvas");
+
+    const scaledCtx = scaledCanvas.getContext("2d");
+    const detailedCtx = detailedCanvas.getContext("2d");
+
+    const bitmapSize = 20;
+    const scale = 0.5;
+    const localScale = 10;
+
+    const bitmap = new Bitmap(bitmapSize, bitmapSize, scale);
+
+    // Function to draw Bitmap
+    function drawBitmap() {
+        drawScaledBitmap();
+        drawDetailedBitmap();
+    }
+
+    // Draw scaled version of the Bitmap with borders
+    function drawScaledBitmap() {
+
+        const width =  bitmap.scaledWidth * localScale;
+        const height = bitmap.scaledHeight * localScale;
+
+        const cellWidth = scaledCanvas.width / width;
+        const cellHeight = scaledCanvas.height / height;
+
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const px = x / width;
+                const py = y / height;
+                const value = bitmap.getInPercents(px, py);
+                const color = Math.round(value * 255);
+                scaledCtx.fillStyle = `rgb(${color}, ${color}, ${color})`;
+                scaledCtx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+
+                // Draw border
+                scaledCtx.strokeStyle = "white";
+                scaledCtx.strokeRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+            }
+        }
+    }
+
+    // Draw detailed version of the Bitmap with borders
+    function drawDetailedBitmap() {
+        const cellWidth = detailedCanvas.width / bitmap.width;
+        const cellHeight = detailedCanvas.height / bitmap.height;
+
+        for (let y = 0; y < bitmap.height; y++) {
+            for (let x = 0; x < bitmap.width; x++) {
+                const value = bitmap.get(x, y);
+                const color = Math.round(value * 255);
+                detailedCtx.fillStyle = `rgb(${color}, ${color}, ${color})`;
+                detailedCtx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+
+                // Draw border
+                detailedCtx.strokeStyle = "white";
+                detailedCtx.strokeRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+            }
+        }
+    }
+
+    function getMousePosition(event, canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.floor((event.clientX - rect.left) / (canvas.width / bitmap.width));
+        const y = Math.floor((event.clientY - rect.top) / (canvas.height / bitmap.height));
+        return { x, y };
+    }
+
+    // Event: Set value on click
+    detailedCanvas.addEventListener("click", (event) => {
+        const { x, y } = getMousePosition(event, detailedCanvas);
+        bitmap.set(x, y, bitmap.get(x, y) ? 0 : 1); // Set maximum brightness
+        drawBitmap();
+    });
+
+    // Clear button
+    document.getElementById("clearButton").addEventListener("click", () => {
+        bitmap.clean();
+        drawBitmap();
+    });
+
+    // Initial render
+    drawBitmap();
+</script>
+</body>
+</html>

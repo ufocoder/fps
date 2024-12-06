@@ -205,7 +205,7 @@ export function createLevelEntities(
 
       if (mapItem.type === 'light') {
         const light = ecs.addEntity();
-        ecs.addComponent(light, new LightComponent(4, 1, true, 'linear'));
+        ecs.addComponent(light, new LightComponent(4, 1));
         ecs.addComponent(light, new PositionComponent(x + 0.5, y + 0.5));
         ecs.addComponent(light, new MinimapComponent("white"));
         ecs.addComponent(light, new CircleComponent(0.1));

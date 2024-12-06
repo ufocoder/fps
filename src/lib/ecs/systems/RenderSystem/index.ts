@@ -20,9 +20,11 @@ import { WallRender } from "./EntityRenders/WallRender.ts";
 import { DoorRender } from "./EntityRenders/DoorRender.ts";
 import { applyLight } from "src/lib/ecs/systems/RenderSystem/light.ts";
 import LightSystem from "src/lib/ecs/systems/LightSystem.ts";
+import MapPolarSystem from "src/lib/ecs/systems/MapPolarSystem.ts";
 
 export default class RenderSystem extends System {
     public readonly componentsRequired = new Set([PositionComponent]);
+    public readonly mapEntityRenders: EntityRender[] = [];
 
     protected readonly width: number = 640;
     protected readonly height: number = 480;
@@ -38,15 +40,15 @@ export default class RenderSystem extends System {
     protected readonly container: HTMLElement;
     protected readonly textureManager: TextureManager;
 
-    private mapEntityRenders: EntityRender[] = [];
     // private levelLights: { position: Vector2D, cmp: LightComponent }[] = [];
     private lightSystem?: LightSystem;
 
     constructor(ecs: ECS, container: HTMLElement, level: Level, textureManager: TextureManager) {
         super(ecs);
 
-        this.level = level;
         this.container = container;
+        this.level = level;
+        this.textureManager = textureManager;
 
         this.canvas = new Canvas({
             id: 'camera',
@@ -54,17 +56,15 @@ export default class RenderSystem extends System {
             width: this.width,
         });
 
-        this.textureManager = textureManager;
+        this.mapEntityRenders = [
+            new DoorRender(),
+            new WallRender(),
+        ];
     }
 
     start() {
         this.container.appendChild(this.canvas.element);
         this.lightSystem = this.ecs.getSystem(LightSystem);
-
-        this.mapEntityRenders = [
-            new DoorRender(this.height, this.canvas, this.lightSystem),
-            new WallRender(this.height, this.canvas, this.lightSystem),
-        ];
     }
 
     update() {
@@ -105,6 +105,7 @@ export default class RenderSystem extends System {
             const rayDirX = Math.cos(rayRad);
             const rayDirY = Math.sin(rayRad);
 
+
             // Determine the player's position in the grid by flooring their coordinates
             let mapX = Math.floor(this.player.pos.x);
             let mapY = Math.floor(this.player.pos.y);
@@ -141,10 +142,10 @@ export default class RenderSystem extends System {
 
             let mapEntity: ComponentContainer | undefined;
             let renderer: EntityRender | undefined;
-            let isPropagating = true;
+            let renderObjectInfo: RenderLineInfo | undefined;
 
             // Perform DDA
-            while (isPropagating) {
+            while (!renderObjectInfo) {
 
                 // Determine whether to move horizontally or vertically based on which is closer
                 if (sideDistX < sideDistY) {
@@ -161,21 +162,45 @@ export default class RenderSystem extends System {
                 mapEntity = textureMap.get(mapX, mapY);
                 if (mapEntity) {
                     renderer = this.mapEntityRenders.find(render => render.canRender(mapEntity!));
-                    isPropagating = !renderer?.isRayHit(mapEntity, side, sideDistX, sideDistY, deltaDistX, deltaDistY, mapX, mapY, this.player.pos, stepX, stepY, rayDirX, rayDirY);
+                    renderObjectInfo = renderer?.render(
+                        mapEntity,
+                        this.height,
+                        rayAngle,
+                        side,
+                        sideDistX,
+                        sideDistY,
+                        deltaDistX,
+                        deltaDistY,
+                        mapX,
+                        mapY,
+                        this.player.pos,
+                        stepX,
+                        stepY,
+                        rayDirX,
+                        rayDirY,
+                        fishEyeFixCoef
+                    );
                 }
             }
 
             if (mapEntity && renderer) {
-                const renderInfo = renderer.render(mapEntity, side, mapX, mapY, this.player.pos, stepX, stepY, rayDirX, rayDirY, fishEyeFixCoef,);
-
-                this.drawTextureLine(screenX, renderInfo);
-                this._drawFloorLine(screenX, renderInfo.entityHeight, rayAngle);
+                this.drawTextureLine(screenX, renderObjectInfo);
+                this._drawFloorLine(screenX, renderObjectInfo.entityHeight, rayAngle);
             } else {
                 this._drawFloorLine(screenX, 0, rayAngle);
             }
 
             // Advance to the next ray
             rayAngle += normalizeAngle(playerFov.fov / this.width);
+
+            const incrementAngle = playerFov.fov / this.width;
+            const polarMap = this.ecs.getSystem(MapPolarSystem)!.polarMap;
+
+            polarMap
+                .select(renderObjectInfo?.distance ?? this.rayMaxDistanceRay, rayAngle, rayAngle + incrementAngle)
+                .forEach((polarEntity) => {
+                    this._drawSpriteLine(screenX, rayAngle, polarEntity);
+                });
         }
 
     }
@@ -184,9 +209,11 @@ export default class RenderSystem extends System {
         return this.lightSystem?.getLightingLevelForPoint(rayX, rayY) ?? 1;
     }
 
-    drawTextureLine(screenX: number,{ entityHeight, lightLevel, texture, texturePositionX }: RenderLineInfo) {
+    drawTextureLine(screenX: number,{ entityHeight, texture, texturePositionX, rayX, rayY }: RenderLineInfo) {
         const yIncrementer = (entityHeight * 2) / texture.height;
         let y = this.height / 2 - entityHeight;
+
+        const lightLevel = this.lightSystem?.getLightingLevelForPoint(rayX, rayY) ?? 1;
 
         for (let i = 0; i < texture.height; i++) {
             if (y > -yIncrementer && y < this.height) {
@@ -199,23 +226,6 @@ export default class RenderSystem extends System {
             }
             y += yIncrementer;
         }
-    }
-
-
-    _drawHorizonLine(x: number, wallHeight: number) {
-        this.canvas.drawVerticalLine({
-            x,
-            y1: 0,
-            y2: this.height / 2 - wallHeight,
-            color: this.level.world.colors.top,
-        });
-
-        this.canvas.drawVerticalLine({
-            x,
-            y1: this.height / 2 + wallHeight,
-            y2: this.height,
-            color: this.level.world.colors.bottom,
-        });
     }
 
     _drawSpriteLine(screenX: number, rayAngle: number, polarEntity: PolarPosition) {

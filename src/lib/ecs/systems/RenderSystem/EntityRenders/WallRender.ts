@@ -1,19 +1,32 @@
 import { EntityRender } from "src/lib/ecs/systems/RenderSystem/EntityRenders/IEntityRender.ts";
 import { ComponentContainer } from "src/lib/ecs/Component.ts";
 import TextureComponent from "src/lib/ecs/components/TextureComponent.ts";
+import PositionComponent from "src/lib/ecs/components/PositionComponent.ts";
 
 export class WallRender extends EntityRender {
     canRender(mapEntity: ComponentContainer): boolean {
         return mapEntity.has(TextureComponent);
     }
 
-    isRayHit() {
-        return true;
+    getArmature(mapEntity: ComponentContainer) {
+        const pos = mapEntity.get(PositionComponent);
+        return [
+            pos.x, pos.y, pos.x + 1, pos.y,
+            pos.x, pos.y, pos.x, pos.y + 1,
+            pos.x + 1, pos.y + 1, pos.x, pos.y + 1,
+            pos.x + 1, pos.y + 1, pos.x + 1, pos.y,
+        ];
     }
 
     render(
         mapEntity: ComponentContainer,
+        screenHeight: number,
+        _rayAngle: number,
         side: number,
+        _sideDistX: number,
+        _sideDistY: number,
+        _deltaDistX: number,
+        _deltaDistY: number,
         mapX: number,
         mapY: number,
         playerPos: Vector2D,
@@ -32,7 +45,7 @@ export class WallRender extends EntityRender {
         // Correct the fish-eye effect
         const correctedDist = perpWallDist * fishEyeFixCoef;
 
-        const wallHeight = Math.floor(this.screenHeight / 2 / correctedDist);
+        const wallHeight = Math.floor(screenHeight / 2 / correctedDist);
 
         const rayX = playerPos.x + rayDirX * perpWallDist;
         const rayY = playerPos.y + rayDirY * perpWallDist;
@@ -42,12 +55,13 @@ export class WallRender extends EntityRender {
             (texture.width * (rayX + rayY)) % texture.width
         );
 
-        const lightLevel = this.lightSystem?.getLightingLevelForPoint(rayX, rayY) ?? 1;
         return {
             texturePositionX: texturePositionX,
             texture: texture,
             entityHeight: wallHeight,
-            lightLevel: lightLevel
+            rayX,
+            rayY,
+            distance: correctedDist
         }
     }
 }
