@@ -2,7 +2,7 @@ import MapTextureSystem from "../MapTextureSystem";
 import { PolarPosition } from "src/lib/ecs/lib/PolarMap";
 import ECS from "src/lib/ecs";
 import System from "src/lib/ecs/System";
-import LightSystem from "src/lib/ecs/systems/LightSystem.ts";
+import LightSystem from "src/lib/ecs/systems/LightSystem";
 import MapPolarSystem from "src/lib/ecs/systems/MapPolarSystem.ts";
 import { ComponentContainer } from "src/lib/ecs/Component";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
