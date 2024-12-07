@@ -41,7 +41,7 @@ export default class RenderSystem extends System {
   protected readonly container: HTMLElement;
   protected readonly textureManager: TextureManager;
 
-  private lightSystem?: LightSystem;
+  private lightSystem: LightSystem;
 
   constructor(
     ecs: ECS,
@@ -62,11 +62,11 @@ export default class RenderSystem extends System {
     });
 
     this.mapEntityRenders = [new DoorRender(), new WallRender()];
+    this.lightSystem = this.ecs.getSystem(LightSystem)!;
   }
 
   start() {
     this.container.appendChild(this.canvas.element);
-    this.lightSystem = this.ecs.getSystem(LightSystem);
   }
 
   update() {
@@ -98,6 +98,7 @@ export default class RenderSystem extends System {
   render(player: ComponentContainer) {
     const playerFov = player.get(CameraComponent);
     const textureMap = this.ecs.getSystem(MapTextureSystem)!.textureMap;
+    const polarMap = this.ecs.getSystem(MapPolarSystem)!.polarMap;
 
     let rayAngle = normalizeAngle(this.player.angle - playerFov.fov / 2);
 
@@ -189,24 +190,17 @@ export default class RenderSystem extends System {
       rayAngle += normalizeAngle(playerFov.fov / this.width);
 
       const incrementAngle = playerFov.fov / this.width;
-      const polarMap = this.ecs.getSystem(MapPolarSystem)!.polarMap;
 
-      polarMap
-        .select(
-          renderObjectInfo?.distance ?? this.rayMaxDistanceRay,
-          rayAngle,
-          rayAngle + incrementAngle,
-        )
-        .forEach((polarEntity) => {
-          this._drawSpriteLine(screenX, rayAngle, polarEntity);
-        });
+      const polarEntities = polarMap.select(
+        renderObjectInfo?.distance ?? this.rayMaxDistanceRay,
+        rayAngle,
+        rayAngle + incrementAngle,
+      );
+      for (const polarEntity of polarEntities) {
+        this._drawSpriteLine(screenX, rayAngle, polarEntity);
+      }
     }
   }
-
-  _getLightPower(rayX: number, rayY: number) {
-    return this.lightSystem?.getLightingLevelForPoint(rayX, rayY) ?? 1;
-  }
-
   drawTextureLine(
     screenX: number,
     { entityHeight, texture, texturePositionX, rayX, rayY }: RenderLineInfo,
@@ -214,8 +208,7 @@ export default class RenderSystem extends System {
     const yIncrementer = (entityHeight * 2) / texture.height;
     let y = this.height / 2 - entityHeight;
 
-    const lightLevel =
-      this.lightSystem?.getLightingLevelForPoint(rayX, rayY) ?? 1;
+    const lightLevel = this.lightSystem.getLightingLevelForPoint(rayX, rayY);
 
     for (let i = 0; i < texture.height; i++) {
       if (y > -yIncrementer && y < this.height) {
@@ -244,9 +237,8 @@ export default class RenderSystem extends System {
     const staticSprite = container.get(SpriteComponent)?.sprite;
     const highlight = container.get(HighlightComponent);
     const spritePosition = container.get(PositionComponent);
-
     const sprite = animateSprite || staticSprite;
-    if (!sprite) return;
+    if (!sprite || !spritePosition) return;
 
     const {
       width: spriteWidth,
@@ -262,9 +254,9 @@ export default class RenderSystem extends System {
     const a2 = normalizeAngle(polarEntity.angleTo - polarEntity.angleFrom);
     const xTexture = ((a1 / a2) * spriteWidth) | 0;
 
-    const lightLevel = this._getLightPower(
-      spritePosition!.x,
-      spritePosition!.y,
+    const lightLevel = this.lightSystem.getLightingLevelForPoint(
+      spritePosition.x,
+      spritePosition.y,
     );
 
     let highlightPercent = 0;
@@ -314,7 +306,10 @@ export default class RenderSystem extends System {
       const tileX = distance * directionCos + this.player.pos.x;
       const tileY = distance * directionSin + this.player.pos.y;
 
-      const lightLevel = this._getLightPower(tileX, tileY);
+      const lightLevel = this.lightSystem.getLightingLevelForPoint(
+        tileX,
+        tileY,
+      );
 
       // Faster texture coordinates calculation
       const textureX = ((tileX * textureWidth) | 0) % textureWidth;

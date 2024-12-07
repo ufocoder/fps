@@ -12,7 +12,7 @@ export default class LightSystem extends System {
   public readonly componentsRequired = new Set([LightComponent]);
   private lastUpdateTime = 0;
   private updatePerSecond = 30;
-  private quality = 20;
+  private quality = 16;
   private globalLightLevel = 0.1;
   private lightBias = 0.01;
   private existedLights = new Set<Entity>();
@@ -60,11 +60,6 @@ export default class LightSystem extends System {
       });
       this.existedLights.add(entity);
     }
-
-    // delete old entities
-    this.listOfLightnings = this.listOfLightnings.filter(
-      (lightCastingInstance) => entities.has(lightCastingInstance.entity),
-    );
 
     if (Date.now() - this.lastUpdateTime > 1000 / this.updatePerSecond) {
       this.lastUpdateTime = Date.now();
