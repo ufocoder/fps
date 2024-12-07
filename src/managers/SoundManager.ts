@@ -37,12 +37,13 @@ export default class SoundManager {
         const copy = audio.cloneNode() as HTMLAudioElement;
         
         copy.volume = volume;
-
         copy.play();
     }
 
     playBackground(id: string) {
         this.currentBackgroundId = id;
+
+        this.sounds[id].loop = true;
         this.sounds[id].play();
     }
 
