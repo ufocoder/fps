@@ -14,7 +14,9 @@ import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import RenderSystem from "src/lib/ecs/systems/RenderSystem";
 import RotateSystem from "src/lib/ecs/systems/RotateSystem";
 import TextureManager from "src/managers/TextureManager";
-import WeaponSystem, { WEAPON_PISTOL_INDEX } from "src/lib/ecs/systems/WeaponSystem";
+import WeaponSystem, {
+  WEAPON_PISTOL_INDEX,
+} from "src/lib/ecs/systems/WeaponSystem";
 import MapItemSystem from "src/lib/ecs/systems/MapItemSystem";
 import MapPolarSystem from "src/lib/ecs/systems/MapPolarSystem";
 import MapTextureSystem from "src/lib/ecs/systems/MapTextureSystem";
@@ -23,6 +25,7 @@ import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
 import WeaponRangeComponent from "src/lib/ecs/components/WeaponRangeComponent";
 import LevelPlayerView from "src/views/LevelPlayerView";
 import DoorsSystem from "src/lib/ecs/systems/DoorsSystem.ts";
+import LightSystem from "src/lib/ecs/systems/LightSystem";
 
 const KEY_CONTROL_PAUSE = "KeyM";
 
@@ -61,13 +64,22 @@ export default class LevelScene implements BaseScene {
     this.level = level;
     this.playerState = playerState;
 
-    this.timeLeft = level.endingScenario.name === "survive" ? level.endingScenario?.timer : undefined;
+    this.timeLeft =
+      level.endingScenario.name === "survive"
+        ? level.endingScenario?.timer
+        : undefined;
     this.soundManager = soundManager;
     this.levelPlayerView = new LevelPlayerView(container);
 
     const ecs = new ECS();
 
-    createLevelEntities(ecs, level, playerState, textureManager, animationManager);
+    createLevelEntities(
+      ecs,
+      level,
+      playerState,
+      textureManager,
+      animationManager,
+    );
 
     ecs.addSystem(new MapTextureSystem(ecs, level));
     ecs.addSystem(new MapPolarSystem(ecs));
@@ -76,9 +88,18 @@ export default class LevelScene implements BaseScene {
     ecs.addSystem(new MoveSystem(ecs));
     ecs.addSystem(new AnimationSystem(ecs));
     ecs.addSystem(new AISystem(ecs, textureManager, soundManager));
-    ecs.addSystem(new WeaponSystem(ecs, container, animationManager, textureManager, soundManager));
+    ecs.addSystem(
+      new WeaponSystem(
+        ecs,
+        container,
+        animationManager,
+        textureManager,
+        soundManager,
+      ),
+    );
     ecs.addSystem(new RotateSystem(ecs));
     ecs.addSystem(new DoorsSystem(ecs));
+    ecs.addSystem(new LightSystem(ecs));
     ecs.addSystem(new RenderSystem(ecs, container, level, textureManager));
     ecs.addSystem(new MinimapSystem(ecs, container, level));
 
@@ -109,8 +130,10 @@ export default class LevelScene implements BaseScene {
     switch (endingScenario.name) {
       case "exit":
         return (
-            Math.floor(playerContainer.get(PositionComponent).x) === endingScenario.position.x &&
-            Math.floor(playerContainer.get(PositionComponent).y) === endingScenario.position.y
+          Math.floor(playerContainer.get(PositionComponent).x) ===
+            endingScenario.position.x &&
+          Math.floor(playerContainer.get(PositionComponent).y) ===
+            endingScenario.position.y
         );
       case "enemy":
         for (const enemy of enemies) {
@@ -163,13 +186,17 @@ export default class LevelScene implements BaseScene {
     }
 
     this.playerState.health = playerContainer.get(HealthComponent).current;
-    this.playerState.ammo = (playerContainer.get(PlayerComponent).weapons[WEAPON_PISTOL_INDEX] as WeaponRangeComponent)?.bulletTotal;
+    this.playerState.ammo = (
+      playerContainer.get(PlayerComponent).weapons[
+        WEAPON_PISTOL_INDEX
+      ] as WeaponRangeComponent
+    )?.bulletTotal;
 
     this.levelPlayerView.render({
       soundMuted: this.soundManager.checkMuted(),
       ammo: this.playerState.ammo,
       health: this.playerState.health,
-      timeLeft: this.timeLeft
+      timeLeft: this.timeLeft,
     });
   }
 
@@ -212,7 +239,7 @@ export default class LevelScene implements BaseScene {
       soundMuted: this.soundManager.checkMuted(),
       ammo: this.playerState.ammo,
       health: this.playerState.health,
-      timeLeft: this.timeLeft
+      timeLeft: this.timeLeft,
     });
     this.createListeners();
   }

@@ -1,8 +1,9 @@
 import MapTextureSystem from "../MapTextureSystem";
-import MapPolarSystem from "../MapPolarSystem";
 import { PolarPosition } from "src/lib/ecs/lib/PolarMap";
 import ECS from "src/lib/ecs";
 import System from "src/lib/ecs/System";
+import LightSystem from "src/lib/ecs/systems/LightSystem";
+import MapPolarSystem from "src/lib/ecs/systems/MapPolarSystem.ts";
 import { ComponentContainer } from "src/lib/ecs/Component";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
 import AnimatedSpriteComponent from "src/lib/ecs/components/AnimatedSpriteComponent";
@@ -11,44 +12,36 @@ import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import SpriteComponent from "src/lib/ecs/components/SpriteComponent";
 import HighlightComponent from "src/lib/ecs/components/HighlightComponent.ts";
-import EntityRender from "src/lib/ecs/systems/RenderSystem/EntityRenders/BaseRender.ts";
 import Canvas from "src/lib/Canvas/WebglCanvas";
 import TextureManager from "src/managers/TextureManager";
-import { degreeToRadians, distance, normalizeAngle } from "src/lib/utils";
-import WallRender from "./EntityRenders/WallRender.ts";
-import DoorRender from "./EntityRenders/DoorRender.ts";
+import {
+  EntityRender,
+  RenderLineInfo,
+} from "src/lib/ecs/systems/RenderSystem/EntityRenders/IEntityRender.ts";
+import { WallRender } from "./EntityRenders/WallRender.ts";
+import { DoorRender } from "./EntityRenders/DoorRender.ts";
 
-function overlayColor(baseColor: Color, overlayColor: Color, coverageRatio: number): Color {
-  if (baseColor.a === 0) {
-    return baseColor;
-  }
-
-  const invCoverageRatio = 1 - coverageRatio;
-
-  const effectiveAlpha = overlayColor.a * coverageRatio;
-
-  const r = baseColor.r * invCoverageRatio + overlayColor.r * effectiveAlpha;
-  const g = baseColor.g * invCoverageRatio + overlayColor.g * effectiveAlpha;
-  const b = baseColor.b * invCoverageRatio + overlayColor.b * effectiveAlpha;
-  const a =  baseColor.a + overlayColor.a * coverageRatio * invCoverageRatio;
-
-  return { r, g, b, a };
-}
+import { degreeToRadians, normalizeAngle } from "src/lib/utils/angle";
+import { overlayColor, applyBrightness } from "src/lib/utils/color.ts";
 
 export default class RenderSystem extends System {
   public readonly componentsRequired = new Set([PositionComponent]);
+  public readonly mapEntityRenders: EntityRender[] = [];
 
   protected readonly width: number = 640;
   protected readonly height: number = 480;
   protected readonly rayMaxDistanceRay = 20;
-  protected readonly rayPrecision = 128;
+  protected player = {
+    pos: { x: 0, y: 0 },
+    angle: 0,
+  };
 
   protected readonly level: Level;
   protected readonly canvas: Canvas;
   protected readonly container: HTMLElement;
   protected readonly textureManager: TextureManager;
 
-  private mapEntityRenders: EntityRender[] = [];
+  private lightSystem: LightSystem;
 
   constructor(
     ecs: ECS,
@@ -58,8 +51,9 @@ export default class RenderSystem extends System {
   ) {
     super(ecs);
 
-    this.level = level;
     this.container = container;
+    this.level = level;
+    this.textureManager = textureManager;
 
     this.canvas = new Canvas({
       id: "camera",
@@ -67,25 +61,30 @@ export default class RenderSystem extends System {
       width: this.width,
     });
 
-    this.textureManager = textureManager;
+    this.mapEntityRenders = [new DoorRender(), new WallRender()];
+    this.lightSystem = this.ecs.getSystem(LightSystem)!;
   }
 
   start() {
     this.container.appendChild(this.canvas.element);
-
-    this.mapEntityRenders = [
-      new DoorRender(this.height, this.canvas),
-      new WallRender(this.height, this.canvas),
-    ];
   }
 
   update() {
+    this.canvas.clear();
+
     const [player] = this.ecs.query([PlayerComponent]);
     const playerContainer = this.ecs.getComponents(player);
 
     if (!playerContainer) {
       return;
     }
+
+    const posCmp = playerContainer.get(PositionComponent);
+    const angleCmp = playerContainer.get(AngleComponent);
+    this.player = {
+      pos: posCmp,
+      angle: angleCmp.angle,
+    };
 
     this.canvas.createBufferSnapshot();
     this.render(playerContainer);
@@ -98,98 +97,133 @@ export default class RenderSystem extends System {
 
   render(player: ComponentContainer) {
     const playerFov = player.get(CameraComponent);
-    const playerAngle = player.get(AngleComponent);
-    const playerPosition = player.get(PositionComponent);
     const textureMap = this.ecs.getSystem(MapTextureSystem)!.textureMap;
+    const polarMap = this.ecs.getSystem(MapPolarSystem)!.polarMap;
 
-    let rayAngle = normalizeAngle(playerAngle.angle - playerFov.fov / 2);
+    let rayAngle = normalizeAngle(this.player.angle - playerFov.fov / 2);
 
     for (let screenX = 0; screenX < this.width; screenX++) {
-      const incrementRayX =
-        Math.cos(degreeToRadians(rayAngle)) / this.rayPrecision;
-      const incrementRayY =
-        Math.sin(degreeToRadians(rayAngle)) / this.rayPrecision;
+      const rayRad = degreeToRadians(rayAngle);
+      const fishEyeFixCoef = Math.cos(
+        degreeToRadians(rayAngle - this.player.angle),
+      );
 
-      let rayX = playerPosition.x;
-      let rayY = playerPosition.y;
+      const rayDirX = Math.cos(rayRad);
+      const rayDirY = Math.sin(rayRad);
 
-      let distanceRay = 0;
+      let mapX = Math.floor(this.player.pos.x);
+      let mapY = Math.floor(this.player.pos.y);
+
+      const deltaDistX = Math.abs(1 / rayDirX);
+      const deltaDistY = Math.abs(1 / rayDirY);
+
+      let stepX, stepY;
+      let sideDistX, sideDistY;
+
+      if (rayDirX < 0) {
+        stepX = -1;
+        sideDistX = (this.player.pos.x - mapX) * deltaDistX;
+      } else {
+        stepX = 1;
+        sideDistX = (mapX + 1.0 - this.player.pos.x) * deltaDistX;
+      }
+
+      if (rayDirY < 0) {
+        stepY = -1;
+        sideDistY = (this.player.pos.y - mapY) * deltaDistY;
+      } else {
+        stepY = 1;
+        sideDistY = (mapY + 1.0 - this.player.pos.y) * deltaDistY;
+      }
+
+      let side = 0; // 0 for vertical, 1 for horizontal
+
       let mapEntity: ComponentContainer | undefined;
-      let isPropagating = true;
       let renderer: EntityRender | undefined;
+      let renderObjectInfo: RenderLineInfo | undefined;
 
-      while (isPropagating) {
-        rayX += incrementRayX;
-        rayY += incrementRayY;
-
-        if (rayX < 0 || rayX > textureMap.cols) {
-          isPropagating = false;
-          continue;
+      // Perform DDA
+      while (!renderObjectInfo) {
+        if (sideDistX < sideDistY) {
+          sideDistX += deltaDistX;
+          mapX += stepX;
+          side = 0;
+        } else {
+          sideDistY += deltaDistY;
+          mapY += stepY;
+          side = 1;
         }
 
-        if (rayY < 0 || rayY > textureMap.rows) {
-          isPropagating = false;
-          continue;
-        }
-
-        mapEntity = textureMap.get(Math.floor(rayX), Math.floor(rayY));
-
-        // @TODO: refactor
-        if (mapEntity !== undefined) {
+        mapEntity = textureMap.get(mapX, mapY);
+        if (mapEntity) {
           renderer = this.mapEntityRenders.find((render) =>
             render.canRender(mapEntity!),
           );
-          isPropagating = !renderer?.isRayHit(mapEntity!, rayX, rayY);
-        }
-
-        distanceRay = distance(playerPosition.x, playerPosition.y, rayX, rayY);
-
-        if (distanceRay >= this.rayMaxDistanceRay) {
-          isPropagating = false;
+          renderObjectInfo = renderer?.render(
+            mapEntity,
+            this.height,
+            rayAngle,
+            side,
+            sideDistX,
+            sideDistY,
+            deltaDistX,
+            deltaDistY,
+            mapX,
+            mapY,
+            this.player.pos,
+            stepX,
+            stepY,
+            rayDirX,
+            rayDirY,
+            fishEyeFixCoef,
+          );
         }
       }
-
-      const normalizedDistanceRay =
-        distanceRay * Math.cos(degreeToRadians(rayAngle - playerAngle.angle));
-
-      const wallHeight = Math.floor(this.height / 2 / normalizedDistanceRay);
 
       if (mapEntity && renderer) {
-        this._drawHorizonLine(screenX, wallHeight);
-        renderer.render(screenX, mapEntity, rayX, rayY, wallHeight);
-        this._drawFloorLine(screenX, wallHeight, rayAngle, player);
+        this.drawTextureLine(screenX, renderObjectInfo);
+        this._drawFloorLine(screenX, renderObjectInfo.entityHeight, rayAngle);
       } else {
-        this._drawHorizonLine(screenX, 0);
-        this._drawFloorLine(screenX, 0, rayAngle, player);
+        this._drawFloorLine(screenX, 0, rayAngle);
       }
 
+      rayAngle += normalizeAngle(playerFov.fov / this.width);
+
       const incrementAngle = playerFov.fov / this.width;
-      const polarMap = this.ecs.getSystem(MapPolarSystem)!.polarMap;
 
-      polarMap
-        .select(distanceRay, rayAngle, rayAngle + incrementAngle)
-        .forEach((polarEntity) => {
-          this._drawSpriteLine(screenX, rayAngle, polarEntity);
-        });
-
-      rayAngle += normalizeAngle(incrementAngle);
+      const polarEntities = polarMap.select(
+        renderObjectInfo?.distance ?? this.rayMaxDistanceRay,
+        rayAngle,
+        rayAngle + incrementAngle,
+      );
+      for (const polarEntity of polarEntities) {
+        this._drawSpriteLine(screenX, rayAngle, polarEntity);
+      }
     }
   }
+  drawTextureLine(
+    screenX: number,
+    { entityHeight, texture, texturePositionX, rayX, rayY }: RenderLineInfo,
+  ) {
+    const yIncrementer = (entityHeight * 2) / texture.height;
+    let y = this.height / 2 - entityHeight;
 
-  _drawHorizonLine(x: number, wallHeight: number) {
-    this.canvas.drawVerticalLine({
-      x,
-      y1: 0,
-      y2: this.height / 2 - wallHeight,
-      color: this.level.world.colors.top,
-    });
+    const lightLevel = this.lightSystem.getLightingLevelForPoint(rayX, rayY);
 
-    this.canvas.drawVerticalLine({
-      x,
-      y1: this.height / 2 + wallHeight,
-      y2: this.height,
-      color: this.level.world.colors.bottom,
-    });
+    for (let i = 0; i < texture.height; i++) {
+      if (y > -yIncrementer && y < this.height) {
+        this.canvas.drawVerticalLine({
+          x: screenX,
+          y1: y,
+          y2: Math.floor(y + yIncrementer),
+          color: applyBrightness(
+            texture.colors[i][texturePositionX],
+            lightLevel,
+          ),
+        });
+      }
+      y += yIncrementer;
+    }
   }
 
   // @TODO: extract to entity renderers ?
@@ -198,80 +232,93 @@ export default class RenderSystem extends System {
     rayAngle: number,
     polarEntity: PolarPosition,
   ) {
-    const animateSprite = polarEntity.container.get(
-      AnimatedSpriteComponent,
-    )?.sprite;
-    const staticSprite = polarEntity.container.get(SpriteComponent)?.sprite;
-    const highlight = polarEntity.container.get(HighlightComponent);
-    const projectionHeight = Math.floor(this.height / 2 / polarEntity.distance);
+    const container = polarEntity.container;
+    const animateSprite = container.get(AnimatedSpriteComponent)?.sprite;
+    const staticSprite = container.get(SpriteComponent)?.sprite;
+    const highlight = container.get(HighlightComponent);
+    const spritePosition = container.get(PositionComponent);
     const sprite = animateSprite || staticSprite;
+    if (!sprite || !spritePosition) return;
+
+    const {
+      width: spriteWidth,
+      height: spriteHeight,
+      colors: spriteColors,
+    } = sprite;
+
+    const projectionHeight = (this.height / (2 * polarEntity.distance)) | 0;
+    const yIncrementer = (projectionHeight * 2) / spriteHeight;
+    let y = (this.height / 2 - projectionHeight) | 0;
 
     const a1 = normalizeAngle(rayAngle - polarEntity.angleFrom);
     const a2 = normalizeAngle(polarEntity.angleTo - polarEntity.angleFrom);
-    const xTexture = Math.floor((a1 / a2) * sprite.width);
+    const xTexture = ((a1 / a2) * spriteWidth) | 0;
 
-    const yIncrementer = (projectionHeight * 2) / sprite.height;
+    const lightLevel = this.lightSystem.getLightingLevelForPoint(
+      spritePosition.x,
+      spritePosition.y,
+    );
 
-    let y = this.height / 2 - projectionHeight;
+    let highlightPercent = 0;
+    if (highlight) {
+      const timeLeft = highlight.startedAt + highlight.duration - Date.now();
+      highlightPercent = Math.max(0, timeLeft / highlight.duration);
+    }
 
-    for (let i = 0; i < sprite.height; i++) {
-      const spriteColor = sprite.colors[i][xTexture];
-      let color = spriteColor
+    for (let i = 0; i < spriteHeight; i++) {
+      const spriteColor = spriteColors[i][xTexture];
 
-      if (highlight) {
-        const percent = Math.max(0, (highlight.startedAt +  highlight.duration - Date.now()) / highlight.duration);
-
-        color = highlight ? overlayColor(spriteColor, highlight.color, percent) : spriteColor;
-      }
+      const color = highlight
+        ? overlayColor(spriteColor, highlight.color, highlightPercent)
+        : spriteColor;
 
       if (y > -yIncrementer && y < this.height) {
         this.canvas.drawVerticalLine({
           x: screenX,
           y1: y,
-          y2: Math.floor(y + yIncrementer),
-          color,
+          y2: (y + yIncrementer) | 0,
+          color: applyBrightness(color, lightLevel),
         });
       }
+
       y += yIncrementer;
     }
   }
 
-  _drawFloorLine(
-    x: number,
-    wallHeight: number,
-    rayAngle: number,
-    player: ComponentContainer,
-  ) {
-    const playerPosition = player.get(PositionComponent);
-    const playerAngle = player.get(AngleComponent);
+  _drawFloorLine(x: number, wallHeight: number, rayAngle: number) {
     const texture = this.textureManager.get("floor");
+    const { width: textureWidth, height: textureHeight, colors } = texture;
 
     const halfHeight = this.height / 2;
     const start = halfHeight + wallHeight + 1;
 
-    const directionCos = Math.cos(degreeToRadians(rayAngle));
-    const directionSin = Math.sin(degreeToRadians(rayAngle));
+    const rayAngleRad = degreeToRadians(rayAngle);
+    const directionCos = Math.cos(rayAngleRad);
+    const directionSin = Math.sin(rayAngleRad);
+
+    const angleDiffCos =
+      1 / Math.cos(degreeToRadians(this.player.angle) - rayAngleRad);
 
     for (let y = start; y < this.height; y++) {
-      let distance = this.height / (2 * y - this.height);
+      const yDiff = 2 * y - this.height;
+      const distance = (this.height / yDiff) * angleDiffCos;
 
-      distance =
-        distance /
-        Math.cos(
-          degreeToRadians(playerAngle.angle) - degreeToRadians(rayAngle),
-        );
+      const tileX = distance * directionCos + this.player.pos.x;
+      const tileY = distance * directionSin + this.player.pos.y;
 
-      let tileX = distance * directionCos;
-      let tileY = distance * directionSin;
-      tileX += playerPosition.x;
-      tileY += playerPosition.y;
+      const lightLevel = this.lightSystem.getLightingLevelForPoint(
+        tileX,
+        tileY,
+      );
 
-      const textureX =
-        Math.abs(Math.floor(tileX * texture.width)) % texture.width;
-      const textureY =
-        Math.abs(Math.floor(tileY * texture.height)) % texture.height;
-      const color = texture.colors[textureX][textureY];
+      // Faster texture coordinates calculation
+      const textureX = ((tileX * textureWidth) | 0) % textureWidth;
+      const textureY = ((tileY * textureHeight) | 0) % textureHeight;
 
+      // Access color and apply brightness
+      const color = applyBrightness(colors[textureX][textureY], lightLevel);
+
+      // Draw the pixel
       this.canvas.drawPixel({ x, y, color });
     }
   }

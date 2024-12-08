@@ -22,44 +22,52 @@ import SpriteComponent from "./ecs/components/SpriteComponent";
 import PlayerComponent from "./ecs/components/PlayerComponent";
 import ItemComponent from "./ecs/components/ItemComponent";
 import DoorComponent from "src/lib/ecs/components/DoorComponent.ts";
-import { WEAPON_KNIFE_INDEX, WEAPON_PISTOL_INDEX } from "./ecs/systems/WeaponSystem";
-import { generateKnifeWeapon, generatePistolWeapon } from "src/levels/generators/components";
+import LightComponent from "src/lib/ecs/components/LightComponent.ts";
+import {
+  WEAPON_KNIFE_INDEX,
+  WEAPON_PISTOL_INDEX,
+} from "./ecs/systems/WeaponSystem";
+import {
+  generateKnifeWeapon,
+  generatePistolWeapon,
+} from "src/levels/generators/components";
 
 export function createLevelEntities(
   ecs: ECS,
   level: Level,
   playerState: PlayerState,
   textureManager: TextureManager,
-  animationManager: AnimationManager
+  animationManager: AnimationManager,
 ) {
   const player = ecs.addEntity();
 
   const playerHealth = playerState.health || level.player.health;
   const playerComponent = new PlayerComponent();
-  
+
   const knifeWeapon = generateKnifeWeapon(animationManager);
 
   playerComponent.currentWeapon = knifeWeapon;
   playerComponent.weapons[WEAPON_KNIFE_INDEX] = knifeWeapon;
 
   if (playerState.ammo) {
-    const pistolWeapon = generatePistolWeapon(animationManager, playerState.ammo);
+    const pistolWeapon = generatePistolWeapon(
+      animationManager,
+      playerState.ammo,
+    );
 
     playerComponent.currentWeapon = pistolWeapon;
     playerComponent.weapons[WEAPON_PISTOL_INDEX] = pistolWeapon;
   }
 
   ecs.addComponent(player, playerComponent);
+  ecs.addComponent(player, new LightComponent(5, 0.5));
   ecs.addComponent(player, new ControlComponent());
   ecs.addComponent(player, new CircleComponent(0.4));
   ecs.addComponent(
     player,
-    new PositionComponent(level.player.x, level.player.y)
+    new PositionComponent(level.player.x, level.player.y),
   );
-  ecs.addComponent(
-    player,
-    new HealthComponent(playerHealth, playerHealth)
-  );
+  ecs.addComponent(player, new HealthComponent(playerHealth, playerHealth));
   ecs.addComponent(player, new AngleComponent(level.player.angle));
   ecs.addComponent(player, new MoveComponent(3, true));
   ecs.addComponent(player, new CollisionComponent());
@@ -76,7 +84,10 @@ export function createLevelEntities(
     ecs.addComponent(entity, new CircleComponent(item.radius));
     ecs.addComponent(entity, new MinimapComponent("orange"));
 
-    ecs.addComponent(entity, new SpriteComponent(textureManager.get(item.type)));
+    ecs.addComponent(
+      entity,
+      new SpriteComponent(textureManager.get(item.type)),
+    );
     ecs.addComponent(entity, new ItemComponent(item.type, item.value));
   });
 
@@ -99,21 +110,27 @@ export function createLevelEntities(
     }
 
     if (enemy.rangeWeapon) {
-      ecs.addComponent(entity, new WeaponRangeComponent({
-        bulletSprite: enemy.rangeWeapon.bulletSprite,
-        bulletTotal: Infinity,
-        bulletDamage: enemy.rangeWeapon.bulletDamage,
-        bulletSpeed: enemy.rangeWeapon.bulletSpeed,
-        attackDistance: enemy.rangeWeapon.attackDistance,
-        attackFrequency: enemy.rangeWeapon.attackFrequency,
-      }));
+      ecs.addComponent(
+        entity,
+        new WeaponRangeComponent({
+          bulletSprite: enemy.rangeWeapon.bulletSprite,
+          bulletTotal: Infinity,
+          bulletDamage: enemy.rangeWeapon.bulletDamage,
+          bulletSpeed: enemy.rangeWeapon.bulletSpeed,
+          attackDistance: enemy.rangeWeapon.attackDistance,
+          attackFrequency: enemy.rangeWeapon.attackFrequency,
+        }),
+      );
     }
 
     if (enemy.meleeWeapon) {
-      ecs.addComponent(entity, new WeaponMeleeComponent({
-        attackDamage: enemy.meleeWeapon.damage,
-        attackFrequency: enemy.meleeWeapon.frequency,
-      }));
+      ecs.addComponent(
+        entity,
+        new WeaponMeleeComponent({
+          attackDamage: enemy.meleeWeapon.damage,
+          attackFrequency: enemy.meleeWeapon.frequency,
+        }),
+      );
     }
 
     switch (enemy.type) {
@@ -126,7 +143,7 @@ export function createLevelEntities(
             damage: animationManager.get("zombieDamage"),
             death: animationManager.get("zombieDeath"),
             walk: animationManager.get("zombieWalk"),
-          })
+          }),
         );
         break;
       case "soldier":
@@ -138,7 +155,7 @@ export function createLevelEntities(
             damage: animationManager.get("soldierDamage"),
             death: animationManager.get("soldierDeath"),
             walk: animationManager.get("soldierWalk"),
-          })
+          }),
         );
         break;
       case "slayer":
@@ -150,7 +167,7 @@ export function createLevelEntities(
             damage: animationManager.get("slayerDamage"),
             death: animationManager.get("slayerDeath"),
             walk: animationManager.get("slayerWalk"),
-          })
+          }),
         );
         break;
       case "flyguy":
@@ -162,7 +179,7 @@ export function createLevelEntities(
             damage: animationManager.get("flyguyDamage"),
             death: animationManager.get("flyguyDeath"),
             walk: animationManager.get("flyguyWalk"),
-          })
+          }),
         );
         break;
       case "commando":
@@ -174,7 +191,7 @@ export function createLevelEntities(
             damage: animationManager.get("commandoDamage"),
             death: animationManager.get("commandoDeath"),
             walk: animationManager.get("commandoWalk"),
-          })
+          }),
         );
         break;
       case "tank":
@@ -186,7 +203,7 @@ export function createLevelEntities(
             damage: animationManager.get("tankDamage"),
             death: animationManager.get("tankDeath"),
             walk: animationManager.get("tankWalk"),
-          })
+          }),
         );
         break;
     }
@@ -194,11 +211,17 @@ export function createLevelEntities(
 
   // exit
 
-  if (level.endingScenario.name === 'exit') {
+  if (level.endingScenario.name === "exit") {
     const exit = ecs.addEntity();
 
     ecs.addComponent(exit, new BoxComponent(1));
-    ecs.addComponent(exit, new PositionComponent(level.endingScenario.position.x, level.endingScenario.position.y));
+    ecs.addComponent(
+      exit,
+      new PositionComponent(
+        level.endingScenario.position.x,
+        level.endingScenario.position.y,
+      ),
+    );
     ecs.addComponent(exit, new MinimapComponent("yellow"));
   }
 
@@ -206,7 +229,16 @@ export function createLevelEntities(
   level.map.forEach((row, y) => {
     row.forEach((col, x) => {
       const mapItem = level.mapEntities[col];
-      if (mapItem.type === 'empty') {
+      if (mapItem.type === "empty") {
+        return;
+      }
+
+      if (mapItem.type === "light") {
+        const light = ecs.addEntity();
+        ecs.addComponent(light, new LightComponent(4, 1));
+        ecs.addComponent(light, new PositionComponent(x + 0.5, y + 0.5));
+        ecs.addComponent(light, new MinimapComponent("white"));
+        ecs.addComponent(light, new CircleComponent(0.1));
         return;
       }
       const mapItemEntity = ecs.addEntity();
@@ -216,13 +248,20 @@ export function createLevelEntities(
       ecs.addComponent(mapItemEntity, new PositionComponent(x, y));
       ecs.addComponent(mapItemEntity, new TextureComponent(texture));
 
-
-      if (mapItem.type === 'wall') {
+      if (mapItem.type === "wall") {
         ecs.addComponent(mapItemEntity, new MinimapComponent("grey"));
-      } else if (mapItem.type === 'door') {
-        const [aboveBloc, underBloc] = [level.map[y - 1][x], level.map[y + 1][x]];
-        const isVerticalDoor =  level.mapEntities[aboveBloc]?.type === 'wall' && level.mapEntities[underBloc]?.type === 'wall' ;
-        ecs.addComponent(mapItemEntity, new DoorComponent(false, isVerticalDoor));
+      } else if (mapItem.type === "door") {
+        const [aboveBloc, underBloc] = [
+          level.map[y - 1][x],
+          level.map[y + 1][x],
+        ];
+        const isVerticalDoor =
+          level.mapEntities[aboveBloc]?.type === "wall" &&
+          level.mapEntities[underBloc]?.type === "wall";
+        ecs.addComponent(
+          mapItemEntity,
+          new DoorComponent(false, isVerticalDoor),
+        );
 
         ecs.addComponent(mapItemEntity, new MinimapComponent("blue"));
       }

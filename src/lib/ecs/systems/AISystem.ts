@@ -13,7 +13,7 @@ import MoveComponent, {
 } from "src/lib/ecs/components/MoveComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import SoundManager from "src/managers/SoundManager";
-import { normalizeAngle, radiansToDegrees } from "src/lib/utils";
+import { normalizeAngle, radiansToDegrees } from "src/lib/utils/angle";
 import PlayerComponent from "src/lib/ecs/components/PlayerComponent";
 import WeaponRangeComponent from "src/lib/ecs/components/WeaponRangeComponent";
 import BulletComponent from "src/lib/ecs/components/BulletComponent";
@@ -40,7 +40,7 @@ export default class AISystem extends System {
   constructor(
     ecs: ECS,
     textureManager: TextureManager,
-    soundManager: SoundManager
+    soundManager: SoundManager,
   ) {
     super(ecs);
     this.soundManager = soundManager;
@@ -86,7 +86,9 @@ export default class AISystem extends System {
         playerCircle.radius -
         enemyCircle?.radius;
 
-      const shouldEnemyBeActivated = enemyAI.activateDistance > d && !this.hasTextureBetween(playerPosition, enemyPosition);
+      const shouldEnemyBeActivated =
+        enemyAI.activateDistance > d &&
+        !this.hasTextureBetween(playerPosition, enemyPosition);
 
       if (!shouldEnemyBeActivated) {
         enemyAnimation.switchState("idle", true);
@@ -115,12 +117,12 @@ export default class AISystem extends System {
 
   hasTextureBetween(
     playerPosition: PositionComponent,
-    enemyPosition: PositionComponent
+    enemyPosition: PositionComponent,
   ) {
     const textureMap = this.ecs.getSystem(MapTextureSystem)!.textureMap;
 
     let startX = playerPosition.x;
-    let startY = playerPosition.y;;
+    let startY = playerPosition.y;
     const endX = enemyPosition.x;
     const endY = enemyPosition.y;
 
@@ -128,7 +130,10 @@ export default class AISystem extends System {
     const dy = startY < endY ? 0.1 : -0.1;
 
     while (startX < endX || startY < endY) {
-      const textureContainer = textureMap.get(Math.floor(startX), Math.floor(startY));
+      const textureContainer = textureMap.get(
+        Math.floor(startX),
+        Math.floor(startY),
+      );
 
       if (textureContainer) {
         const doorComponent = textureContainer.get(DoorComponent);
@@ -186,7 +191,7 @@ export default class AISystem extends System {
       enemyAI.actionPassedTime = 0;
       playerHealth.current = Math.max(
         0,
-        playerHealth.current - enemyWeapon.attackDamage
+        playerHealth.current - enemyWeapon.attackDamage,
       );
     }
   }
@@ -240,18 +245,22 @@ export default class AISystem extends System {
 
       this.ecs.addComponent(
         entity,
-        new BulletComponent(enemy, enemyWeapon.bulletDamage)
+        new BulletComponent(enemy, enemyWeapon.bulletDamage),
       );
       this.ecs.addComponent(
         entity,
-        new PositionComponent(enemyPosition.x, enemyPosition.y)
+        new PositionComponent(enemyPosition.x, enemyPosition.y),
       );
       this.ecs.addComponent(entity, new AngleComponent(enemyAngle.angle));
       this.ecs.addComponent(entity, new CircleComponent(radius));
       this.ecs.addComponent(entity, new MinimapComponent("yellow"));
       this.ecs.addComponent(
         entity,
-        new MoveComponent(enemyWeapon.bulletSpeed, false, MainDirection.Forward)
+        new MoveComponent(
+          enemyWeapon.bulletSpeed,
+          false,
+          MainDirection.Forward,
+        ),
       );
 
       // one frame live entity

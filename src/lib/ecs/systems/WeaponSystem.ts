@@ -1,6 +1,6 @@
 import System from "src/lib/ecs/System";
 import { ComponentContainer } from "src/lib/ecs/Component";
-import { distance } from "src/lib/utils";
+import { distance } from "src/lib/utils/math";
 import { Entity } from "src/lib/ecs/Entity";
 import Canvas from "src/lib/Canvas/BufferCanvas";
 import AIComponent from "src/lib/ecs/components/AIComponent";
@@ -13,7 +13,9 @@ import CollisionComponent from "src/lib/ecs//components/CollisionComponent";
 import ECS from "src/lib/ecs";
 import HealthComponent from "src/lib/ecs/components/HealthComponent";
 import MinimapComponent from "src/lib/ecs/components/MinimapComponent";
-import MoveComponent, { MainDirection } from "src/lib/ecs/components/MoveComponent";
+import MoveComponent, {
+  MainDirection,
+} from "src/lib/ecs/components/MoveComponent";
 import PositionComponent from "src/lib/ecs/components/PositionComponent";
 import SoundManager from "src/managers/SoundManager";
 import WeaponRangeComponent from "src/lib/ecs/components/WeaponRangeComponent";
@@ -41,7 +43,13 @@ export default class WeaponSystem extends System {
   protected readonly textureManager: TextureManager;
   protected readonly animationManager: AnimationManager;
 
-  constructor(ecs: ECS, container: HTMLElement, animationManager: AnimationManager, textureManager: TextureManager, soundManager: SoundManager) {
+  constructor(
+    ecs: ECS,
+    container: HTMLElement,
+    animationManager: AnimationManager,
+    textureManager: TextureManager,
+    soundManager: SoundManager,
+  ) {
     super(ecs);
 
     this.container = container;
@@ -50,7 +58,7 @@ export default class WeaponSystem extends System {
     this.animationManager = animationManager;
 
     this.canvas = new Canvas({
-      id: 'weapon',
+      id: "weapon",
       height: this.height,
       width: this.width,
     });
@@ -113,7 +121,7 @@ export default class WeaponSystem extends System {
       const entityContainer = this.ecs.getComponents(entity);
 
       if (!entityContainer) {
-        return
+        return;
       }
 
       const entityHealth = entityContainer.get(HealthComponent);
@@ -127,13 +135,13 @@ export default class WeaponSystem extends System {
 
       if (entityHealth.current > 0) {
         if (entity === player) {
-          this.soundManager.playSound('hurt');
+          this.soundManager.playSound("hurt");
         }
 
         const color = { r: 255, g: 0, b: 0, a: 1 };
 
         if (entityHighlight) {
-          entityHighlight.color = color
+          entityHighlight.color = color;
           entityHighlight.startedAt = Date.now();
         } else {
           this.ecs.addComponent(entity, new HighlightComponent(color));
@@ -156,12 +164,17 @@ export default class WeaponSystem extends System {
     });
   }
 
-  findBulletCollision(bullet: ComponentContainer, entities: Set<Entity>): Entity | undefined  {
+  findBulletCollision(
+    bullet: ComponentContainer,
+    entities: Set<Entity>,
+  ): Entity | undefined {
     const bulletCircle = bullet.get(CircleComponent);
     const bulletPosition = bullet.get(PositionComponent);
     const bulletComponent = bullet.get(BulletComponent);
 
-    const entityFromComponentContainer = this.ecs.getComponents(bulletComponent.fromEntity);
+    const entityFromComponentContainer = this.ecs.getComponents(
+      bulletComponent.fromEntity,
+    );
     const entityFromHasEnemy = entityFromComponentContainer.has(EnemyComponent);
 
     for (const entity of entities) {
@@ -177,16 +190,25 @@ export default class WeaponSystem extends System {
         continue;
       }
 
-      const d = distance(bulletPosition.x, bulletPosition.y, entityPosition.x, entityPosition.y);
+      const d = distance(
+        bulletPosition.x,
+        bulletPosition.y,
+        entityPosition.x,
+        entityPosition.y,
+      );
 
       if (d <= bulletCircle.radius + entityCircle.radius) {
         return entity;
       }
-    };
+    }
   }
 
   handleDocumentClick = () => {
-    const [player] = this.ecs.query([PlayerComponent, AngleComponent, PositionComponent]);
+    const [player] = this.ecs.query([
+      PlayerComponent,
+      AngleComponent,
+      PositionComponent,
+    ]);
     const playerContainer = this.ecs.getComponents(player);
     const playerComponent = playerContainer.get(PlayerComponent);
 
@@ -196,46 +218,62 @@ export default class WeaponSystem extends System {
 
     if (playerComponent.currentWeapon instanceof WeaponRangeComponent) {
       this.attackWithRange(player);
-      return
+      return;
     }
 
     if (playerComponent.currentWeapon instanceof WeaponMeleeComponent) {
       this.attackClose(player);
     }
-  }
+  };
 
   attackClose(player: Entity) {
     const playerComponents = this.ecs.getComponents(player);
     const playerComponent = playerComponents.get(PlayerComponent);
     const playerPositionComponent = playerComponents.get(PositionComponent);
     const playerCircleComponent = playerComponents.get(CircleComponent);
-    const playerWeaponComponent = playerComponent.currentWeapon as WeaponMeleeComponent;
-    
-    this.soundManager.playSound('attack-knife');
-    this.weaponSprite?.switchState('attack', false);
+    const playerWeaponComponent =
+      playerComponent.currentWeapon as WeaponMeleeComponent;
 
-    const enemies = this.ecs.query([EnemyComponent, PositionComponent, HealthComponent]);
+    this.soundManager.playSound("attack-knife");
+    this.weaponSprite?.switchState("attack", false);
+
+    const enemies = this.ecs.query([
+      EnemyComponent,
+      PositionComponent,
+      HealthComponent,
+    ]);
 
     for (const enemy of enemies) {
       const enemyComponents = this.ecs.getComponents(enemy);
-      const enemyAnimationComponent = enemyComponents.get(AnimatedSpriteComponent);
+      const enemyAnimationComponent = enemyComponents.get(
+        AnimatedSpriteComponent,
+      );
       const enemyHealthComponent = enemyComponents.get(HealthComponent);
       const enemyPositionComponent = enemyComponents.get(PositionComponent);
       const enemyCircleComponent = enemyComponents.get(CircleComponent);
       const enemyHighlightComponent = enemyComponents.get(HighlightComponent);
 
-      const d = distance(enemyPositionComponent.x, enemyPositionComponent.y, playerPositionComponent.x, playerPositionComponent.y);
+      const d = distance(
+        enemyPositionComponent.x,
+        enemyPositionComponent.y,
+        playerPositionComponent.x,
+        playerPositionComponent.y,
+      );
 
-      const isCollided = d < (enemyCircleComponent.radius + playerCircleComponent.radius);
+      const isCollided =
+        d < enemyCircleComponent.radius + playerCircleComponent.radius;
       const shouldPlayerAttack = isCollided && enemyHealthComponent.current > 0;
 
       if (shouldPlayerAttack) {
-        enemyHealthComponent.current = Math.max(0, enemyHealthComponent.current - playerWeaponComponent.attackDamage);
+        enemyHealthComponent.current = Math.max(
+          0,
+          enemyHealthComponent.current - playerWeaponComponent.attackDamage,
+        );
 
         const color = { r: 255, g: 0, b: 0, a: 1 };
 
         if (enemyHighlightComponent) {
-          enemyHighlightComponent.color = color
+          enemyHighlightComponent.color = color;
           enemyHighlightComponent.startedAt = Date.now();
         } else {
           this.ecs.addComponent(enemy, new HighlightComponent(color));
@@ -251,16 +289,17 @@ export default class WeaponSystem extends System {
   attackWithRange(player: Entity) {
     const playerComponents = this.ecs.getComponents(player);
     const playerComponent = playerComponents.get(PlayerComponent);
-    const weaponRangeComponent = playerComponent.currentWeapon as WeaponRangeComponent;
+    const weaponRangeComponent =
+      playerComponent.currentWeapon as WeaponRangeComponent;
 
     if (weaponRangeComponent.bulletTotal <= 0) {
-      return
+      return;
     }
 
     weaponRangeComponent.bulletTotal -= 1;
 
-    this.soundManager.playSound('gun-shot');
-    this.weaponSprite?.switchState('attack', false);
+    this.soundManager.playSound("gun-shot");
+    this.weaponSprite?.switchState("attack", false);
 
     const entity = this.ecs.addEntity();
     const sprite = this.textureManager.get(weaponRangeComponent.bulletSprite);
@@ -271,13 +310,32 @@ export default class WeaponSystem extends System {
       this.ecs.addComponent(entity, new SpriteComponent(sprite));
     }
 
-    this.ecs.addComponent(entity, new BulletComponent(player, weaponRangeComponent.bulletDamage));
-    this.ecs.addComponent(entity, new PositionComponent(playerComponents.get(PositionComponent).x, playerComponents.get(PositionComponent).y));
-    this.ecs.addComponent(entity, new AngleComponent(playerComponents.get(AngleComponent).angle));
+    this.ecs.addComponent(
+      entity,
+      new BulletComponent(player, weaponRangeComponent.bulletDamage),
+    );
+    this.ecs.addComponent(
+      entity,
+      new PositionComponent(
+        playerComponents.get(PositionComponent).x,
+        playerComponents.get(PositionComponent).y,
+      ),
+    );
+    this.ecs.addComponent(
+      entity,
+      new AngleComponent(playerComponents.get(AngleComponent).angle),
+    );
     this.ecs.addComponent(entity, new CircleComponent(0.25));
-    this.ecs.addComponent(entity, new MinimapComponent('yellow'));
-    this.ecs.addComponent(entity, new MoveComponent(weaponRangeComponent.bulletSpeed, false, MainDirection.Forward));
-  };
+    this.ecs.addComponent(entity, new MinimapComponent("yellow"));
+    this.ecs.addComponent(
+      entity,
+      new MoveComponent(
+        weaponRangeComponent.bulletSpeed,
+        false,
+        MainDirection.Forward,
+      ),
+    );
+  }
 
   createListeners() {
     document.addEventListener("pointerdown", this.handleDocumentClick);

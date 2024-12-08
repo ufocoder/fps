@@ -56,8 +56,11 @@ type MapEntityDoor = {
     type: 'door',
     texture: string
 }
+type MapEntityLight = {
+    type: 'light',
+}
 
-type MapEntity = MapEntityEmpty | MapEntityWall | MapEntityDoor;
+type MapEntity = MapEntityEmpty | MapEntityWall | MapEntityDoor | MapEntityLight;
 
 interface ExitEndingScenario {
     name: 'exit';

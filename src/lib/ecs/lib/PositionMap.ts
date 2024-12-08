@@ -30,4 +30,16 @@ export default class PositionMap<T> {
   public clear() {
     this.map.clear();
   }
+
+  public toArray(): (T | undefined)[][] {
+    const list: (T | undefined)[][] = [];
+    for (let y = 0; y < this.rows; y++) {
+      const row: (T | undefined)[] = [];
+      for (let x = 0; x < this.cols; x++) {
+        row.push(this.get(x, y));
+      }
+      list.push(row);
+    }
+    return list;
+  }
 }

@@ -1,4 +1,4 @@
-import { degreeToRadians } from "src/lib/utils";
+import { degreeToRadians } from "src/lib/utils/angle";
 import { Entity } from "src/lib/ecs/Entity";
 import System from "src/lib/ecs/System";
 import AngleComponent from "src/lib/ecs/components/AngleComponent";
@@ -10,27 +10,32 @@ import { ComponentContainer } from "src/lib/ecs/Component.ts";
 import DoorComponent from "src/lib/ecs/components/DoorComponent.ts";
 
 export default class MoveSystem extends System {
-  public readonly componentsRequired = new Set([PositionComponent, AngleComponent, MoveComponent, CollisionComponent]);
+  public readonly componentsRequired = new Set([
+    PositionComponent,
+    AngleComponent,
+    MoveComponent,
+    CollisionComponent,
+  ]);
 
   start(): void {}
 
   destroy(): void {}
 
   update(dt: number, entities: Set<Entity>) {
-    entities.forEach(entity => {
+    entities.forEach((entity) => {
       this.move(dt, entity);
     });
   }
 
   protected move(dt: number, entity: Entity) {
-    const components = this.ecs.getComponents(entity)
+    const components = this.ecs.getComponents(entity);
     const angleComponent = components.get(AngleComponent);
     const positionComponent = components.get(PositionComponent);
     const collisionComponent = components.get(CollisionComponent);
     const moveComponent = components.get(MoveComponent);
 
     const m = Number(moveComponent.mainDirection);
-    const s = Number(moveComponent.sideDirection) * (-1);
+    const s = Number(moveComponent.sideDirection) * -1;
 
     if (m || s) {
       const mainAngle = degreeToRadians(angleComponent.angle - 360);
@@ -41,10 +46,17 @@ export default class MoveSystem extends System {
       const sideCos = Math.cos(sideAngle);
       const sideSin = Math.sin(sideAngle);
 
-      let newX = positionComponent.x + (m * mainCos + s * sideCos) * moveComponent.moveSpeed * dt;
-      let newY = positionComponent.y + (m * mainSin + s * sideSin) * moveComponent.moveSpeed * dt;
+      let newX =
+        positionComponent.x +
+        (m * mainCos + s * sideCos) * moveComponent.moveSpeed * dt;
+      let newY =
+        positionComponent.y +
+        (m * mainSin + s * sideSin) * moveComponent.moveSpeed * dt;
 
-      const { collidedX, collidedY, collidedWith} = this.getCollision(positionComponent, new PositionComponent(newX, newY));
+      const { collidedX, collidedY, collidedWith } = this.getCollision(
+        positionComponent,
+        new PositionComponent(newX, newY),
+      );
 
       const hasCollision = collidedX || collidedY;
 
@@ -55,8 +67,8 @@ export default class MoveSystem extends System {
       }
 
       if (collidedWith) {
-         collisionComponent.collidedEntity = collidedWith;
-         collisionComponent.isCollided = true;
+        collisionComponent.collidedEntity = collidedWith;
+        collisionComponent.isCollided = true;
       }
 
       if (moveComponent.canSlide) {
@@ -78,7 +90,10 @@ export default class MoveSystem extends System {
     }
   }
 
-  private getCollision(currentPos: PositionComponent, nexPos: PositionComponent) {
+  private getCollision(
+    currentPos: PositionComponent,
+    nexPos: PositionComponent,
+  ) {
     const textureMap = this.ecs.getSystem(MapTextureSystem)!.textureMap;
 
     let collidedWith: ComponentContainer | undefined = undefined;
@@ -89,7 +104,10 @@ export default class MoveSystem extends System {
       collidedX = true;
     }
 
-    const collideWithTextureByX = textureMap.get(Math.floor(nexPos.x), Math.floor(currentPos.y));
+    const collideWithTextureByX = textureMap.get(
+      Math.floor(nexPos.x),
+      Math.floor(currentPos.y),
+    );
 
     if (collideWithTextureByX && this.isCollidedEntity(collideWithTextureByX)) {
       collidedX = true;
@@ -100,7 +118,10 @@ export default class MoveSystem extends System {
       collidedY = true;
     }
 
-    const collideWithTextureByY = textureMap.get(Math.floor(currentPos.x), Math.floor(nexPos.y));
+    const collideWithTextureByY = textureMap.get(
+      Math.floor(currentPos.x),
+      Math.floor(nexPos.y),
+    );
     if (collideWithTextureByY && this.isCollidedEntity(collideWithTextureByY)) {
       collidedY = true;
       collidedWith = collideWithTextureByY;
